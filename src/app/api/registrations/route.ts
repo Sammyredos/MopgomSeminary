@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
           branch: true,
           phoneNumber: true,
           emailAddress: true,
+          matriculationNumber: true,
           emergencyContactName: true,
           emergencyContactRelationship: true,
           emergencyContactPhone: true,
@@ -67,11 +68,17 @@ export async function GET(request: NextRequest) {
       })
     ])
 
+    // Map registrations to include matricNumber field for frontend compatibility
+    const registrationsWithMatricNumbers = registrations.map(registration => ({
+      ...registration,
+      matricNumber: registration.matriculationNumber
+    }))
+
     const totalPages = Math.ceil(totalCount / limit)
 
     return NextResponse.json({
       success: true,
-      registrations,
+      registrations: registrationsWithMatricNumbers,
       pagination: {
         page,
         limit,

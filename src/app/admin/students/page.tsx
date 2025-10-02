@@ -32,6 +32,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { ViewToggle } from '@/components/ui/view-toggle';
+import { Pagination } from '@/components/ui/pagination';
 import { toast } from 'sonner';
 import { useAcademicYear } from '@/hooks/useAcademicYear';
 import CreateStudentModal from '@/components/admin/CreateStudentModal';
@@ -42,6 +44,7 @@ import DeleteStudentModal from '@/components/admin/DeleteStudentModal';
 interface Student {
   id: string;
   studentId: string;
+  matricNumber?: string;
   fullName: string;
   emailAddress: string;
   phoneNumber: string;
@@ -79,7 +82,7 @@ interface Pagination {
   totalPages: number;
 }
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 10; // Changed to 10 items per page for list view
 const GRADES = ['Pre-K', 'K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 interface AcademicYear {
@@ -96,6 +99,7 @@ export default function StudentsPage() {
   const [gradeFilter, setGradeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [academicYearFilter, setAcademicYearFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list'); // Default to list view
   // Use shared academic year hook
   const { academicYears, isLoading: academicYearLoading } = useAcademicYear();
   const [pagination, setPagination] = useState<Pagination>({
@@ -388,6 +392,14 @@ export default function StudentsPage() {
           </div>
         </div>
 
+        {/* View Toggle */}
+        <div className="mt-4 flex justify-end">
+          <ViewToggle 
+            viewMode={viewMode} 
+            onViewModeChange={setViewMode} 
+          />
+        </div>
+
         {hasActiveFilters && (
           <div className="mt-4 flex items-center space-x-2">
             <Filter className="h-4 w-4 text-gray-400" />
@@ -401,7 +413,7 @@ export default function StudentsPage() {
         )}
       </Card>
 
-      {/* Students Table */}
+      {/* Students Display */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -421,93 +433,177 @@ export default function StudentsPage() {
         </CardHeader>
         <CardContent>
           {students.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Student</th>
-                    <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Grade</th>
-                    <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Class</th>
-                    <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Enrollment</th>
-                    <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Parent Contact</th>
-                    <th className="text-right py-3 px-4 font-medium text-sm text-gray-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <>
+              {viewMode === 'list' ? (
+                // List View (Table)
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Student</th>
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Matric Number</th>
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Grade</th>
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Class</th>
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Status</th>
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Enrollment</th>
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Parent Contact</th>
+                        <th className="text-right py-3 px-4 font-medium text-sm text-gray-600">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students.map((student) => (
+                        <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-4 px-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <span className="text-white font-medium text-sm">
+                                  {student.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{student.fullName}</p>
+                                <p className="text-sm text-gray-500">{student.studentId}</p>
+                                <p className="text-sm text-gray-500">{student.emailAddress}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-sm text-gray-900">
+                              {student.matricNumber || 'Not assigned'}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Badge variant="outline">
+                              Grade {student.grade}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-sm text-gray-900">
+                              {student.currentClass || 'Not assigned'}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Badge variant={student.isActive ? 'default' : 'secondary'}>
+                              {student.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div>
+                              <p className="text-sm text-gray-900">{formatDate(student.enrollmentDate)}</p>
+                              <p className="text-sm text-gray-500">{student.academicYear}</p>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div>
+                              <p className="text-sm text-gray-900">{student.parentGuardianName || 'Not provided'}</p>
+                              <p className="text-sm text-gray-500">{student.parentGuardianPhone || 'No phone'}</p>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewStudent(student)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditStudent(student)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteStudent(student)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                // Grid View
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {students.map((student) => (
-                    <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-medium text-sm">
+                    <Card key={student.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-medium">
                               {student.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                             </span>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{student.fullName}</p>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-gray-900 truncate">{student.fullName}</h3>
                             <p className="text-sm text-gray-500">{student.studentId}</p>
-                            <p className="text-sm text-gray-500">{student.emailAddress}</p>
                           </div>
                         </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <Badge variant="outline">
-                          Grade {student.grade}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="text-sm text-gray-900">
-                          {student.currentClass || 'Not assigned'}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <Badge variant={student.isActive ? 'default' : 'secondary'}>
-                          {student.isActive ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div>
-                          <p className="text-sm text-gray-900">{formatDate(student.enrollmentDate)}</p>
-                          <p className="text-sm text-gray-500">{student.academicYear}</p>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Matric Number:</span>
+                            <span className="text-sm text-gray-900">{student.matricNumber || 'Not assigned'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Grade:</span>
+                            <Badge variant="outline">Grade {student.grade}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Status:</span>
+                            <Badge variant={student.isActive ? 'default' : 'secondary'}>
+                              {student.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Class:</span>
+                            <span className="text-sm text-gray-900">{student.currentClass || 'Not assigned'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Enrolled:</span>
+                            <span className="text-sm text-gray-900">{formatDate(student.enrollmentDate)}</span>
+                          </div>
                         </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div>
-                          <p className="text-sm text-gray-900">{student.parentGuardianName || 'Not provided'}</p>
-                          <p className="text-sm text-gray-500">{student.parentGuardianPhone || 'No phone'}</p>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center justify-end space-x-2">
+
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleViewStudent(student)}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditStudent(student)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteStudent(student)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditStudent(student)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteStudent(student)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </td>
-                    </tr>
+                      </CardContent>
+                    </Card>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -532,50 +628,15 @@ export default function StudentsPage() {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <Card className="p-4 mt-6">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} students
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  const pageNumber = i + 1;
-                  return (
-                    <Button
-                      key={pageNumber}
-                      variant={pagination.page === pageNumber ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handlePageChange(pageNumber)}
-                    >
-                      {pageNumber}
-                    </Button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page === pagination.totalPages}
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </Card>
+        <div className="mt-6">
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.total}
+            itemsPerPage={pagination.limit}
+            onPageChange={handlePageChange}
+          />
+        </div>
       )}
 
       {/* Modals */}

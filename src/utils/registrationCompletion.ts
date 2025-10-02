@@ -67,7 +67,7 @@ export function checkRegistrationCompletion(studentData: StudentData): Registrat
       id: 'education',
       title: 'Education & Course',
       completed: false,
-      requiredFields: ['courseDesired'],
+      requiredFields: [],
       missingFields: []
     },
     {

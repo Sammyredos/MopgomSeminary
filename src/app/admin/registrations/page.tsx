@@ -5,6 +5,7 @@ import { AdminLayoutNew } from '@/components/admin/AdminLayoutNew'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { EnhancedBadge, getStatusBadgeVariant } from '@/components/ui/enhanced-badge'
 import { useToast } from '@/contexts/ToastContext'
 import { capitalizeName } from '@/lib/utils'
 import { ErrorModal } from '@/components/ui/error-modal'
@@ -16,6 +17,8 @@ import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
 import { UserCard } from '@/components/ui/user-card'
 import { useTranslation } from '@/contexts/LanguageContext'
 import { clearStatisticsCache } from '@/lib/statistics'
+import { ViewToggle } from '@/components/ui/view-toggle'
+import { Pagination } from '@/components/ui/pagination'
 
 
 import {
@@ -70,6 +73,7 @@ interface Registration {
   // System fields
   createdAt: string
   updatedAt: string
+  matricNumber?: string
   // Admin-only verification fields (not shown in modal)
   isVerified?: boolean
   verifiedAt?: string
@@ -98,6 +102,13 @@ export default function AdminRegistrations() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    // Get saved view mode from localStorage, default to 'list'
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('registrations-view-mode') as 'grid' | 'list') || 'list'
+    }
+    return 'list'
+  })
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null)
   const [isExporting, setIsExporting] = useState(false)
 
@@ -231,7 +242,7 @@ export default function AdminRegistrations() {
     const matchesSearch = searchTerm === '' ||
       registration.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       registration.emailAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      registration.phoneNumber.includes(searchTerm)
+      (registration.matricNumber && registration.matricNumber.toLowerCase().includes(searchTerm.toLowerCase()))
 
     return matchesSearch
   })
@@ -988,6 +999,11 @@ export default function AdminRegistrations() {
 
   // Show skeleton loader while data is loading
   if (loading) {
+    // Detect saved view mode for skeleton loading
+    const savedViewMode = typeof window !== 'undefined' 
+      ? (localStorage.getItem('registrations-view-mode') as 'grid' | 'list') || 'list'
+      : 'list'
+    
     return (
       <AdminLayoutNew title={t('page.registrations.title')} description={t('page.registrations.description')}>
         <div className="space-y-6">
@@ -1022,41 +1038,102 @@ export default function AdminRegistrations() {
             </div>
           </Card>
 
-          {/* Registration Cards Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
-            {Array.from({ length: 15 }).map((_, i) => (
-              <Card key={i} className="p-4 lg:p-6 bg-white">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="h-10 w-10 lg:h-12 lg:w-12 bg-gray-200 rounded-full animate-pulse" />
-                </div>
-                <div className="mb-4">
-                  <div className="h-5 w-32 bg-gray-200 rounded animate-pulse mb-2" />
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
-                      <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
-                    </div>
-                    <div className="flex items-center">
-                      <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
-                      <div className="h-3 w-36 bg-gray-200 rounded animate-pulse" />
-                    </div>
-                    <div className="flex items-center">
-                      <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
-                      <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
-                    </div>
-                    <div className="flex items-center">
-                      <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
-                      <div className="h-3 w-20 bg-gray-200 rounded animate-pulse" />
+          {/* View-aware skeleton loading */}
+          {savedViewMode === 'list' ? (
+            // Table/List View Skeleton
+            <Card className="mb-6 lg:mb-8 bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Age</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Gender</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Matric Number</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {Array.from({ length: 10 }).map((_, i) => (
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse mr-3" />
+                            <div className="space-y-1">
+                              <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="space-y-1">
+                            <div className="h-3 w-40 bg-gray-200 rounded animate-pulse" />
+                            <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="h-6 w-20 bg-gray-200 rounded-full animate-pulse" />
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex space-x-2">
+                            <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                            <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                            <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ) : (
+            // Grid View Skeleton
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <Card key={i} className="p-4 lg:p-6 bg-white">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="h-10 w-10 lg:h-12 lg:w-12 bg-gray-200 rounded-full animate-pulse" />
+                  </div>
+                  <div className="mb-4">
+                    <div className="h-5 w-32 bg-gray-200 rounded animate-pulse mb-2" />
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
+                        <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                      <div className="flex items-center">
+                        <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
+                        <div className="h-3 w-36 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                      <div className="flex items-center">
+                        <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
+                        <div className="h-3 w-28 bg-gray-200 rounded animate-pulse" />
+                      </div>
+                      <div className="flex items-center">
+                        <div className="h-3 w-3 bg-gray-200 rounded animate-pulse mr-2" />
+                        <div className="h-3 w-20 bg-gray-200 rounded animate-pulse" />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex space-x-2">
-                  <div className="flex-1 h-8 bg-gray-200 rounded animate-pulse" />
-                  <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                </div>
-              </Card>
-            ))}
-          </div>
+                  <div className="flex space-x-2">
+                    <div className="flex-1 h-8 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </AdminLayoutNew>
     )
@@ -1115,7 +1192,7 @@ export default function AdminRegistrations() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name, email, or phone..."
+                placeholder="Search by name, email, or matric number..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 lg:py-2 border border-gray-300 rounded-lg font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm lg:text-base"
@@ -1124,22 +1201,15 @@ export default function AdminRegistrations() {
           </div>
 
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-            <Button
-              variant="outline"
-              className="font-apercu-medium text-sm lg:text-base"
-              onClick={() => fetchRegistrations(true)}
-              disabled={refreshing || loading}
-              size="sm"
-            >
-              {refreshing ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-              <span className="sm:hidden">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-            </Button>
-
+            <ViewToggle 
+              viewMode={viewMode} 
+              onViewChange={(mode) => {
+                setViewMode(mode)
+                // Save view mode to localStorage for persistence
+                localStorage.setItem('registrations-view-mode', mode)
+              }} 
+            />
+            
             <Button
               variant="outline"
               className="font-apercu-medium text-sm lg:text-base"
@@ -1154,22 +1224,6 @@ export default function AdminRegistrations() {
               )}
               <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export CSV'}</span>
               <span className="sm:hidden">{isExporting ? 'Exporting...' : 'CSV'}</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="font-apercu-medium text-sm lg:text-base"
-              onClick={handleExportPDFAll}
-              disabled={isExporting || allFilteredRegistrations.length === 0}
-              size="sm"
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <FileText className="h-4 w-4 mr-2" />
-              )}
-              <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export PDF'}</span>
-              <span className="sm:hidden">{isExporting ? 'Exporting...' : 'PDF'}</span>
             </Button>
           </div>
         </div>
@@ -1205,156 +1259,152 @@ export default function AdminRegistrations() {
       </Card>
         </div>
 
-      {/* Registrations Grid - Using Attendance UI Card Design */}
+      {/* Registrations Display - Conditional Grid/List View */}
       <div className="px-6">
         {filteredRegistrations.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
-          {filteredRegistrations.map((registration) => (
-            <UserCard
-              key={registration.id}
-              user={{
-                id: registration.id,
-                fullName: registration.fullName,
-                emailAddress: registration.emailAddress,
-                phoneNumber: registration.phoneNumber,
-                gender: registration.gender,
-                age: calculateAge(registration.dateOfBirth),
-                dateOfBirth: registration.dateOfBirth,
-                createdAt: registration.createdAt,
-                isVerified: registration.isVerified || false,
-                verifiedAt: registration.verifiedAt,
-                verifiedBy: registration.verifiedBy
-              }}
-              onView={() => setSelectedRegistration(registration)}
-              onDelete={() => handleDeleteRegistration(registration)}
-              showDeleteButton={true}
-            />
-          ))}
-        </div>
-      ) : (
-        <Card className="p-12 text-center mb-8 bg-white">
-          {(
-            <>
-              <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="font-apercu-bold text-lg text-gray-900 mb-2">
-                {pagination.total === 0 ? 'No Registrations Yet' : 'No Matching Registrations'}
-              </h3>
-              <p className="font-apercu-regular text-gray-600 mb-4">
-                {pagination.total === 0
-                  ? 'When youth register for your program, they will appear here.'
-                  : 'Try adjusting your search or filter criteria to find registrations.'
-                }
-              </p>
-              {pagination.total === 0 && (
-                <Button className="font-apercu-medium">
-                  <FileText className="h-4 w-4 mr-2" />
-                  View Registration Form
-                </Button>
-              )}
-            </>
-          )}
-        </Card>
-      )}
-        </div>
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
+              {filteredRegistrations.map((registration) => (
+                <UserCard
+                  key={registration.id}
+                  user={{
+                    id: registration.id,
+                    fullName: registration.fullName,
+                    emailAddress: registration.emailAddress,
+                    phoneNumber: registration.phoneNumber,
+                    gender: registration.gender,
+                    age: calculateAge(registration.dateOfBirth),
+                    dateOfBirth: registration.dateOfBirth,
+                    createdAt: registration.createdAt,
+                    matricNumber: registration.matricNumber,
+                    isVerified: registration.isVerified || false,
+                    verifiedAt: registration.verifiedAt,
+                    verifiedBy: registration.verifiedBy
+                  }}
+                  onView={() => setSelectedRegistration(registration)}
+                  onDelete={() => handleDeleteRegistration(registration)}
+                  showDeleteButton={true}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card className="mb-6 lg:mb-8 bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Age</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Gender</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Matric Number</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredRegistrations.map((registration) => (
+                      <tr key={registration.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-8 w-8 bg-indigo-100 flex items-center justify-center rounded-full mr-3">
+                              <span className="text-indigo-600 font-apercu-bold text-xs">
+                                {getInitials(registration.fullName)}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="text-sm font-apercu-medium text-gray-900">
+                                {capitalizeName(registration.fullName)}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-600 font-apercu-regular">{registration.emailAddress}</div>
+                          <div className="text-sm text-gray-500 font-apercu-regular">{registration.phoneNumber}</div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
+                          {calculateAge(registration.dateOfBirth)} years
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
+                          {registration.gender}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <EnhancedBadge 
+                            variant={getStatusBadgeVariant(registration.isVerified ? 'active' : 'pending')}
+                            className="font-apercu-medium"
+                          >
+                            {registration.isVerified ? "Verified" : "Pending"}
+                          </EnhancedBadge>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-apercu-regular">
+                          {registration.matricNumber || 'Not assigned'}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm font-apercu-medium">
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedRegistration(registration)}
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteRegistration(registration)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )
+        ) : (
+          <Card className="p-12 text-center mb-8 bg-white">
+            {(
+              <>
+                <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="font-apercu-bold text-lg text-gray-900 mb-2">
+                  {pagination.total === 0 ? 'No Registrations Yet' : 'No Matching Registrations'}
+                </h3>
+                <p className="font-apercu-regular text-gray-600 mb-4">
+                  {pagination.total === 0
+                    ? 'When youth register for your program, they will appear here.'
+                    : 'Try adjusting your search or filter criteria to find registrations.'
+                  }
+                </p>
+                {pagination.total === 0 && (
+                  <Button className="font-apercu-medium">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Registration Form
+                  </Button>
+                )}
+              </>
+            )}
+          </Card>
+        )}
+      </div>
 
       {/* Pagination */}
       <div className="px-6">
         {totalFilteredPages > 1 && (
-        <Card className="p-4 bg-white">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="font-apercu-regular text-xs sm:text-sm text-gray-700 order-2 sm:order-1">
-              Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, allFilteredRegistrations.length)} of {allFilteredRegistrations.length} registrations
-            </div>
-
-            <div className="flex items-center space-x-1 order-1 sm:order-2">
-              {/* Previous button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                disabled={pagination.page === 1}
-                className="font-apercu-medium px-2 sm:px-3"
-              >
-                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline ml-1">Previous</span>
-              </Button>
-
-              {/* Page numbers */}
-              <div className="flex items-center space-x-1">
-                {(() => {
-                  const getVisiblePages = (): (number | string)[] => {
-                    const delta = 2
-                    const range: number[] = []
-                    const rangeWithDots: (number | string)[] = []
-
-                    // Always show first page
-                    if (totalFilteredPages > 1) {
-                      rangeWithDots.push(1)
-                    }
-
-                    // Add ellipsis if needed
-                    if (pagination.page - delta > 2) {
-                      rangeWithDots.push('...')
-                    }
-
-                    // Add pages around current page
-                    for (let i = Math.max(2, pagination.page - delta); i <= Math.min(totalFilteredPages - 1, pagination.page + delta); i++) {
-                      range.push(i)
-                    }
-                    rangeWithDots.push(...range)
-
-                    // Add ellipsis if needed
-                    if (pagination.page + delta < totalFilteredPages - 1) {
-                      rangeWithDots.push('...')
-                    }
-
-                    // Always show last page
-                    if (totalFilteredPages > 1 && !rangeWithDots.includes(totalFilteredPages)) {
-                      rangeWithDots.push(totalFilteredPages)
-                    }
-
-                    return rangeWithDots
-                  }
-
-                  return getVisiblePages().map((page, index) => (
-                    <div key={index}>
-                      {page === '...' ? (
-                        <span className="px-1 sm:px-2 py-1 text-gray-400 font-apercu-regular text-sm">...</span>
-                      ) : (
-                        <Button
-                          variant={pagination.page === page ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPagination(prev => ({ ...prev, page: page as number }))}
-                          className={`font-apercu-medium min-w-[2rem] sm:min-w-[2.5rem] px-2 sm:px-3 text-sm ${
-                            pagination.page === page
-                              ? 'bg-blue-600 text-white hover:bg-blue-700'
-                              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                          }`}
-                        >
-                          {page}
-                        </Button>
-                      )}
-                    </div>
-                  ))
-                })()}
-              </div>
-
-              {/* Next button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                disabled={pagination.page === totalFilteredPages}
-                className="font-apercu-medium px-2 sm:px-3"
-              >
-                <span className="hidden sm:inline mr-1">Next</span>
-                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
-        </div>
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={totalFilteredPages}
+            onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
+            totalItems={allFilteredRegistrations.length}
+            itemsPerPage={pagination.limit}
+          />
+        )}
+      </div>
 
       {/* Registration Details Modal */}
       {selectedRegistration && (

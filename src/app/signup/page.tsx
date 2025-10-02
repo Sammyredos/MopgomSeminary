@@ -40,6 +40,7 @@ interface FormData {
   dateOfBirth: string
   gender: string
   phone: string
+  courseDesired: string
   password: string
   confirmPassword: string
 }
@@ -57,12 +58,25 @@ export default function StudentSignup() {
     dateOfBirth: '',
     gender: '',
     phone: '',
+    courseDesired: '',
     password: '',
     confirmPassword: ''
   })
   
   const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<FormErrors>({})
+  const [errors, setErrors] = useState<{
+    general?: string
+    surname?: string
+    firstname?: string
+    lastname?: string
+    email?: string
+    dateOfBirth?: string
+    gender?: string
+    phone?: string
+    courseDesired?: string
+    password?: string
+    confirmPassword?: string
+  }>({})
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -205,6 +219,7 @@ export default function StudentSignup() {
     if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required'
     if (!formData.gender) newErrors.gender = 'Gender is required'
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required'
+    if (!formData.courseDesired.trim()) newErrors.courseDesired = 'Course of study is required'
     if (!formData.password) newErrors.password = 'Password is required'
     if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password'
 
@@ -532,7 +547,7 @@ export default function StudentSignup() {
             />
           </div>
           <h1 className="font-apercu-bold text-3xl text-gray-900 mb-2 animate-fade-in animate-delay-100">
-            Create Student Account
+            Register as a New Student
           </h1>
           
           <div className="flex items-center justify-center gap-2 mt-3 animate-fade-in animate-delay-300">
@@ -754,6 +769,29 @@ export default function StudentSignup() {
                     <p className="text-red-500 text-xs font-apercu-regular">{errors.phone}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Course Of Study Field - Full Width */}
+              <div>
+                <label htmlFor="courseDesired" className="font-apercu-medium text-sm text-gray-700">
+                  Course Of Study <span className="text-red-500">*</span>
+                </label>
+                <Select value={formData.courseDesired} onValueChange={(value) => handleInputChange('courseDesired', value)}>
+                  <SelectTrigger className={`h-12 border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors ${
+                    errors.courseDesired ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                  }`}>
+                    <SelectValue placeholder="Select your course of study" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="General Certificate">General Certificate</SelectItem>
+                    <SelectItem value="Diploma Certificate">Diploma Certificate</SelectItem>
+                    <SelectItem value="Bachelor's Degree">Bachelor's Degree</SelectItem>
+                    <SelectItem value="Master's Degree">Master's Degree</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.courseDesired && (
+                  <p className="text-red-500 text-xs font-apercu-regular">{errors.courseDesired}</p>
+                )}
               </div>
 
               {/* Password Fields Row */}

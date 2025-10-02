@@ -9,6 +9,8 @@ import { EnhancedBadge } from '@/components/ui/enhanced-badge'
 import { useTranslation } from '@/contexts/LanguageContext'
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
 import { useToast } from '@/contexts/ToastContext'
+import { ViewToggle } from '@/components/ui/view-toggle'
+import { Pagination } from '@/components/ui/pagination'
 
 import {
   Bell,
@@ -56,6 +58,7 @@ export default function NotificationsPage() {
   const { error } = useToast()
   const [filter, setFilter] = useState('all') // all, unread, read
   const [searchTerm, setSearchTerm] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [selectedNotifications, setSelectedNotifications] = useState<string[]>([])
   const [bulkLoading, setBulkLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{

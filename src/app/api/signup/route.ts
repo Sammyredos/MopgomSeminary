@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
 
     // Validate required fields
-    const requiredFields = ['firstname', 'lastname', 'email', 'password', 'dateOfBirth', 'gender', 'phone']
+    const requiredFields = ['firstname', 'lastname', 'email', 'password', 'dateOfBirth', 'gender', 'phone', 'courseDesired']
     for (const field of requiredFields) {
       if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
         return NextResponse.json(
@@ -225,6 +225,7 @@ export async function POST(request: NextRequest) {
           phoneNumber: data.phone,
           emailAddress: data.email,
           matriculationNumber: matriculationNumber,
+          courseDesired: data.courseDesired,
           emergencyContactName: data.emergencyContactName || `${data.surname} ${data.firstname} ${data.lastname}`,
           emergencyContactRelationship: data.emergencyContactRelationship || 'Self',
           emergencyContactPhone: data.emergencyContactPhone || data.phone,

@@ -273,6 +273,7 @@ model Registration {
   phoneNumber                  String   @unique
   emailAddress                 String   @unique
   matriculationNumber          String?  @unique
+  courseDesired                String?
   emergencyContactName         String
   emergencyContactRelationship String
   emergencyContactPhone        String

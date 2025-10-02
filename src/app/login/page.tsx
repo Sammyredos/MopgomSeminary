@@ -219,7 +219,7 @@ export default function LoginPage() {
               />
             </div>
             <h1 className="font-apercu-bold text-3xl text-gray-900 mb-2 animate-fade-in animate-delay-100">
-              Student Access
+              Academic Access Panel
             </h1>
             <p className="font-apercu-regular text-gray-600 animate-fade-in animate-delay-200">
               Sign in to your dashboard
@@ -370,7 +370,7 @@ export default function LoginPage() {
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-apercu-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all duration-200 transform hover:scale-105"
                 >
                   <Users className="w-4 h-4" />
-                  Create Student Account
+                  Register as a New Student
                 </Link>
               </div>
 

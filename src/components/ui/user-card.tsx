@@ -30,6 +30,7 @@ interface UserCardProps {
     age?: number
     dateOfBirth?: string
     createdAt: string
+    matricNumber?: string
     isVerified?: boolean
     verifiedAt?: string
     verifiedBy?: string
@@ -157,13 +158,13 @@ export function UserCard({
       </div>
 
       <div className="mb-4">
-        <h3 className="font-apercu-bold text-base lg:text-lg text-gray-900 mb-2 line-clamp-2">
+        <h3 className="font-apercu-bold text-sm lg:text-base text-gray-900 mb-2 line-clamp-2">
           {capitalizeName(user.fullName)}
         </h3>
         <div className="space-y-1.5 lg:space-y-2">
-          <div className="flex items-center text-xs lg:text-sm text-gray-600">
+          <div className="flex items-center text-xs lg:text-sm">
             <User className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
-            <span className="font-apercu-regular">
+            <span className="font-apercu-regular text-gray-500">
               {(() => {
                 if (user.age) return `Age ${user.age}`
                 if (user.dateOfBirth) {
@@ -174,22 +175,22 @@ export function UserCard({
               })()} • {user.gender}
             </span>
           </div>
-          <div className="flex items-center text-xs lg:text-sm text-gray-600">
+          <div className="flex items-center text-xs lg:text-sm">
             <Mail className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
-            <span className="font-apercu-regular truncate">
+            <span className="font-apercu-regular text-gray-500 truncate">
               {user.emailAddress}
             </span>
           </div>
-          <div className="flex items-center text-xs lg:text-sm text-gray-600">
+          <div className="flex items-center text-xs lg:text-sm">
             <Phone className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
-            <span className="font-apercu-regular">
+            <span className="font-apercu-regular text-gray-500">
               {user.phoneNumber}
             </span>
           </div>
-          <div className="flex items-center text-xs lg:text-sm text-gray-600">
+          <div className="flex items-center text-xs lg:text-sm">
             <Calendar className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
-            <span className="font-apercu-regular">
-              <span className="hidden sm:inline">Registered </span>{formatDate(user.createdAt)}
+            <span className="font-apercu-regular text-gray-500">
+              <span className="hidden sm:inline text-gray-500">Matric: </span>{user.matricNumber || 'Not assigned'}
             </span>
           </div>
           

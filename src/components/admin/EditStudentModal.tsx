@@ -14,6 +14,7 @@ import { Loader2 } from 'lucide-react';
 interface Student {
   id: string;
   studentId: string;
+  matricNumber?: string;
   fullName: string;
   emailAddress: string;
   phoneNumber: string;
@@ -43,6 +44,7 @@ interface EditStudentModalProps {
 
 interface StudentFormData {
   studentId: string;
+  matricNumber: string;
   fullName: string;
   emailAddress: string;
   phoneNumber: string;
@@ -76,6 +78,7 @@ const relationships = [
 export default function EditStudentModal({ isOpen, onClose, onSuccess, student }: EditStudentModalProps) {
   const [formData, setFormData] = useState<StudentFormData>({
     studentId: '',
+    matricNumber: '',
     fullName: '',
     emailAddress: '',
     phoneNumber: '',
@@ -102,6 +105,7 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
     if (student && isOpen) {
       setFormData({
         studentId: student.studentId,
+        matricNumber: student.matricNumber || '',
         fullName: student.fullName,
         emailAddress: student.emailAddress,
         phoneNumber: student.phoneNumber,
@@ -234,6 +238,16 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
                   className={errors.studentId ? 'border-red-500' : ''}
                 />
                 {errors.studentId && <p className="text-sm text-red-500">{errors.studentId}</p>}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="matricNumber">Matric Number</Label>
+                <Input
+                  id="matricNumber"
+                  value={formData.matricNumber}
+                  onChange={(e) => handleInputChange('matricNumber', e.target.value)}
+                  placeholder="Enter matric number"
+                />
               </div>
               
               <div className="space-y-2">

@@ -50,6 +50,8 @@ import {
   Clock,
   Globe,
 } from 'lucide-react';
+import { ViewToggle } from '@/components/ui/view-toggle';
+import { Pagination } from '@/components/ui/pagination';
 import { toast } from 'sonner';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
@@ -107,6 +109,7 @@ export default function AcademicYearsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list'); // Default to list view
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: ITEMS_PER_PAGE,
@@ -654,6 +657,14 @@ export default function AcademicYearsPage() {
               )}
             </div>
           </div>
+
+          {/* View Toggle */}
+          <div className="mt-4 flex justify-end">
+            <ViewToggle 
+              viewMode={viewMode} 
+              onViewModeChange={setViewMode} 
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -689,146 +700,186 @@ export default function AcademicYearsPage() {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Academic Year</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Semesters</TableHead>
-                    <TableHead>Students</TableHead>
-                    <TableHead>Events</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {academicYears.map((academicYear) => (
-                    <TableRow key={academicYear.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{academicYear.year}</div>
-                          {academicYear.description && (
-                            <div className="text-sm text-gray-500">{academicYear.description}</div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div>{formatDate(academicYear.startDate)}</div>
-                          <div className="text-gray-500">to {formatDate(academicYear.endDate)}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Badge variant={academicYear.isActive ? 'default' : 'secondary'}>
-                            {academicYear.isActive ? 'Active' : 'Inactive'}
-                          </Badge>
-                          {academicYear.isCurrent && (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              Current
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div className="font-medium">{academicYear.semesters.length} semesters</div>
-                          <div className="text-gray-500">
-                            {academicYear.semesters.filter(s => s.isActive).length} active
+              {viewMode === 'list' ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Academic Year</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Semesters</TableHead>
+                      <TableHead>Students</TableHead>
+                      <TableHead>Events</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {academicYears.map((academicYear) => (
+                      <TableRow key={academicYear.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{academicYear.year}</div>
+                            {academicYear.description && (
+                              <div className="text-sm text-gray-500">{academicYear.description}</div>
+                            )}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm font-medium">{academicYear._count.students}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm font-medium">{academicYear._count.calendarEvents}</div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openViewModal(academicYear)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {canEdit && (
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div>{formatDate(academicYear.startDate)}</div>
+                            <div className="text-gray-500">to {formatDate(academicYear.endDate)}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Badge variant={academicYear.isActive ? 'default' : 'secondary'}>
+                              {academicYear.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                            {academicYear.isCurrent && (
+                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                Current
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div className="font-medium">{academicYear.semesters.length} semesters</div>
+                            <div className="text-gray-500">
+                              {academicYear.semesters.filter(s => s.isActive).length} active
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm font-medium">{academicYear._count.students}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm font-medium">{academicYear._count.calendarEvents}</div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => openEditModal(academicYear)}
+                              onClick={() => openViewModal(academicYear)}
                               className="h-8 w-8 p-0"
                             >
-                              <Edit className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </Button>
-                          )}
-                          {canDelete && (
+                            {canEdit && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditModal(academicYear)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openDeleteModal(academicYear)}
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {academicYears.map((academicYear) => (
+                    <Card key={academicYear.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{academicYear.year}</CardTitle>
+                            {academicYear.description && (
+                              <p className="text-sm text-gray-500 mt-1">{academicYear.description}</p>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <Badge variant={academicYear.isActive ? 'default' : 'secondary'}>
+                              {academicYear.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                            {academicYear.isCurrent && (
+                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                Current
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">Duration:</span>
+                            <span>{formatDate(academicYear.startDate)} - {formatDate(academicYear.endDate)}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1 text-sm">
+                              <BookOpen className="h-4 w-4 text-gray-400" />
+                              <span>{academicYear.semesters.length} Semesters</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm">
+                              <Users className="h-4 w-4 text-gray-400" />
+                              <span>{academicYear._count.students} Students</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm">
+                            <CalendarDays className="h-4 w-4 text-gray-400" />
+                            <span>{academicYear._count.calendarEvents} Events</span>
+                          </div>
+                          <div className="flex items-center justify-end gap-2 pt-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => openDeleteModal(academicYear)}
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => openViewModal(academicYear)}
+                              className="h-8 w-8 p-0"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Eye className="h-4 w-4" />
                             </Button>
-                          )}
+                            {canEdit && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditModal(academicYear)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openDeleteModal(academicYear)}
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </CardContent>
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-gray-500">
-                    Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                    {pagination.total} academic years
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                      disabled={pagination.page === 1}
-                      className="flex items-center gap-1"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
-                    </Button>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        const pageNum = i + 1;
-                        return (
-                          <Button
-                            key={pageNum}
-                            variant={pagination.page === pageNum ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => handlePageChange(pageNum)}
-                            className="w-8 h-8 p-0"
-                          >
-                            {pageNum}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                      disabled={pagination.page === pagination.totalPages}
-                      className="flex items-center gap-1"
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </div>
               )}
+
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.total}
+                itemsPerPage={pagination.limit}
+                onPageChange={handlePageChange}
+              />
             </>
           )}
         </CardContent>
