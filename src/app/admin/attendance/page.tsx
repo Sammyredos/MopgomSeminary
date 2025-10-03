@@ -638,7 +638,7 @@ function AttendancePageContent() {
             </div>
 
             {/* Stats Cards Skeleton */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="bg-white rounded-lg border p-4 sm:p-6">
                   <div className="flex items-center justify-between">
@@ -682,7 +682,7 @@ function AttendancePageContent() {
           <div className="space-y-6">
             {/* Statistics Cards - Responsive Grid */}
             {stats ? (
-              <StatsGrid columns={6}>
+              <StatsGrid columns={4}>
               <StatsCard
                 title="Total Registrations"
                 value={stats.overview.totalRegistrations}
@@ -942,7 +942,6 @@ function AttendancePageContent() {
           )}
 
           {/* Verification Controls */}
-          <>
               <Card className="border-0 shadow-sm bg-white">
                 <div className="p-4 sm:p-6 border-b border-gray-100">
                   <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between">
@@ -1172,7 +1171,6 @@ function AttendancePageContent() {
                 </div>
               )}
             </Card>
-          )}
         </div>
         )}
       </div>

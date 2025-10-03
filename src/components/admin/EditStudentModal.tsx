@@ -14,7 +14,7 @@ import { Loader2 } from 'lucide-react';
 interface Student {
   id: string;
   studentId: string;
-  matricNumber?: string;
+  matriculationNumber?: string;
   fullName: string;
   emailAddress: string;
   phoneNumber: string;
@@ -44,7 +44,7 @@ interface EditStudentModalProps {
 
 interface StudentFormData {
   studentId: string;
-  matricNumber: string;
+  matriculationNumber: string;
   fullName: string;
   emailAddress: string;
   phoneNumber: string;
@@ -56,6 +56,7 @@ interface StudentFormData {
   graduationYear: string;
   currentClass: string;
   academicYear: string;
+  courseId: string;
   parentGuardianName: string;
   parentGuardianPhone: string;
   parentGuardianEmail: string;
@@ -76,9 +77,10 @@ const relationships = [
 ];
 
 export default function EditStudentModal({ isOpen, onClose, onSuccess, student }: EditStudentModalProps) {
+  const [courses, setCourses] = useState<Array<{ id: string; courseName: string; courseCode: string }>>([]);
   const [formData, setFormData] = useState<StudentFormData>({
     studentId: '',
-    matricNumber: '',
+    matriculationNumber: '',
     fullName: '',
     emailAddress: '',
     phoneNumber: '',
@@ -90,6 +92,7 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
     graduationYear: '',
     currentClass: '',
     academicYear: '',
+    courseId: '',
     parentGuardianName: '',
     parentGuardianPhone: '',
     parentGuardianEmail: '',
@@ -105,7 +108,7 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
     if (student && isOpen) {
       setFormData({
         studentId: student.studentId,
-        matricNumber: student.matricNumber || '',
+        matriculationNumber: student.matriculationNumber || '',
         fullName: student.fullName,
         emailAddress: student.emailAddress,
         phoneNumber: student.phoneNumber,
@@ -117,6 +120,7 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
         graduationYear: student.graduationYear?.toString() || '',
         currentClass: student.currentClass || '',
         academicYear: student.academicYear,
+        courseId: '',
         parentGuardianName: student.parentGuardianName || '',
         parentGuardianPhone: student.parentGuardianPhone || '',
         parentGuardianEmail: student.parentGuardianEmail || '',
@@ -128,6 +132,22 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
       setErrors({});
     }
   }, [student, isOpen]);
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const res = await fetch('/api/admin/courses');
+        if (!res.ok) return;
+        const data = await res.json();
+        setCourses(data.courses || []);
+      } catch (e) {
+        console.error('Failed to load courses', e);
+      }
+    }
+    if (isOpen) {
+      fetchCourses();
+    }
+  }, [isOpen]);
 
   const handleInputChange = (field: keyof StudentFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -178,8 +198,27 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
 
     try {
       const submitData = {
-        ...formData,
+        studentId: formData.studentId,
+        matriculationNumber: formData.matriculationNumber,
+        fullName: formData.fullName,
+        emailAddress: formData.emailAddress,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        address: formData.address,
+        grade: formData.grade,
+        enrollmentDate: formData.enrollmentDate,
         graduationYear: formData.graduationYear ? parseInt(formData.graduationYear) : undefined,
+        currentClass: formData.currentClass,
+        academicYear: formData.academicYear,
+        parentGuardianName: formData.parentGuardianName,
+        parentGuardianPhone: formData.parentGuardianPhone,
+        parentGuardianEmail: formData.parentGuardianEmail,
+        emergencyContactName: formData.emergencyContactName,
+        emergencyContactRelationship: formData.emergencyContactRelationship,
+        emergencyContactPhone: formData.emergencyContactPhone,
+        isActive: formData.isActive,
+        courseId: formData.courseId || undefined,
       };
 
       const response = await fetch(`/api/students/${student.id}`, {
@@ -244,8 +283,8 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
                 <Label htmlFor="matricNumber">Matric Number</Label>
                 <Input
                   id="matricNumber"
-                  value={formData.matricNumber}
-                  onChange={(e) => handleInputChange('matricNumber', e.target.value)}
+                  value={formData.matriculationNumber}
+                  onChange={(e) => handleInputChange('matriculationNumber', e.target.value)}
                   placeholder="Enter matric number"
                 />
               </div>
@@ -344,6 +383,20 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
                   </SelectContent>
                 </Select>
                 {errors.grade && <p className="text-sm text-red-500">{errors.grade}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="courseOfStudy">Course of Study</Label>
+                <Select value={formData.courseId} onValueChange={(value) => handleInputChange('courseId', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.courseName} ({c.courseCode})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">

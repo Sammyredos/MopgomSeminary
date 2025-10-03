@@ -44,7 +44,7 @@ import DeleteStudentModal from '@/components/admin/DeleteStudentModal';
 interface Student {
   id: string;
   studentId: string;
-  matricNumber?: string;
+  matriculationNumber?: string;
   fullName: string;
   emailAddress: string;
   phoneNumber: string;
@@ -65,6 +65,7 @@ interface Student {
   emergencyContactPhone: string;
   createdAt: string;
   updatedAt: string;
+  courseOfStudy?: string | null;
 }
 
 interface AnalyticsData {
@@ -442,6 +443,7 @@ export default function StudentsPage() {
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Student</th>
                         <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Matric Number</th>
+                        <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Course of Study</th>
                         <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Grade</th>
                         <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Class</th>
                         <th className="text-left py-3 px-4 font-medium text-sm text-gray-600">Status</th>
@@ -469,7 +471,12 @@ export default function StudentsPage() {
                           </td>
                           <td className="py-4 px-4">
                             <span className="text-sm text-gray-900">
-                              {student.matricNumber || 'Not assigned'}
+                              {student.matriculationNumber || 'Not assigned'}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className="text-sm text-gray-900">
+                              {student.courseOfStudy || 'Not assigned'}
                             </span>
                           </td>
                           <td className="py-4 px-4">
@@ -550,7 +557,11 @@ export default function StudentsPage() {
                         <div className="space-y-2 mb-4">
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Matric Number:</span>
-                            <span className="text-sm text-gray-900">{student.matricNumber || 'Not assigned'}</span>
+                            <span className="text-sm text-gray-900">{student.matriculationNumber || 'Not assigned'}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Course of Study:</span>
+                            <span className="text-sm text-gray-900">{student.courseOfStudy || 'Not assigned'}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Grade:</span>

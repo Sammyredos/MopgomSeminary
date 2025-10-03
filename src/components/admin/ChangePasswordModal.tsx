@@ -103,20 +103,32 @@ export default function ChangePasswordModal({ isOpen, onClose, user }: ChangePas
     setSuccess('')
 
     try {
-      const response = await fetch('/api/admin/change-password', {
-        method: 'POST',
+      const response = await fetch(`/api/admin/users/${user.id}/change-password`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
           newPassword: formData.newPassword,
+          confirmPassword: formData.confirmPassword,
         }),
       })
 
+      // Try to parse JSON safely; handle HTML responses gracefully
+      let data: any = null
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        data = await response.json()
+      } else {
+        const text = await response.text()
+        if (!response.ok) {
+          throw new Error('Unexpected response format during password change')
+        }
+        data = { success: true, message: text }
+      }
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to change password')
+        throw new Error(data?.error || 'Failed to change password')
       }
 
       setSuccess('Password changed successfully!')

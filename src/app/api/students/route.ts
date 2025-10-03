@@ -75,15 +75,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Get students with pagination
-    const [students, total] = await Promise.all([
+    const [studentsRaw, total] = await Promise.all([
       prisma.student.findMany({
         where,
         skip: offset,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          courseAllocations: {
+            where: { isActive: true },
+            include: { course: true },
+          },
+        },
       }),
       prisma.student.count({ where }),
     ]);
+
+    const students = studentsRaw.map((s) => ({
+      ...s,
+      courseOfStudy: s.courseAllocations?.[0]?.course?.courseName || null,
+    }));
 
     // Calculate analytics
     const [totalStudents, activeStudents, newThisMonth, allStudents] = await Promise.all([

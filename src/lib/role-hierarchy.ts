@@ -90,9 +90,9 @@ export function getAssignableRoles(userRole: string): string[] {
     return ['Super Admin', 'Admin', 'Lecturer', 'Student']
   }
 
-  // Admin can assign Lecturer and Student roles
+  // Admin can assign Admin, Lecturer, and Student roles
   if (userRole === 'Admin') {
-    return ['Lecturer', 'Student']
+    return ['Admin', 'Lecturer', 'Student']
   }
 
   // Lecturers can only assign Student role

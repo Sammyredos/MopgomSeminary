@@ -53,13 +53,13 @@ function AdminLayoutContent({ children, title, description }: AdminLayoutProps) 
       <DynamicTitle pageTitle={title} />
       <DynamicFavicon />
 
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64" suppressHydrationWarning={true}>
+      {/* Desktop Sidebar (show only on xl and above to improve tablet landscape) */}
+      <div className="hidden xl:fixed xl:inset-y-0 xl:flex xl:w-64" suppressHydrationWarning={true}>
         <AdminSidebar />
       </div>
 
-      {/* Mobile Sidebar */}
-      <div className="lg:hidden" suppressHydrationWarning={true}>
+      {/* Mobile Sidebar (use on tablet and below) */}
+      <div className="xl:hidden" suppressHydrationWarning={true}>
         <div className="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200" suppressHydrationWarning={true}>
           <div className="flex items-center space-x-2 min-w-0 flex-1" suppressHydrationWarning={true}>
             {branding.logoUrl ? (
@@ -95,8 +95,8 @@ function AdminLayoutContent({ children, title, description }: AdminLayoutProps) 
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="lg:pl-64" suppressHydrationWarning={true}>
+      {/* Main Content (avoid sidebar padding on tablet landscape) */}
+      <div className="xl:pl-64" suppressHydrationWarning={true}>
         <div className="flex flex-col min-h-screen" suppressHydrationWarning={true}>
           {/* Header */}
           {(title || description) && (
