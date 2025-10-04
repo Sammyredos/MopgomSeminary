@@ -1,154 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/db'
 import { verifyToken } from '@/lib/auth'
-
-const prisma = new PrismaClient()
+import { checkRegistrationCompletion } from '@/utils/registrationCompletion'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
 
-    // Get token from cookie
+    // Auth check
     const token = request.cookies.get('auth-token')?.value
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    // Verify token
     const payload = verifyToken(token)
     if (!payload) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    // Determine user type from token
-    const userType = payload.type || 'admin'
-
-    let currentUser
-    if (userType === 'admin') {
-      currentUser = await prisma.admin.findUnique({
-        where: { id: payload.adminId },
-        include: { role: true }
-      })
-    } else {
-      currentUser = await prisma.user.findUnique({
-        where: { id: payload.adminId },
-        include: { role: true }
-      })
-    }
-
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: payload.adminId },
+      select: { id: true, isActive: true, role: { select: { name: true } } }
+    })
     if (!currentUser || !currentUser.isActive) {
       return NextResponse.json({ error: 'User not found or inactive' }, { status: 401 })
     }
-
-    // Check if user has permission to view registrations
-    if (!['Super Admin', 'School Administrator', 'Admin', 'Lecturer', 'Manager', 'Student', 'Staff', 'Viewer'].includes(currentUser.role?.name || '')) {
+    if (!['Super Admin', 'Admin', 'Staff'].includes(currentUser.role?.name || '')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
-    // Get registration with room allocation
-    const registration = await prisma.registration.findUnique({
-      where: { id },
-      include: {
-        roomAllocation: {
-          include: {
-            room: {
-              select: {
-                id: true,
-                name: true,
-                gender: true,
-                capacity: true
-              }
-            }
-          }
-        }
-      }
-    })
-
+    const registration = await prisma.registration.findUnique({ where: { id } })
     if (!registration) {
-      return NextResponse.json(
-        { error: 'Registration not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
     }
 
-    return NextResponse.json({
-      success: true,
-      registration,
-      message: 'Registration retrieved successfully'
-    })
-
+    return NextResponse.json({ success: true, registration })
   } catch (error) {
-    console.error('Error fetching registration:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch registration' },
-      { status: 500 }
-    )
+    console.error('Get registration error:', error)
+    return NextResponse.json({ error: 'Failed to fetch registration' }, { status: 500 })
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
-    console.log('Update registration API called for ID:', id)
+    const { id } = params
 
-    // Get token from cookie
+    // Auth check
     const token = request.cookies.get('auth-token')?.value
     if (!token) {
-      console.log('No token found in cookies')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    // Verify token
     const payload = verifyToken(token)
     if (!payload) {
-      console.log('Invalid token')
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
-
-    // Determine user type from token
-    const userType = payload.type || 'admin'
-
-    let currentUser
-    if (userType === 'admin') {
-      // Fetch admin user
-      currentUser = await prisma.admin.findUnique({
-        where: { id: payload.adminId },
-        include: {
-          role: {
-            include: {
-              permissions: true
-            }
-          }
-        }
-      })
-    } else {
-      // Fetch regular user
-      currentUser = await prisma.user.findUnique({
-        where: { id: payload.adminId },
-        include: {
-          role: {
-            include: {
-              permissions: true
-            }
-          }
-        }
-      })
-    }
-
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: payload.adminId },
+      select: { id: true, isActive: true, role: { select: { name: true } } }
+    })
     if (!currentUser || !currentUser.isActive) {
-      console.log('User not found or inactive')
       return NextResponse.json({ error: 'User not found or inactive' }, { status: 401 })
     }
-
-    // Check if user has permission to update registrations (Super Admin, Admin, Manager, Staff)
-    if (!['Super Admin', 'School Administrator', 'Admin', 'Lecturer', 'Manager', 'Student', 'Staff'].includes(currentUser.role?.name || '')) {
-      console.log('Insufficient permissions. User role:', currentUser.role?.name)
+    if (!['Super Admin', 'Admin', 'Staff'].includes(currentUser.role?.name || '')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
@@ -158,6 +76,7 @@ export async function PUT(
       dateOfBirth,
       gender,
       emailAddress,
+      matriculationNumber,
       phoneNumber,
       address,
       branch,
@@ -171,77 +90,145 @@ export async function PUT(
       allergies,
       specialNeeds,
       dietaryRestrictions,
-      parentalPermissionGranted
+      parentalPermissionGranted,
+      courseDesired,
+      // Accept admin UI fields for address mapping
+      homeAddress,
+      officePostalAddress
     } = body
 
-    // Validate required fields with detailed error messages
-    const missingFields = []
-    if (!fullName?.trim()) missingFields.push('fullName')
-    if (!dateOfBirth) missingFields.push('dateOfBirth')
-    if (!gender?.trim()) missingFields.push('gender')
-    if (!emailAddress?.trim()) missingFields.push('emailAddress')
-    if (!phoneNumber?.trim()) missingFields.push('phoneNumber')
-    if (!address?.trim()) missingFields.push('address')
-    if (!emergencyContactName?.trim()) missingFields.push('emergencyContactName')
-    if (!emergencyContactRelationship?.trim()) missingFields.push('emergencyContactRelationship')
-    if (!emergencyContactPhone?.trim()) missingFields.push('emergencyContactPhone')
+    // Load existing registration first for partial updates
+    const existingRegistration = await prisma.registration.findUnique({ where: { id } })
+    if (!existingRegistration) {
+      return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
+    }
+
+    // Merge body with existing values for validation
+    const effectiveFullName = (fullName ?? existingRegistration.fullName)?.trim()
+    const effectiveGender = (gender ?? existingRegistration.gender)?.trim()
+    const effectiveEmail = (emailAddress ?? existingRegistration.emailAddress)?.trim()
+    const effectivePhone = (phoneNumber ?? existingRegistration.phoneNumber)?.trim()
+    // Map admin UI's homeAddress to core address when provided
+    const effectiveAddress = (address ?? homeAddress ?? existingRegistration.address)?.trim()
+    const effectiveEmergencyContactName = (emergencyContactName ?? existingRegistration.emergencyContactName)?.trim()
+    const effectiveEmergencyContactRelationship = (emergencyContactRelationship ?? existingRegistration.emergencyContactRelationship)?.trim()
+    const effectiveEmergencyContactPhone = (emergencyContactPhone ?? existingRegistration.emergencyContactPhone)?.trim()
+
+    const effectiveDateOfBirth = dateOfBirth ? new Date(dateOfBirth) : existingRegistration.dateOfBirth
+
+    // Validate required fields after merging; avoids false 400 on partial edits
+    const missingFields: string[] = []
+    if (!effectiveFullName) missingFields.push('fullName')
+    if (!effectiveDateOfBirth) missingFields.push('dateOfBirth')
+    if (!effectiveGender) missingFields.push('gender')
+    if (!effectiveEmail) missingFields.push('emailAddress')
+    if (!effectivePhone) missingFields.push('phoneNumber')
+    // For admin updates, treat address and emergency contact as optional to allow partial edits
 
     if (missingFields.length > 0) {
-      console.log('Missing fields:', missingFields)
-      console.log('Request body:', JSON.stringify(body, null, 2))
       return NextResponse.json({
         error: `Missing required fields: ${missingFields.join(', ')}`,
         missingFields
       }, { status: 400 })
     }
 
-    // Check if registration exists
-    const existingRegistration = await prisma.registration.findUnique({
-      where: { id }
-    })
-
-    if (!existingRegistration) {
-      return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
-    }
-
-    // Calculate age from date of birth
-    const birthDate = new Date(dateOfBirth)
+    // Calculate age from effective date of birth
     const today = new Date()
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    let age = today.getFullYear() - effectiveDateOfBirth.getFullYear()
+    const monthDiff = today.getMonth() - effectiveDateOfBirth.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < effectiveDateOfBirth.getDate())) {
       age--
     }
 
-    // Update the registration
+    // Prepare update data, falling back to existing values for partial updates
     const updatedRegistration = await prisma.registration.update({
       where: { id },
       data: {
-        fullName,
-        dateOfBirth: birthDate,
+        matriculationNumber: matriculationNumber ?? existingRegistration.matriculationNumber,
+        fullName: effectiveFullName,
+        dateOfBirth: effectiveDateOfBirth,
         age,
-        gender,
-        emailAddress,
-        phoneNumber,
-        address,
-        branch: branch || 'Not Specified',
-        emergencyContactName,
-        emergencyContactRelationship,
-        emergencyContactPhone,
-        parentGuardianName: parentGuardianName || null,
-        parentGuardianPhone: parentGuardianPhone || null,
-        parentGuardianEmail: parentGuardianEmail || null,
-        medications: medications || null,
-        allergies: allergies || null,
-        specialNeeds: specialNeeds || null,
-        dietaryRestrictions: dietaryRestrictions || null,
-        parentalPermissionGranted: Boolean(parentalPermissionGranted),
-        parentalPermissionDate: parentalPermissionGranted && !existingRegistration.parentalPermissionGranted
+        gender: effectiveGender,
+        emailAddress: effectiveEmail,
+        phoneNumber: effectivePhone,
+        address: effectiveAddress,
+        branch: (branch ?? existingRegistration.branch) || 'Not Specified',
+        emergencyContactName: effectiveEmergencyContactName,
+        emergencyContactRelationship: effectiveEmergencyContactRelationship,
+        emergencyContactPhone: effectiveEmergencyContactPhone,
+        parentGuardianName: parentGuardianName ?? existingRegistration.parentGuardianName,
+        parentGuardianPhone: parentGuardianPhone ?? existingRegistration.parentGuardianPhone,
+        parentGuardianEmail: parentGuardianEmail ?? existingRegistration.parentGuardianEmail,
+        medications: medications ?? existingRegistration.medications,
+        allergies: allergies ?? existingRegistration.allergies,
+        specialNeeds: specialNeeds ?? existingRegistration.specialNeeds,
+        dietaryRestrictions: dietaryRestrictions ?? existingRegistration.dietaryRestrictions,
+        parentalPermissionGranted: typeof parentalPermissionGranted === 'boolean'
+          ? parentalPermissionGranted
+          : existingRegistration.parentalPermissionGranted,
+        parentalPermissionDate: (typeof parentalPermissionGranted === 'boolean' && parentalPermissionGranted && !existingRegistration.parentalPermissionGranted)
           ? new Date()
           : existingRegistration.parentalPermissionDate,
+        courseDesired: courseDesired ?? existingRegistration.courseDesired,
         updatedAt: new Date()
       }
     })
+
+    // Auto-set verification based on completion
+    try {
+      const completionStatus = checkRegistrationCompletion({
+        name: updatedRegistration.fullName,
+        email: updatedRegistration.emailAddress,
+        phone: updatedRegistration.phoneNumber,
+        dateOfBirth: updatedRegistration.dateOfBirth?.toISOString?.() || '',
+        gender: updatedRegistration.gender,
+        // Map available fields if present; fallbacks keep completion false when missing
+        homeAddress: (homeAddress ?? updatedRegistration.address) || '',
+        officePostalAddress: officePostalAddress ?? '',
+        maritalStatus: body.maritalStatus ?? '',
+        spouseName: body.spouseName ?? '',
+        placeOfBirth: body.placeOfBirth ?? '',
+        origin: body.origin ?? '',
+        presentOccupation: body.presentOccupation ?? '',
+        placeOfWork: body.placeOfWork ?? '',
+        positionHeldInOffice: body.positionHeldInOffice ?? '',
+        acceptedJesusChrist: typeof body.acceptedJesusChrist === 'boolean' ? body.acceptedJesusChrist : undefined,
+        whenAcceptedJesus: body.whenAcceptedJesus ?? '',
+        churchAffiliation: body.churchAffiliation ?? '',
+        schoolsAttended: Array.isArray(body.schoolsAttended) ? body.schoolsAttended : [],
+        courseDesired: updatedRegistration.courseDesired || body.courseDesired || ''
+      })
+
+      if (completionStatus.isComplete) {
+        // Determine current user for verifiedBy
+        const token = request.cookies.get('auth-token')?.value
+        const payload = token ? verifyToken(token) : null
+        let verifiedByEmail: string | null = null
+        if (payload) {
+          const user = await prisma.admin.findUnique({ where: { id: payload.adminId } })
+          verifiedByEmail = user?.email || null
+        }
+
+        const verifiedUpdate = await prisma.registration.update({
+          where: { id },
+          data: {
+            isVerified: true,
+            verifiedAt: new Date(),
+            verifiedBy: verifiedByEmail
+          }
+        })
+        // Reflect in response
+        // @ts-ignore: dynamic field presence varies by schema
+        updatedRegistration.isVerified = (verifiedUpdate as any).isVerified
+        // @ts-ignore
+        updatedRegistration.verifiedAt = (verifiedUpdate as any).verifiedAt
+        // @ts-ignore
+        updatedRegistration.verifiedBy = (verifiedUpdate as any).verifiedBy
+      }
+    } catch (e) {
+      // Do not block update on completion check failures
+      console.warn('Registration completion check failed:', e)
+    }
 
     console.log('Registration updated successfully:', updatedRegistration.id)
 
@@ -275,10 +262,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const { id } = params
     console.log('Delete registration API called for ID:', id)
 
     // Get token from cookie
@@ -346,3 +333,23 @@ export async function DELETE(
     }, { status: 500 })
   }
 }
+
+    // Synchronize matriculationNumber with corresponding student record (by email/phone)
+    try {
+      if (updatedRegistration.matriculationNumber !== undefined) {
+        await prisma.student.updateMany({
+          where: {
+            OR: [
+              { emailAddress: updatedRegistration.emailAddress },
+              { phoneNumber: updatedRegistration.phoneNumber }
+            ]
+          },
+          data: {
+            matriculationNumber: updatedRegistration.matriculationNumber || null
+          }
+        })
+      }
+    } catch (syncErr) {
+      console.warn('Student matriculation sync failed:', syncErr)
+    }
+

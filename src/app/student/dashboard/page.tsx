@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
@@ -33,6 +34,8 @@ import { StudentLayout } from '@/components/student/StudentLayout'
 import { ProtectedRoute } from '@/components/student/ProtectedRoute'
 import { RegistrationWarning } from '@/components/student/RegistrationWarning'
 import { checkRegistrationCompletion, RegistrationCompletionStatus } from '@/utils/registrationCompletion'
+import AutoCalendarView from '@/components/admin/AutoCalendarView'
+import { useMessages } from '@/contexts/MessageContext'
 
 interface StudentData {
   id: string
@@ -45,6 +48,7 @@ interface StudentData {
   academicYear: string
   enrollmentDate: string
   currentClass?: string
+  courseDesired?: string
   profileImage?: string
   gpa?: number
   totalCredits?: number
@@ -94,6 +98,25 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationCompletionStatus | null>(null)
+  const [calendarEvents, setCalendarEvents] = useState<Array<{
+    id: string;
+    title: string;
+    description?: string;
+    eventType: 'TERM' | 'HOLIDAY' | 'EXAM' | 'EVENT' | 'MEETING';
+    startDate: string;
+    endDate: string;
+    isRecurring: boolean;
+    recurrencePattern?: string;
+    academicYear: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+  }>>([])
+  const [calendarLoading, setCalendarLoading] = useState<boolean>(false)
+  const [studentInfoHeight, setStudentInfoHeight] = useState<number>(340)
+  const studentInfoRef = useRef<HTMLDivElement | null>(null)
+  const [coursesCount, setCoursesCount] = useState<number>(0)
+  const { stats: messageStats } = useMessages()
 
   // Update current time every minute
   useEffect(() => {
@@ -135,6 +158,7 @@ export default function StudentDashboard() {
             academicYear: userData.academicYear || new Date().getFullYear().toString(),
             enrollmentDate: userData.enrollmentDate || new Date().toISOString(),
             currentClass: userData.currentClass,
+            courseDesired: userData.courseDesired,
             profileImage: userData.profileImage,
             gpa: userData.gpa,
             totalCredits: userData.totalCredits,
@@ -193,6 +217,65 @@ export default function StudentDashboard() {
     fetchStudentData()
   }, [])
 
+  // Observe Student Information card height to cap calendar height
+  useEffect(() => {
+    const el = studentInfoRef.current
+    if (!el) return
+
+    const updateHeight = () => setStudentInfoHeight(el.offsetHeight)
+    updateHeight()
+
+    const ResizeObs = (window as any).ResizeObserver
+    if (ResizeObs) {
+      const ro = new ResizeObs((entries: any[]) => {
+        const rect = entries?.[0]?.contentRect
+        if (rect?.height) setStudentInfoHeight(Math.ceil(rect.height))
+      })
+      ro.observe(el)
+      return () => ro.disconnect()
+    } else {
+      const interval = setInterval(updateHeight, 1000)
+      return () => clearInterval(interval)
+    }
+  }, [])
+
+  // Fetch calendar events for Live Calendar
+  useEffect(() => {
+    const fetchCalendar = async () => {
+      try {
+        setCalendarLoading(true)
+        const res = await fetch('/api/student/calendar?limit=200')
+        if (res.ok) {
+          const data = await res.json()
+          setCalendarEvents(data.events || [])
+        }
+      } catch (err) {
+        console.error('Error fetching student calendar:', err)
+      } finally {
+        setCalendarLoading(false)
+      }
+    }
+    fetchCalendar()
+  }, [])
+
+  // Fetch enrolled course count
+  useEffect(() => {
+    const fetchCoursesCount = async () => {
+      try {
+        if (!studentData?.id) return
+        const res = await fetch(`/api/students/${studentData.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          const count = Array.isArray(data?.courseAllocations) ? data.courseAllocations.length : 0
+          setCoursesCount(count)
+        }
+      } catch (err) {
+        console.warn('Failed to fetch course count:', err)
+      }
+    }
+    fetchCoursesCount()
+  }, [studentData?.id])
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
   }
@@ -214,6 +297,36 @@ export default function StudentDashboard() {
     if (diffDays <= 3) return 'text-orange-600 bg-orange-50'
     return 'text-green-600 bg-green-50'
   }
+
+  // Derive upcoming deadlines from calendar events if academicInfo has none
+  const upcomingFromCalendar = calendarEvents
+    .filter(e => new Date(e.startDate) >= new Date())
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+    .slice(0, 6)
+    .map(e => ({
+      id: e.id,
+      title: e.title,
+      date: e.startDate,
+      type: (e.eventType === 'EXAM' ? 'exam' : 'event') as 'assignment' | 'exam' | 'project' | 'event',
+      course: 'Academic Calendar'
+    }))
+
+  // Stats derivations
+  const pendingAssignments = (academicInfo?.upcomingDeadlines?.length ? academicInfo.upcomingDeadlines : upcomingFromCalendar)
+    .filter(d => {
+      const isAssignmentType = d.type === 'assignment' || /assignment|homework|project/i.test(d.title)
+      return isAssignmentType && new Date(d.date) >= new Date()
+    }).length
+
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+  const upcomingEventsCount = calendarEvents.filter(e => {
+    const sd = new Date(e.startDate)
+    return sd >= now && sd >= monthStart && sd <= monthEnd
+  }).length
+
+  const unreadMessagesCount = messageStats.unread || 0
 
   const markNotificationAsRead = (id: string) => {
     setNotifications(prev => 
@@ -290,41 +403,45 @@ export default function StudentDashboard() {
 
         {/* Hero Stats Section */}
         <div>
-          <StatsGrid columns={4}>
+          <StatsGrid columns="auto">
+            {/* Total Course Subject */}
             <StatsCard
-              title="Current GPA"
-              value={studentData.gpa || 0}
-              subtitle="Academic performance"
-              icon={TrendingUp}
+              title="Total Course Subject"
+              value={coursesCount}
+              subtitle="Enrolled subjects"
+              icon={BookOpen}
               gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
               bgGradient="bg-gradient-to-br from-white to-blue-50"
             />
 
+            {/* Assignments Pending */}
             <StatsCard
-              title="Credits"
-              value={`${studentData.completedCredits}/${studentData.totalCredits}`}
-              subtitle="Course completion"
-              icon={BookOpen}
+              title="Assignments"
+              value={pendingAssignments}
+              subtitle="Pending assignments"
+              icon={FileText}
               gradient="bg-gradient-to-r from-green-500 to-emerald-600"
               bgGradient="bg-gradient-to-br from-white to-green-50"
             />
 
+            {/* Upcoming Events for the Month */}
             <StatsCard
-              title="Current Grade"
-              value={studentData.grade || 'N/A'}
-              subtitle="Academic level"
-              icon={GraduationCap}
-              gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
-              bgGradient="bg-gradient-to-br from-white to-purple-50"
-            />
-
-            <StatsCard
-              title="Progress"
-              value={`${Math.round((studentData.completedCredits! / studentData.totalCredits!) * 100)}%`}
-              subtitle="Completion rate"
-              icon={Award}
+              title="Upcoming Events"
+              value={upcomingEventsCount}
+              subtitle="This month"
+              icon={Calendar}
               gradient="bg-gradient-to-r from-orange-500 to-amber-600"
               bgGradient="bg-gradient-to-br from-white to-orange-50"
+            />
+
+            {/* Unread Messages */}
+            <StatsCard
+              title="Messages"
+              value={unreadMessagesCount}
+              subtitle="Unread"
+              icon={Mail}
+              gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
+              bgGradient="bg-gradient-to-br from-white to-purple-50"
             />
           </StatsGrid>
         </div>
@@ -338,76 +455,118 @@ export default function StudentDashboard() {
               <div className="lg:col-span-8">
                 <div className="space-y-6">
 
-                  {/* Upcoming Deadlines */}
-                  <Card className="bg-white">
-                    <div className="p-4 sm:p-6 border-b border-gray-100">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center">
-                          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-base sm:text-lg text-gray-900">Upcoming Deadlines</h3>
-                          <p className="text-xs sm:text-sm text-gray-600">Important dates and tasks</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4 sm:p-6">
-                      <div className="space-y-4">
-                        {academicInfo?.upcomingDeadlines.map((deadline) => (
-                          <div key={deadline.id} className="flex items-center justify-between p-3 rounded-lg border">
-                            <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-full ${getDeadlineColor(deadline.date)}`}>
-                                {deadline.type === 'assignment' && <FileText className="h-4 w-4" />}
-                                {deadline.type === 'exam' && <BookOpen className="h-4 w-4" />}
-                                {deadline.type === 'project' && <Award className="h-4 w-4" />}
-                                {deadline.type === 'event' && <Calendar className="h-4 w-4" />}
-                              </div>
-                              <div>
-                                <div className="font-medium">{deadline.title}</div>
-                                <div className="text-sm text-gray-600">{deadline.course}</div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium">{formatDate(deadline.date)}</div>
-                              <Badge variant="outline" className="text-xs">
-                                {deadline.type}
-                              </Badge>
-                            </div>
+                  {/* Upcoming Deadline and Live Calendar - Two Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Upcoming Deadlines */}
+                    <Card className="bg-white">
+                      <div className="p-4 sm:p-6 border-b border-gray-100">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center">
+                            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                           </div>
-                        ))}
+                          <div>
+                            <h3 className="font-bold text-base sm:text-lg text-gray-900">Upcoming Deadline</h3>
+                            <p className="text-xs sm:text-sm text-gray-600">Important dates and tasks</p>
+                          </div>
+                        </div>
                       </div>
+                      <div className="p-4 sm:p-6">
+                        <div className="space-y-4">
+                          {(academicInfo?.upcomingDeadlines?.length ? academicInfo?.upcomingDeadlines : upcomingFromCalendar).map((deadline) => (
+                            <div key={deadline.id} className="flex items-center justify-between p-3 rounded-lg border">
+                              <div className="flex items-center space-x-3">
+                                <div className={`p-2 rounded-full ${getDeadlineColor(deadline.date)}`}>
+                                  {deadline.type === 'assignment' && <FileText className="h-4 w-4" />}
+                                  {deadline.type === 'exam' && <BookOpen className="h-4 w-4" />}
+                                  {deadline.type === 'project' && <Award className="h-4 w-4" />}
+                                  {deadline.type === 'event' && <Calendar className="h-4 w-4" />}
+                                </div>
+                                <div>
+                                  <div className="font-medium">{deadline.title}</div>
+                                  <div className="text-sm text-gray-600">{deadline.course}</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium">{formatDate(deadline.date)}</div>
+                                <Badge variant="outline" className="text-xs">
+                                  {deadline.type}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                          {(!academicInfo?.upcomingDeadlines?.length && !upcomingFromCalendar.length) && (
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                              <div className="h-9 w-9 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mb-2">
+                                <Clock className="h-5 w-5" />
+                              </div>
+                              <p className="text-sm text-gray-600">No Upcoming Items</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                  </Card>
+                    </Card>
 
-                  {/* Recent Grades */}
+                    {/* Live Calendar (Compact, natural height to match sidebar padding/margins) */}
+                    <div className="overflow-hidden">
+                      <AutoCalendarView events={calendarEvents} compact className="overflow-hidden" />
+                    </div>
+                  </div>
+
+                  {/* Recent Notifications */}
                   <Card className="bg-white">
                     <div className="p-4 sm:p-6 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                          <Award className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+                          <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-base sm:text-lg text-gray-900">Recent Grades</h3>
-                          <p className="text-xs sm:text-sm text-gray-600">Latest academic results</p>
+                          <h3 className="font-bold text-base sm:text-lg text-gray-900">Recent Notifications</h3>
+                          <p className="text-xs sm:text-sm text-gray-600">Important updates and alerts</p>
                         </div>
                       </div>
                     </div>
                     <div className="p-4 sm:p-6">
-                      <div className="space-y-3">
-                        {academicInfo?.recentGrades.map((grade) => (
-                          <div key={grade.id} className="flex items-center justify-between p-3 rounded-lg border">
-                            <div>
-                              <div className="font-medium">{grade.assignment}</div>
-                              <div className="text-sm text-gray-600">{grade.course}</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-green-600">{grade.grade}</div>
-                              <div className="text-xs text-gray-500">{formatDate(grade.date)}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      </div>
+                      {notifications.length === 0 ? (
+                        <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600">No notifications available</div>
+                      ) : (
+                        <div className="space-y-4">
+                          {notifications.slice(0, 5).map((notification) => {
+                            const dotClass =
+                              notification.type === 'success' ? 'bg-green-500' :
+                              notification.type === 'warning' ? 'bg-yellow-500' :
+                              notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+
+                            const badgeClass =
+                              notification.type === 'success' ? 'bg-green-100 text-green-800' :
+                              notification.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                              notification.type === 'error' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+
+                            const typeLabel =
+                              notification.type === 'success' ? 'Success' :
+                              notification.type === 'warning' ? 'Warning' :
+                              notification.type === 'error' ? 'Error' : 'Info'
+
+                            return (
+                              <button
+                                key={notification.id}
+                                onClick={() => markNotificationAsRead(notification.id)}
+                                className="w-full text-left"
+                              >
+                                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border border-gray-200">
+                                  <div className="flex items-center space-x-3">
+                                    <div className={`h-3 w-3 rounded-full ${dotClass}`} />
+                                    <span className="text-sm font-apercu-medium text-gray-700 truncate">{notification.title}</span>
+                                  </div>
+                                  <span className={`px-3 py-1 text-xs font-apercu-medium rounded-full ${badgeClass}`}>
+                                    {typeLabel}
+                                  </span>
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </Card>
                 </div>
               </div>
@@ -416,7 +575,8 @@ export default function StudentDashboard() {
               <div className="lg:col-span-4">
                 <div className="space-y-6">
                   {/* Student Information */}
-                  <Card className="bg-white">
+                  <div ref={studentInfoRef}>
+                    <Card className="bg-white">
                     <div className="p-4 sm:p-6 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
@@ -430,27 +590,37 @@ export default function StudentDashboard() {
                     </div>
                     <div className="p-4 sm:p-6 space-y-3">
                       <div className="flex items-center space-x-2">
-                        <GraduationCap className="h-4 w-4 text-indigo-600" />
-                        <span className="text-sm"><span className="font-semibold">Matric Number:</span> {studentData.matriculationNumber || 'Not assigned'}</span>
+                        <GraduationCap className="h-4 w-4 text-gray-400" />
+                        {registrationStatus && !registrationStatus.isComplete ? (
+                          <span className="text-sm" aria-disabled="true">
+                            <span className="font-semibold">Matric Number:</span>
+                            <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-300">Unavailable! Complete Profile</Badge>
+                          </span>
+                        ) : (
+                          <span className="text-sm">
+                            <span className="font-semibold">Matric Number:</span> <span className="capitalize">{studentData.matriculationNumber || 'Not assigned'}</span>
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Mail className="h-4 w-4 text-indigo-600" />
-                        <span className="text-sm"><span className="font-semibold">Email:</span> {studentData.emailAddress}</span>
+                        <Mail className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm"><span className="font-semibold">Email:</span> <span className="capitalize">{studentData.emailAddress}</span></span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4 text-indigo-600" />
-                        <span className="text-sm"><span className="font-semibold">Phone Number:</span> {studentData.phoneNumber}</span>
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm"><span className="font-semibold">Phone Number:</span> <span className="capitalize">{studentData.phoneNumber}</span></span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-indigo-600" />
-                        <span className="text-sm"><span className="font-semibold">Enrolled:</span> {formatDate(studentData.enrollmentDate)}</span>
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm"><span className="font-semibold">Enrolled:</span> <span className="capitalize">{formatDate(studentData.enrollmentDate)}</span></span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Users className="h-4 w-4 text-indigo-600" />
-                        <span className="text-sm"><span className="font-semibold">Class:</span> {studentData.currentClass}</span>
+                        <Users className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm"><span className="font-semibold">Course:</span> <span className="capitalize">{studentData.courseDesired || studentData.currentClass || 'Not selected'}</span></span>
                       </div>
                     </div>
-                  </Card>
+                    </Card>
+                  </div>
 
                   {/* Quick Actions */}
                   <Card className="bg-white">
@@ -465,107 +635,67 @@ export default function StudentDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="p-4 sm:p-6 space-y-3">
-                      <Button className="w-full justify-start" variant="outline">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        View Courses
-                      </Button>
-                      <Button className="w-full justify-start" variant="outline">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Class Schedule
-                      </Button>
-                      <Button className="w-full justify-start" variant="outline">
-                        <Award className="h-4 w-4 mr-2" />
-                        Grades & Transcripts
-                      </Button>
-                      <Button className="w-full justify-start" variant="outline">
-                        <Users className="h-4 w-4 mr-2" />
-                        Student Services
-                      </Button>
-                      <Button className="w-full justify-start" variant="outline">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download Forms
-                      </Button>
+                    <div className="p-4 sm:p-6">
+                      <div className="grid grid-cols-1 gap-3">
+                        {/** removed Profile quick action as requested **/}
+
+                        <Link href="/student/courses" className="group">
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 transition-all duration-200 border border-green-100 hover:border-green-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                              <BookOpen className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900">My Courses</p>
+                              <p className="text-xs text-gray-600">View enrolled courses</p>
+                            </div>
+                          </div>
+                        </Link>
+
+                        <Link href="/student/grades" className="group">
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 border border-purple-100 hover:border-pink-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                              <Award className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900">Grades & Transcripts</p>
+                              <p className="text-xs text-gray-600">Review performance</p>
+                            </div>
+                          </div>
+                        </Link>
+
+                        {/** removed Class Schedule quick action as requested **/}
+
+                        <Link href="/student/calendar" className="group">
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 transition-all duration-200 border border-indigo-100 hover:border-blue-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
+                              <Calendar className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900">Calendar</p>
+                              <p className="text-xs text-gray-600">Events and deadlines</p>
+                            </div>
+                          </div>
+                        </Link>
+
+                        <Link href="/student/messages" className="group">
+                          <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 transition-all duration-200 border border-orange-100 hover:border-red-200">
+                            <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                              <Users className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900">Messages</p>
+                              <p className="text-xs text-gray-600">Communication hub</p>
+                            </div>
+                          </div>
+                        </Link>
+                      </div>
                     </div>
                   </Card>
                 </div>
               </div>
             </div>
 
-            {/* Secondary Content Row - Notifications & Schedule */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Notifications */}
-              <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
-                <div className="p-4 sm:p-6 border-b border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
-                      <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base sm:text-lg text-gray-900">Recent Notifications</h3>
-                      <p className="text-xs sm:text-sm text-gray-600">Important updates and alerts</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 sm:p-6 space-y-3">
-                  {notifications.slice(0, 3).map((notification) => (
-                    <div 
-                      key={notification.id} 
-                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                        notification.read ? 'bg-gray-50' : 'bg-blue-50 border-blue-200'
-                      }`}
-                      onClick={() => markNotificationAsRead(notification.id)}
-                    >
-                      <div className="flex items-start space-x-2">
-                        {notification.type === 'warning' && <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5" />}
-                        {notification.type === 'success' && <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />}
-                        {notification.type === 'info' && <Bell className="h-4 w-4 text-blue-500 mt-0.5" />}
-                        {notification.type === 'error' && <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />}
-                        <div className="flex-1">
-                          <div className="font-medium text-sm">{notification.title}</div>
-                          <div className="text-xs text-gray-600">{notification.message}</div>
-                          <div className="text-xs text-gray-400 mt-1">{formatDate(notification.date)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <Button variant="outline" className="w-full" size="sm">
-                    View All Notifications
-                  </Button>
-                </div>
-              </Card>
-
-              {/* Today's Schedule */}
-              <Card className="border-0 shadow-sm bg-white/50 backdrop-blur-sm">
-                <div className="p-4 sm:p-6 border-b border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base sm:text-lg text-gray-900">Today's Schedule</h3>
-                      <p className="text-xs sm:text-sm text-gray-600">Current day classes</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 sm:p-6 space-y-3">
-                  {academicInfo?.courseSchedule.slice(0, 3).map((course) => (
-                    <div key={course.id} className="p-3 rounded-lg border">
-                      <div className="font-medium text-sm">{course.course}</div>
-                      <div className="text-xs text-gray-600">{course.time}</div>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs text-gray-500">{course.room}</span>
-                        <span className="text-xs text-gray-500">{course.instructor}</span>
-                      </div>
-                    </div>
-                  ))}
-                  <Button variant="outline" className="w-full" size="sm">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Full Schedule
-                  </Button>
-                </div>
-              </Card>
-            </div>
+            {/* Secondary Content Row removed as requested */}
           </div>
         </div>
       </div>

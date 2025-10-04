@@ -21,6 +21,7 @@ export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [authChecking, setAuthChecking] = useState(true)
 
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -29,6 +30,24 @@ export default function AdminLogin() {
   const { startProgress, completeProgress } = useProgress()
   const systemName = useReactiveSystemName()
   // Removed router as it's not used (using window.location.replace instead)
+
+  // Redirect if already authenticated as admin (must be inside component)
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.user?.type === 'admin') {
+            window.location.replace('/admin/dashboard')
+            return
+          }
+        }
+      } catch {}
+      setAuthChecking(false)
+    }
+    checkAuth()
+  }, [])
 
 
 
@@ -107,6 +126,25 @@ export default function AdminLogin() {
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" suppressHydrationWarning={true} />
 
       {/* Main Container */}
+      {authChecking ? (
+        <div className="w-full max-w-md animate-fade-in" suppressHydrationWarning={true}>
+          <Card className="shadow-xl border-2 border-[#efefef] bg-white backdrop-blur-sm">
+            <CardContent className="py-12 px-8">
+              <div className="text-center">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="font-apercu-bold text-xl text-gray-800">Authenticating</h2>
+                    <p className="font-apercu-medium text-gray-600">Checking your session...</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
       <div className="w-full max-w-md animate-fade-in" suppressHydrationWarning={true}>
         {/* Header Section */}
         <div className="text-center mb-8 animate-slide-in-up" suppressHydrationWarning={true}>
@@ -245,6 +283,7 @@ export default function AdminLogin() {
           </p>
         </div>
       </div>
+      )}
     </div>
   )
 }

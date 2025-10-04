@@ -76,7 +76,7 @@ function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: num
 // Dashboard Stats Skeleton
 function StatsSkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="rounded-lg border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between space-y-0 pb-2">
@@ -301,7 +301,7 @@ function DashboardContentSkeleton() {
   return (
     <div className="space-y-6" suppressHydrationWarning={true}>
       {/* Stats Grid Skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" suppressHydrationWarning={true}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6" suppressHydrationWarning={true}>
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="p-6 rounded-lg border bg-card shadow-sm" suppressHydrationWarning={true}>
             <div className="flex items-center justify-between" suppressHydrationWarning={true}>

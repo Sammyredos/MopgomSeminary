@@ -6,34 +6,22 @@ import React from 'react'
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
 import {
   Users,
-  UserCheck,
-  UserX,
-  Activity,
-  TrendingUp,
-  Clock
+  UserCog,
+  BookOpen,
+  MessageSquare
 } from 'lucide-react'
 
 interface DashboardStatsProps {
   stats?: {
-    totalRegistrations: number
-    verifiedRegistrations: number
-    unverifiedRegistrations: number
-    recentActivity: number
-    allocationRate?: number
-    systemHealth?: number
+    totalRegistrations?: number
+    instructorsCount?: number
+    coursesCount?: number
+    messagesCount?: number
   }
   loading?: boolean
 }
 
 export function DashboardStats({ stats, loading }: DashboardStatsProps) {
-  // Calculate allocation rate if verified registrations exist
-  const allocationRate = stats?.allocationRate || 
-    (stats?.verifiedRegistrations ? Math.round((stats.verifiedRegistrations / Math.max(stats.totalRegistrations, 1)) * 100) : 0)
-  
-  // Calculate system health score (simplified metric)
-  const systemHealth = stats?.systemHealth || 
-    (stats?.totalRegistrations ? Math.min(100, Math.round(85 + (stats.recentActivity / 10))) : 85)
-
   return (
     <StatsGrid columns={4}>
       <StatsCard
@@ -47,30 +35,30 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
       />
 
       <StatsCard
-        title="Verified"
-        value={stats?.verifiedRegistrations || 0}
-        subtitle="Attendance confirmed"
-        icon={UserCheck}
+        title="Instructors"
+        value={stats?.instructorsCount || 0}
+        subtitle="Active instructors"
+        icon={UserCog}
         gradient="bg-gradient-to-r from-green-500 to-emerald-600"
         bgGradient="bg-gradient-to-br from-white to-green-50"
         loading={loading}
       />
 
       <StatsCard
-        title="Recent Activity"
-        value={stats?.recentActivity || 0}
-        subtitle="Today's registrations"
-        icon={Activity}
+        title="Total Subject Courses"
+        value={stats?.coursesCount || 0}
+        subtitle="Active courses"
+        icon={BookOpen}
         gradient="bg-gradient-to-r from-orange-500 to-amber-600"
         bgGradient="bg-gradient-to-br from-white to-orange-50"
         loading={loading}
       />
 
       <StatsCard
-        title="Verification Rate"
-        value={`${allocationRate}%`}
-        subtitle="Completion progress"
-        icon={TrendingUp}
+        title="Messages"
+        value={stats?.messagesCount || 0}
+        subtitle="Total messages"
+        icon={MessageSquare}
         gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
         bgGradient="bg-gradient-to-br from-white to-purple-50"
         loading={loading}

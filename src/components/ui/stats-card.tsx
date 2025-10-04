@@ -28,7 +28,7 @@ export function StatsCard({
 }: StatsCardProps) {
   if (loading) {
     return (
-      <Card className="relative overflow-hidden border border-gray-100 bg-white shadow-sm">
+      <Card className={`relative overflow-hidden border border-gray-200 shadow-sm ${bgGradient || 'bg-white'}`}>
         <div className="p-4 sm:p-5">
           <div className="flex items-start space-x-3">
             <div className="h-10 w-10 bg-gray-200 rounded-lg animate-pulse flex-shrink-0"></div>
@@ -44,7 +44,7 @@ export function StatsCard({
   }
 
   return (
-    <Card className="relative overflow-hidden border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
+    <Card className={`relative overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 group ${bgGradient || 'bg-white'}`}>
       <div className="p-4 sm:p-5">
         <div className="flex items-start space-x-3">
           {/* Icon */}
@@ -79,13 +79,13 @@ interface StatsGridProps {
 
 export function StatsGrid({ children, columns = 6 }: StatsGridProps) {
   const gridClass = columns === 'auto'
-    ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full'
+    ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full'
     : columns === 2
     ? 'grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 w-full'
     : columns === 3
     ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 w-full'
     : columns === 4
-    ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full'
+    ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 w-full'
     : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-5 w-full'
 
   return (

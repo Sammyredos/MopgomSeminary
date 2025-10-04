@@ -9,7 +9,7 @@ const prisma = new PrismaClient()
  */
 export async function generateMatriculationNumber(year?: number): Promise<string> {
   const registrationYear = year || new Date().getFullYear()
-  const prefix = `MOPSEM/${registrationYear}/`
+  const prefix = `MTS/${registrationYear}/`
   
   // Find the highest existing matriculation number for this year
   const existingNumbers = await prisma.student.findMany({
@@ -70,7 +70,7 @@ export async function generateMatriculationNumber(year?: number): Promise<string
  * @returns boolean - True if valid, false otherwise
  */
 export function validateMatriculationNumber(matriculationNumber: string): boolean {
-  const pattern = /^MOPSEM\/\d{4}\/\d{4}$/
+  const pattern = /^MTS\/\d{4}\/\d{4}$/
   return pattern.test(matriculationNumber)
 }
 

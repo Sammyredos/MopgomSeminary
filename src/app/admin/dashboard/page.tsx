@@ -69,6 +69,10 @@ interface DashboardStatsData {
   totalRooms: number
   occupiedRooms: number
   availableRooms: number
+  // Admin overview counts
+  instructorsCount: number
+  coursesCount: number
+  messagesCount: number
 }
 
 export default function AdminDashboard() {
@@ -86,7 +90,10 @@ export default function AdminDashboard() {
     previousMonthActivity: 0,
     totalRooms: 0,
     occupiedRooms: 0,
-    availableRooms: 0
+    availableRooms: 0,
+    instructorsCount: 0,
+    coursesCount: 0,
+    messagesCount: 0
   })
 
   // FAST: Minimal loading states for speed
@@ -126,12 +133,21 @@ export default function AdminDashboard() {
       console.log('🚀 DASHBOARD: Fast loading essential data')
 
       // FAST: Load only essential data in parallel with caching
-      const [statisticsResponse, registrationsResponse] = await Promise.all([
+      const [statisticsResponse, registrationsResponse, teachersResponse, coursesResponse, healthResponse] = await Promise.all([
         fetch('/api/admin/statistics', {
           headers: { 'Cache-Control': 'max-age=60' } // Cache for 1 minute
         }),
         fetch('/api/registrations?limit=10', { // Reduce to 10 for faster loading
           headers: { 'Cache-Control': 'max-age=30' } // Cache for 30 seconds
+        }),
+        fetch('/api/admin/teachers?limit=1', {
+          headers: { 'Cache-Control': 'max-age=60' }
+        }),
+        fetch('/api/admin/courses?active=true', {
+          headers: { 'Cache-Control': 'max-age=60' }
+        }),
+        fetch('/api/health/detailed', {
+          headers: { 'Cache-Control': 'no-cache' }
         })
       ])
 
@@ -174,6 +190,37 @@ export default function AdminDashboard() {
 
       // FAST: Complete progress bar when essential data is loaded
       completeProgress()
+
+      // 3. Additional counts for instructors, courses, and messages
+      try {
+        if (teachersResponse.ok) {
+          const tr = await teachersResponse.json()
+          const instructorsCount = tr?.pagination?.total ?? (tr?.teachers?.length ?? 0)
+          setStats(prev => ({ ...prev, instructorsCount }))
+        }
+      } catch (e) {
+        console.warn('Teachers count load failed:', e)
+      }
+
+      try {
+        if (coursesResponse.ok) {
+          const cr = await coursesResponse.json()
+          const coursesCount = Array.isArray(cr?.courses) ? cr.courses.length : 0
+          setStats(prev => ({ ...prev, coursesCount }))
+        }
+      } catch (e) {
+        console.warn('Courses count load failed:', e)
+      }
+
+      try {
+        if (healthResponse.ok) {
+          const hr = await healthResponse.json()
+          const messagesCount = hr?.database?.tableStats?.messages ?? 0
+          setStats(prev => ({ ...prev, messagesCount }))
+        }
+      } catch (e) {
+        console.warn('Messages count load failed:', e)
+      }
 
       // Load real activity feed data
       loadActivityData()
@@ -399,11 +446,9 @@ export default function AdminDashboard() {
               <DashboardStats
                 stats={{
                   totalRegistrations: stats.totalRegistrations,
-                  verifiedRegistrations: stats.completedRegistrations,
-                  unverifiedRegistrations: stats.pendingRegistrations,
-                  totalRooms: stats.totalRooms,
-                  occupiedRooms: stats.occupiedRooms,
-                  availableRooms: stats.availableRooms
+                  instructorsCount: stats.instructorsCount,
+                  coursesCount: stats.coursesCount,
+                  messagesCount: stats.messagesCount
                 }}
               />
             )}

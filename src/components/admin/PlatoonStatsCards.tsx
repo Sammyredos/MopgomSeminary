@@ -53,7 +53,7 @@ export const PlatoonStatsCards = React.memo(function PlatoonStatsCards({ stats, 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* Total Verified */}
-      <Card className="relative overflow-hidden border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
+      <Card className="relative overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
         <div className="p-4 sm:p-5">
           <div className="flex items-start space-x-3">
             <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
@@ -75,7 +75,7 @@ export const PlatoonStatsCards = React.memo(function PlatoonStatsCards({ stats, 
       </Card>
 
       {/* Allocated */}
-      <Card className="relative overflow-hidden border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
+      <Card className="relative overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
         <div className="p-4 sm:p-5">
           <div className="flex items-start space-x-3">
             <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
@@ -97,7 +97,7 @@ export const PlatoonStatsCards = React.memo(function PlatoonStatsCards({ stats, 
       </Card>
 
       {/* Unallocated */}
-      <Card className="relative overflow-hidden border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
+      <Card className="relative overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
         <div className="p-4 sm:p-5">
           <div className="flex items-start space-x-3">
             <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
@@ -119,7 +119,7 @@ export const PlatoonStatsCards = React.memo(function PlatoonStatsCards({ stats, 
       </Card>
 
       {/* Total Platoons */}
-      <Card className="relative overflow-hidden border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
+      <Card className="relative overflow-hidden border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200 group">
         <div className="p-4 sm:p-5">
           <div className="flex items-start space-x-3">
             <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200 flex-shrink-0">

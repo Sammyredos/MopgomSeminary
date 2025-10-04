@@ -19,10 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" className="light" suppressHydrationWarning>
       <head>
         {/* Prevent any default favicon loading - FaviconManager will handle everything */}
         <meta name="msapplication-config" content="none" />
+        {/* Prevent iOS auto-linking that can cause hydration mismatches */}
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
 
         {/* Compulsory Apercu Font Preloading - High Priority */}
         <link

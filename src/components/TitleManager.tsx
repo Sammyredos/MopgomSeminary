@@ -33,20 +33,8 @@ export function TitleManager() {
             }
           }
         } else if (currentPath.startsWith('/student')) {
-          // Handle student pages
-          if (currentPath.includes('/dashboard')) {
-            document.title = `Dashboard - ${cachedSystemName} Student Portal`
-          } else if (currentPath.includes('/profile')) {
-            document.title = `Profile - ${cachedSystemName} Student Portal`
-          } else if (currentPath.includes('/grades')) {
-            document.title = `Grades - ${cachedSystemName} Student Portal`
-          } else if (currentPath.includes('/schedule')) {
-            document.title = `Schedule - ${cachedSystemName} Student Portal`
-          } else if (currentPath.includes('/assignments')) {
-            document.title = `Assignments - ${cachedSystemName} Student Portal`
-          } else {
-            document.title = `${cachedSystemName} - Student Portal`
-          }
+          // Force a minimal, consistent title for all student pages
+          document.title = 'Pertain to Student'
         } else {
           document.title = `${cachedSystemName} - Registration System`
         }
@@ -88,20 +76,8 @@ export function TitleManager() {
                   }
                 }
               } else if (currentPath.startsWith('/student')) {
-                // Handle student pages
-                if (currentPath.includes('/dashboard')) {
-                  document.title = `Dashboard - ${freshSystemName} Student Portal`
-                } else if (currentPath.includes('/profile')) {
-                  document.title = `Profile - ${freshSystemName} Student Portal`
-                } else if (currentPath.includes('/grades')) {
-                  document.title = `Grades - ${freshSystemName} Student Portal`
-                } else if (currentPath.includes('/schedule')) {
-                  document.title = `Schedule - ${freshSystemName} Student Portal`
-                } else if (currentPath.includes('/assignments')) {
-                  document.title = `Assignments - ${freshSystemName} Student Portal`
-                } else {
-                  document.title = `${freshSystemName} - Student Portal`
-                }
+                // Keep title fixed for student area regardless of branding/system name
+                document.title = 'Pertain to Student'
               } else {
                 document.title = `${freshSystemName} - Registration System`
               }

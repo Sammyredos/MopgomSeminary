@@ -39,7 +39,7 @@ interface Registration {
   gender: string
   address: string
   phoneNumber: string
-  emailAddress: string
+    matriculationNumber?: string
   emergencyContactName: string
   emergencyContactRelationship: string
   emergencyContactPhone: string
@@ -264,7 +264,27 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
                     <p className="font-apercu-regular text-sm text-gray-900 break-words">{capitalizeName(registration.fullName)}</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  
+                  <div>
+                    <label className=\"font-apercu-medium text-sm text-gray-600\">Matric Number</label>
+                    <div className=\"flex items-center space-x-2\">
+                      <p className=\"font-apercu-regular text-sm text-gray-900 flex-1 break-all\">{registration.matriculationNumber || 'Not assigned'}</p>
+                      {registration.matriculationNumber && (
+                        <Button
+                          variant=\"ghost\"
+                          size=\"sm\"
+                          onClick={() => copyToClipboard(registration.matriculationNumber!, 'matric')}
+                          className=\"p-1 flex-shrink-0\"
+                        >
+                          {copied === 'matric' ? (
+                            <CheckCircle className=\"h-4 w-4 text-green-600\" />
+                          ) : (
+                            <Copy className=\"h-4 w-4 text-gray-400\" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div><div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="font-apercu-medium text-sm text-gray-600">Age</label>
                       <p className="font-apercu-regular text-sm text-gray-900">
@@ -444,3 +464,5 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
     </Dialog>
   )
 }
+
+

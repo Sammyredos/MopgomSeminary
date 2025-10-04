@@ -82,6 +82,25 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       });
     }
 
+    // Synchronize matriculationNumber to corresponding registration by email/phone
+    try {
+      if (updatePayload.matriculationNumber !== undefined) {
+        await prisma.registration.updateMany({
+          where: {
+            OR: [
+              { emailAddress: updatedStudent.emailAddress },
+              { phoneNumber: updatedStudent.phoneNumber }
+            ]
+          },
+          data: {
+            matriculationNumber: updatePayload.matriculationNumber || null,
+          },
+        });
+      }
+    } catch (syncErr) {
+      console.warn('Registration matriculation sync failed:', syncErr);
+    }
+
     // Return student with current course allocation if any
     const result = await prisma.student.findUnique({
       where: { id: studentIdParam },

@@ -12,6 +12,7 @@ import { ErrorModal } from '@/components/ui/error-modal'
 import { parseApiError } from '@/lib/error-messages'
 // Removed heavy animations for better performance
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 // import { Avatar } from '@/components/ui/avatar'
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
 import { UserCard } from '@/components/ui/user-card'
@@ -47,6 +48,10 @@ import {
 interface Registration {
   id: string
   // Fields from attachment form only
+  // Split name parts for editing convenience
+  surname?: string
+  firstname?: string
+  lastname?: string
   fullName: string
   dateOfBirth: string
   gender: string
@@ -473,7 +478,13 @@ export default function AdminRegistrations() {
       ...registrationData,
       // Ensure required fields have default values if they're null/undefined
       fullName: registrationData.fullName || '',
-      dateOfBirth: registrationData.dateOfBirth || '',
+      // Prefill DOB for <input type="date"> as YYYY-MM-DD
+      dateOfBirth: (() => {
+        const raw = registrationData.dateOfBirth
+        if (!raw) return ''
+        const d = new Date(raw)
+        return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
+      })(),
       gender: registrationData.gender || '',
       emailAddress: registrationData.emailAddress || '',
       phoneNumber: registrationData.phoneNumber || '',
@@ -492,6 +503,21 @@ export default function AdminRegistrations() {
       schoolsAttended: registrationData.schoolsAttended || [],
       courseDesired: registrationData.courseDesired || ''
     }
+
+    // Ensure matric number is available even when loading fresh data (API returns matriculationNumber)
+    // @ts-ignore
+    formData.matricNumber = registrationData.matricNumber ?? registrationData.matriculationNumber ?? ''
+
+    // Prefill split name parts from fullName
+    const name = (formData.fullName || '').trim()
+    const parts = name.split(/\s+/)
+    const surname = parts[0] || ''
+    const firstname = parts[1] || ''
+    const lastname = parts.slice(2).join(' ') || ''
+
+    formData.surname = surname
+    formData.firstname = firstname
+    formData.lastname = lastname
 
     // Set form data for editing
     setEditFormData(formData)
@@ -517,12 +543,23 @@ export default function AdminRegistrations() {
     try {
       // Prepare data for submission
 
+      // Recompose fullName from name parts for API payload
+      const { surname, firstname, lastname, ...rest } = editFormData
+      const recomposedFullName = [surname, firstname, lastname].filter(Boolean).join(' ').trim()
+      const payload: Record<string, any> = { ...rest, fullName: recomposedFullName || (editFormData.fullName || '').trim() }
+      // Map UI matricNumber to API matriculationNumber when provided
+      const matric = (editFormData.matricNumber || '').trim()
+      if (matric) {
+        payload.matriculationNumber = matric
+      }
+
       const response = await fetch(`/api/admin/registrations/${editFormData.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editFormData),
+        credentials: 'include',
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -566,6 +603,21 @@ export default function AdminRegistrations() {
 
   const handleEditFormChange = (field: keyof Registration, value: string | boolean) => {
     if (!editFormData) return
+
+    // If changing name parts, also recompute fullName
+    if (field === 'surname' || field === 'firstname' || field === 'lastname') {
+      const next = {
+        ...editFormData,
+        [field]: value as string
+      }
+      const nameParts = [next.surname || '', next.firstname || '', next.lastname || '']
+      const fullName = nameParts.filter(Boolean).join(' ').trim()
+      setEditFormData({
+        ...next,
+        fullName
+      })
+      return
+    }
 
     setEditFormData({
       ...editFormData,
@@ -656,6 +708,7 @@ export default function AdminRegistrations() {
           <div>
             <h3 style="color: #374151; font-size: 18px; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Contact Information</h3>
             <p><strong>Email:</strong> ${registration.emailAddress}</p>
+            <p><strong>Matric Number:</strong> </p>
             <p><strong>Phone:</strong> ${registration.phoneNumber}</p>
             <p><strong>Home Address:</strong> ${registration.homeAddress || 'Not provided'}</p>
             <p><strong>Office/Postal Address:</strong> ${registration.officePostalAddress || 'Not provided'}</p>
@@ -1450,10 +1503,29 @@ export default function AdminRegistrations() {
                     Personal Information
                   </h4>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-                    <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                      <label className="block font-apercu-medium text-xs sm:text-sm text-gray-600 mb-1">Full Name</label>
-                      <p className="font-apercu-regular text-sm sm:text-base text-gray-900 break-words">{capitalizeName(selectedRegistration.fullName)}</p>
-                    </div>
+                    {/* Show split name parts instead of full name */}
+                    {(() => {
+                      const parts = (selectedRegistration.fullName || '').trim().split(/\s+/)
+                      const surname = parts[0] || ''
+                      const firstname = parts[1] || ''
+                      const lastname = parts.slice(2).join(' ')
+                      return (
+                        <>
+                          <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                            <label className="block font-apercu-medium text-xs sm:text-sm text-gray-600 mb-1">Surname</label>
+                            <p className="font-apercu-regular text-sm sm:text-base text-gray-900 break-words">{capitalizeName(surname)}</p>
+                          </div>
+                          <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                            <label className="block font-apercu-medium text-xs sm:text-sm text-gray-600 mb-1">First Name</label>
+                            <p className="font-apercu-regular text-sm sm:text-base text-gray-900 break-words">{capitalizeName(firstname)}</p>
+                          </div>
+                          <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                            <label className="block font-apercu-medium text-xs sm:text-sm text-gray-600 mb-1">Last Name</label>
+                            <p className="font-apercu-regular text-sm sm:text-base text-gray-900 break-words">{capitalizeName(lastname)}</p>
+                          </div>
+                        </>
+                      )
+                    })()}
                     <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                       <label className="block font-apercu-medium text-xs sm:text-sm text-gray-600 mb-1">Date of Birth</label>
                       <p className="font-apercu-regular text-sm sm:text-base text-gray-900">
@@ -1583,15 +1655,9 @@ export default function AdminRegistrations() {
                     Registration Information
                   </h4>
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <label className="block font-apercu-medium text-sm text-purple-700 mb-1">Registration Date</label>
-                        <p className="font-apercu-regular text-purple-900">{formatDate(selectedRegistration.createdAt)}</p>
-                      </div>
-                      <div className="text-right">
-                        <label className="block font-apercu-medium text-sm text-purple-700 mb-1">Registration ID</label>
-                        <p className="font-apercu-regular text-purple-900 text-xs">{selectedRegistration.id}</p>
-                      </div>
+                    <div>
+                      <label className="block font-apercu-medium text-sm text-purple-700 mb-1">Matric Number</label>
+                      <p className="font-apercu-regular text-purple-900">{selectedRegistration.matricNumber || 'Not assigned'}</p>
                     </div>
                   </div>
                 </div>
@@ -1743,16 +1809,41 @@ export default function AdminRegistrations() {
                     Personal Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Name Parts */}
                     <div>
                       <label className="block font-apercu-medium text-sm text-gray-700 mb-2">
-                        Full Name
+                        Surname
                       </label>
                       <Input
-                        value={editFormData.fullName || ''}
-                        onChange={(e) => handleEditFormChange('fullName', e.target.value)}
+                        value={editFormData.surname || ''}
+                        onChange={(e) => handleEditFormChange('surname', e.target.value)}
                         className="font-apercu-regular"
                         disabled={isEditing}
-                        placeholder="Enter full name"
+                        placeholder="Enter surname"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-apercu-medium text-sm text-gray-700 mb-2">
+                        First Name
+                      </label>
+                      <Input
+                        value={editFormData.firstname || ''}
+                        onChange={(e) => handleEditFormChange('firstname', e.target.value)}
+                        className="font-apercu-regular"
+                        disabled={isEditing}
+                        placeholder="Enter first name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-apercu-medium text-sm text-gray-700 mb-2">
+                        Last Name
+                      </label>
+                      <Input
+                        value={editFormData.lastname || ''}
+                        onChange={(e) => handleEditFormChange('lastname', e.target.value)}
+                        className="font-apercu-regular"
+                        disabled={isEditing}
+                        placeholder="Enter last name"
                       />
                     </div>
                     <div>
@@ -1805,6 +1896,18 @@ export default function AdminRegistrations() {
                         className="font-apercu-regular"
                         disabled={isEditing}
                         placeholder="Enter email address"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-apercu-medium text-sm text-gray-700 mb-2">
+                        Matric Number
+                      </label>
+                      <Input
+                        value={editFormData.matricNumber || ''}
+                        onChange={(e) => handleEditFormChange('matricNumber', e.target.value)}
+                        className="font-apercu-regular"
+                        disabled={isEditing}
+                        placeholder="Enter matric number"
                       />
                     </div>
                     <div>
@@ -2011,13 +2114,23 @@ export default function AdminRegistrations() {
                       <label className="block font-apercu-medium text-sm text-gray-700 mb-2">
                         Course Desired
                       </label>
-                      <Input
+                      <Select
                         value={editFormData.courseDesired || ''}
-                        onChange={(e) => handleEditFormChange('courseDesired', e.target.value)}
-                        className="font-apercu-regular"
+                        onValueChange={(val) => handleEditFormChange('courseDesired', val)}
                         disabled={isEditing}
-                        placeholder="Enter course desired"
-                      />
+                      >
+                        <SelectTrigger className="font-apercu-regular">
+                          <SelectValue placeholder="Select course" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="General Certificate">General Certificate</SelectItem>
+                          <SelectItem value="Diploma Programme">Diploma Programme</SelectItem>
+                          <SelectItem value="Advanced Diploma">Advanced Diploma</SelectItem>
+                          <SelectItem value="Certificate in Theology">Certificate in Theology</SelectItem>
+                          <SelectItem value="Pastoral Studies">Pastoral Studies</SelectItem>
+                          <SelectItem value="Youth Ministry">Youth Ministry</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -2152,3 +2265,5 @@ export default function AdminRegistrations() {
     </AdminLayoutNew>
   )
 }
+
+

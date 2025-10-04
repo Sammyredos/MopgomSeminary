@@ -75,7 +75,7 @@ export function StatsCard({ title, value, icon: Icon, color, className = '' }: S
   const colors = colorVariants[color] || colorVariants.blue
 
   return (
-    <Card className={`p-4 sm:p-6 ${colors.bg} ${colors.border} ${className}`}>
+    <Card className={`p-4 sm:p-6 border border-gray-200 ${colors.bg} ${className}`}>
       <div className="flex items-center justify-between">
         <div>
           <p className={`text-sm font-apercu-medium ${colors.textPrimary} mb-1`}>
@@ -101,7 +101,7 @@ interface StatsGridProps {
 export function StatsGrid({ children, className = '' }: StatsGridProps) {
   return (
     <div className={`mb-8 ${className}`}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6">
         {children}
       </div>
     </div>

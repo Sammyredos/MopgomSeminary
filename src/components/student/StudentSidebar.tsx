@@ -189,7 +189,7 @@ export function StudentSidebar({ className }: SidebarProps) {
 
   try {
     return (
-      <div className={cn('flex h-full w-64 flex-col bg-white border-r border-gray-200', className)} suppressHydrationWarning={true}>
+      <div className={cn('flex h-full w-64 flex-col bg-white border-r md:border-r-0 lg:border-r border-gray-200', className)} suppressHydrationWarning={true}>
         {/* Logo */}
         <div className="flex h-16 items-center px-4 border-b border-gray-200" suppressHydrationWarning={true}>
           <div className="flex items-center space-x-2" suppressHydrationWarning={true}>
@@ -348,7 +348,7 @@ export function StudentSidebar({ className }: SidebarProps) {
   } catch (error) {
     console.error('StudentSidebar render error:', error)
     return (
-      <div className={cn('flex h-full w-64 flex-col bg-white border-r border-gray-200', className)}>
+      <div className={cn('flex h-full w-64 flex-col bg-white border-r md:border-r-0 lg:border-r border-gray-200', className)}>
         <div className="flex h-16 items-center px-6 border-b border-gray-200">
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">

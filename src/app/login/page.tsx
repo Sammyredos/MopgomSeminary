@@ -47,10 +47,10 @@ export default function LoginPage() {
 
     const checkAuth = async () => {
       const startTime = Date.now()
-      const minLoadingTime = 1500 // Minimum 1.5 seconds for better UX
+      const minLoadingTime = 300 // Shorter delay for faster session checks
       
       try {
-        const response = await fetch('/api/auth/me')
+        const response = await fetch('/api/auth/me', { credentials: 'include' })
         if (response.ok) {
           const userData = await response.json()
           
