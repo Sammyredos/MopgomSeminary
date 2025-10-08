@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog'
 import {
   Bell,
   BookOpen,
@@ -117,6 +117,10 @@ export default function StudentDashboard() {
   const studentInfoRef = useRef<HTMLDivElement | null>(null)
   const [coursesCount, setCoursesCount] = useState<number>(0)
   const { stats: messageStats } = useMessages()
+  // Modal state for calendar date click
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null)
+  const [selectedCalendarEvents, setSelectedCalendarEvents] = useState<typeof calendarEvents>([])
 
   // Update current time every minute
   useEffect(() => {
@@ -288,6 +292,28 @@ export default function StudentDashboard() {
     })
   }
 
+  const getEventsForDate = (date: Date) => {
+    return calendarEvents.filter((event) => {
+      const start = new Date(event.startDate)
+      const end = new Date(event.endDate)
+      const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+      const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+      return target >= startDay && target <= endDay
+    })
+  }
+
+  const handleCalendarDateClick = (clickedDate: Date) => {
+    setSelectedCalendarDate(clickedDate)
+    const dayEvents = getEventsForDate(clickedDate)
+    if (dayEvents.length > 0) {
+      setSelectedCalendarEvents(dayEvents)
+      setIsCalendarModalOpen(true)
+    } else {
+      setIsCalendarModalOpen(false)
+      setSelectedCalendarEvents([])
+    }
+  }
   const getDeadlineColor = (date: string) => {
     const deadline = new Date(date)
     const today = new Date()
@@ -508,7 +534,7 @@ export default function StudentDashboard() {
 
                     {/* Live Calendar (Compact, natural height to match sidebar padding/margins) */}
                     <div className="overflow-hidden">
-                      <AutoCalendarView events={calendarEvents} compact className="overflow-hidden" />
+                      <AutoCalendarView events={calendarEvents} compact className="overflow-hidden" onDateClick={handleCalendarDateClick} />
                     </div>
                   </div>
 
@@ -697,9 +723,46 @@ export default function StudentDashboard() {
 
             {/* Secondary Content Row removed as requested */}
           </div>
+    <Dialog open={isCalendarModalOpen} onOpenChange={setIsCalendarModalOpen}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-semibold">
+            {selectedCalendarDate ? selectedCalendarDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Selected Day'}
+          </DialogTitle>
+          <DialogDescription>
+            {selectedCalendarEvents.length} event{selectedCalendarEvents.length !== 1 ? 's' : ''} scheduled
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          {selectedCalendarEvents.map((event) => (
+            <div key={event.id} className="flex items-start gap-3 p-3 bg-white rounded-lg border">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100 text-gray-700">
+                <span className="w-2 h-2 rounded-full bg-gray-500" />
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-sm">{event.title}</div>
+                {event.description && (
+                  <div className="text-xs text-gray-600 mt-1 line-clamp-2">{event.description}</div>
+                )}
+                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                  <div>{formatDate(event.startDate)} - {formatDate(event.endDate)}</div>
+                  <Badge variant="secondary" className="text-xs">{event.eventType}</Badge>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <DialogClose asChild>
+          <Button variant="outline" className="mt-4 w-full">Close</Button>
+        </DialogClose>
+      </DialogContent>
+    </Dialog>
         </div>
       </div>
       </StudentLayout>
     </ProtectedRoute>
   )
+
 }

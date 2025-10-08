@@ -1,11 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { ChevronLeft, ChevronRight, User, Home, Briefcase, GraduationCap, Heart, ChevronDown, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { StudentLayout } from '@/components/student/StudentLayout'
@@ -59,6 +61,7 @@ const FORM_STEPS = [
 ]
 
 export default function StudentProfilePage() {
+  const router = useRouter()
   const [studentData, setStudentData] = useState<StudentData>({
     name: '',
     email: '',
@@ -120,10 +123,19 @@ export default function StudentProfilePage() {
         if (!studentData?.positionHeldInOffice?.trim()) errors.position = 'Position is required'
         break
       case 3: // Education & Course
-        if (!studentData?.courseDesired?.trim()) errors.courseDesired = 'Desired course is required'
+        // Schools Attended must have at least one entry, and all fields filled
+        const schools = studentData?.schoolsAttended || []
+        const hasValidSchools = schools.length > 0 && schools.every(s => s.institutionName?.trim() && s.certificatesHeld?.trim())
+        if (!hasValidSchools) {
+          errors.schoolsAttended = 'Provide institution name and certificates for each school'
+        }
+        // Course Desired is disabled and not required on this step
         break
       case 4: // Spiritual Information
         if (studentData?.acceptedJesusChrist === undefined) errors.acceptedJesus = 'Please indicate if you have accepted Jesus Christ'
+        if (studentData?.acceptedJesusChrist === true && !studentData?.whenAcceptedJesus?.trim()) {
+          errors.whenAcceptedJesus = 'Please specify when you accepted Jesus'
+        }
         if (!studentData?.churchAffiliation?.trim()) errors.churchName = 'Church affiliation is required'
         break
     }
@@ -137,7 +149,6 @@ export default function StudentProfilePage() {
     setValidationErrors(errors)
     
     if (!isValid) {
-      toast.error('Please fill in all required fields before proceeding')
       
       // Focus on the first empty required field
       const firstErrorField = Object.keys(errors)[0]
@@ -151,8 +162,7 @@ export default function StudentProfilePage() {
       return
     }
     
-    // Save current step data
-    await saveProfile()
+    // Skip saving on Next Step per request
     
     // Move to next step or complete
     if (currentStep < FORM_STEPS.length - 1) {
@@ -160,6 +170,15 @@ export default function StudentProfilePage() {
       setValidationErrors({}) // Clear errors when moving to next step
     } else {
       toast.success('Profile completed successfully!')
+    }
+  }
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+      setValidationErrors({})
+    } else {
+      router.back()
     }
   }
 
@@ -549,26 +568,28 @@ export default function StudentProfilePage() {
       {/* Schools Attended */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-4">
-          Schools Attended
+          Schools Attended <span className="text-red-500">*</span>
         </label>
         <div className="space-y-4">
-          {[1, 2, 3, 4].map((index) => {
-            const school = studentData?.schoolsAttended?.[index - 1]
+          {(studentData?.schoolsAttended?.length ? studentData.schoolsAttended : [{ institutionName: '', certificatesHeld: '' }]).map((school, index) => {
             return (
-              <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg">
+              <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg bg-gray-100">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    ({index}) Name of Institution
+                    ({index + 1}) Name of Institution
                   </label>
                   <input
+                    required
+                    aria-required="true"
+                    ref={index === 0 ? setInputRef('schoolsAttended') : undefined}
                     type="text"
                     value={school?.institutionName || ''}
                     onChange={(e) => {
                       const updatedSchools = [...(studentData?.schoolsAttended || [])]
-                      if (!updatedSchools[index - 1]) {
-                        updatedSchools[index - 1] = { institutionName: '', certificatesHeld: '' }
+                      if (!updatedSchools[index]) {
+                        updatedSchools[index] = { institutionName: '', certificatesHeld: '' }
                       }
-                      updatedSchools[index - 1].institutionName = e.target.value
+                      updatedSchools[index].institutionName = e.target.value
                       handleInputChange('schoolsAttended', updatedSchools)
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -580,44 +601,76 @@ export default function StudentProfilePage() {
                     Certificates Held
                   </label>
                   <input
+                    required
+                    aria-required="true"
                     type="text"
                     value={school?.certificatesHeld || ''}
                     onChange={(e) => {
                       const updatedSchools = [...(studentData?.schoolsAttended || [])]
-                      if (!updatedSchools[index - 1]) {
-                        updatedSchools[index - 1] = { institutionName: '', certificatesHeld: '' }
+                      if (!updatedSchools[index]) {
+                        updatedSchools[index] = { institutionName: '', certificatesHeld: '' }
                       }
-                      updatedSchools[index - 1].certificatesHeld = e.target.value
+                      updatedSchools[index].certificatesHeld = e.target.value
                       handleInputChange('schoolsAttended', updatedSchools)
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter certificates obtained"
                   />
                 </div>
+                {index > 0 && (
+                  <div className="md:col-span-2 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-red-300 text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        const updatedSchools = [...(studentData?.schoolsAttended || [])]
+                        if (updatedSchools[index]) {
+                          updatedSchools.splice(index, 1)
+                          handleInputChange('schoolsAttended', updatedSchools)
+                        }
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
+        {validationErrors.schoolsAttended && (
+          <p className="text-red-500 text-sm mt-2">{validationErrors.schoolsAttended}</p>
+        )}
+        <div className="mt-3 flex justify-center">
+          <Button
+            type="button"
+            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md"
+            onClick={() => {
+              const base = studentData?.schoolsAttended && studentData.schoolsAttended.length > 0
+                ? studentData.schoolsAttended
+                : [{ institutionName: '', certificatesHeld: '' }]
+              handleInputChange('schoolsAttended', [...base, { institutionName: '', certificatesHeld: '' }])
+            }}
+          >
+            Add More
+          </Button>
+        </div>
       </div>
 
-      {/* Course Desired - Single field */}
+      {/* Course Desired - Disabled display matching surname/firstname */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Course Desired <span className="text-red-500">*</span>
         </label>
         <input
-          ref={setInputRef('courseDesired')}
           type="text"
           value={studentData?.courseDesired || ''}
-          onChange={(e) => handleInputChange('courseDesired', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            validationErrors.courseDesired ? 'border-red-500 bg-red-50' : 'border-gray-300'
-          }`}
-          placeholder="Enter the course you wish to pursue"
+          readOnly
+          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 cursor-not-allowed"
+          placeholder="Course desired (not editable)"
         />
-        {validationErrors.courseDesired && (
-          <p className="text-red-500 text-sm mt-1">{validationErrors.courseDesired}</p>
-        )}
       </div>
     </div>
   )
@@ -630,46 +683,51 @@ export default function StudentProfilePage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Have you ever accepted Jesus Christ as your Lord and Saviour? <span className="text-red-500">*</span>
           </label>
-          <div className="flex space-x-4 mt-2">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="acceptedJesus"
-                value="yes"
-                checked={studentData?.acceptedJesusChrist === true}
-                onChange={(e) => handleInputChange('acceptedJesusChrist', true)}
-                className="mr-2"
-              />
-              Yes
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="acceptedJesus"
-                value="no"
-                checked={studentData?.acceptedJesusChrist === false}
-                onChange={(e) => handleInputChange('acceptedJesusChrist', false)}
-                className="mr-2"
-              />
-              No
-            </label>
+          <div className="mt-2 w-full md:w-64">
+            <Select
+              value={
+                studentData?.acceptedJesusChrist === undefined
+                  ? ''
+                  : studentData.acceptedJesusChrist
+                  ? 'yes'
+                  : 'no'
+              }
+              onValueChange={(val) => handleInputChange('acceptedJesusChrist', val === 'yes')}
+            >
+              <SelectTrigger className={`h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 ${
+                validationErrors.acceptedJesus ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+              }`}>
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="yes">Yes</SelectItem>
+                <SelectItem value="no">No</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {validationErrors.acceptedJesus && (
             <p className="text-red-500 text-sm mt-1">{validationErrors.acceptedJesus}</p>
           )}
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            When (if applicable)
-          </label>
-          <input
-            type="text"
-            value={studentData?.whenAcceptedJesus || ''}
-            onChange={(e) => handleInputChange('whenAcceptedJesus', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter when you accepted Jesus Christ"
-          />
-        </div>
+        {studentData?.acceptedJesusChrist === true && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              When (if applicable)
+            </label>
+            <input
+              type="text"
+              value={studentData?.whenAcceptedJesus || ''}
+              onChange={(e) => handleInputChange('whenAcceptedJesus', e.target.value)}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                validationErrors.whenAcceptedJesus ? 'border-red-500 bg-red-50' : 'border-gray-300'
+              }`}
+              placeholder="Enter when you accepted Jesus Christ"
+            />
+            {validationErrors.whenAcceptedJesus && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.whenAcceptedJesus}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Church Affiliation - Single field */}
@@ -938,32 +996,35 @@ export default function StudentProfilePage() {
                {/* Navigation Button at Bottom */}
                <div className="mt-8 pt-6 border-t border-gray-100">
                  <div className="flex justify-between items-center">
-                   <div className="text-sm text-gray-500">
-                     {Object.keys(validationErrors).length > 0 && (
-                       <span className="text-red-500">
-                         Please complete all required fields
+                   <div className="flex items-center gap-3">
+                     <button
+                       type="button"
+                       onClick={handleBack}
+                       disabled={currentStep === 0}
+                       className={`px-4 py-2 rounded-md font-medium ${
+                         currentStep === 0
+                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                       }`}
+                     >
+                       <span className="inline-flex items-center gap-2">
+                         <ChevronLeft className="h-4 w-4" />
+                         Go Back
                        </span>
-                     )}
+                     </button>
+                     <div className="text-sm text-gray-500">
+                       {Object.keys(validationErrors).length > 0 && (
+                         <span className="text-red-500">
+                           Please complete all required fields
+                         </span>
+                       )}
+                     </div>
                    </div>
                    <button
                      onClick={handleNext}
-                     disabled={saving}
-                     className={`px-6 py-2 rounded-md font-medium transition-colors ${
-                       saving
-                         ? 'bg-gray-400 text-white cursor-not-allowed'
-                         : 'bg-blue-600 text-white hover:bg-blue-700'
-                     }`}
+                     className="px-6 py-2 rounded-md font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                    >
-                     {saving ? (
-                       <div className="flex items-center space-x-2">
-                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                         <span className="text-white">Saving...</span>
-                       </div>
-                     ) : currentStep === FORM_STEPS.length - 1 ? (
-                       'Complete Profile'
-                     ) : (
-                       'Next Step'
-                     )}
+                     {currentStep === FORM_STEPS.length - 1 ? 'Complete Profile' : 'Next Step'}
                    </button>
                  </div>
                </div>
