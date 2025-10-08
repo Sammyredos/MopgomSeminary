@@ -28,7 +28,7 @@ export function RegistrationWarning({ completionStatus, className = '' }: Regist
           <div className="flex items-center justify-between mb-2" />
 
           <p className="text-amber-700 mb-2 text-sm">
-            Complete your profile to receive your <span className="font-semibold text-amber-700">Matriculation Number</span>.
+            Update your profile to receive your <span className="font-semibold text-amber-700">Matriculation Number</span>.
           </p>
 
           {/* Minimal: removed progress bar */}

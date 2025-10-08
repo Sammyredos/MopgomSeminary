@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
-import { ChevronLeft, ChevronRight, User, Home, Briefcase, GraduationCap, Heart, ChevronDown, Check } from 'lucide-react'
+import { ChevronLeft, ChevronRight, User, Home, Briefcase, GraduationCap, Heart, ChevronDown, Check, Info } from 'lucide-react'
+import { ModernDatePicker } from '@/components/ui/modern-date-picker'
 import { toast } from 'sonner'
 import { StudentLayout } from '@/components/student/StudentLayout'
 import { ProtectedRoute } from '@/components/student/ProtectedRoute'
@@ -54,6 +55,17 @@ interface StudentData {
   status?: string
 }
 
+// Format any stored date string to YYYY-MM-DD for date inputs
+function toDateInputValue(dateStr?: string) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  if (isNaN(d.getTime())) return ''
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const FORM_STEPS = [
   { id: 'personal', title: 'Personal Information', icon: User },
   { id: 'contact', title: 'Contact & Address', icon: Home },
@@ -91,6 +103,7 @@ export default function StudentProfilePage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [saving, setSaving] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const [isEditing, setIsEditing] = useState(false)
 
   // Refs for form inputs to enable focus navigation
   const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>>({})
@@ -173,7 +186,9 @@ export default function StudentProfilePage() {
       setCurrentStep(currentStep + 1)
       setValidationErrors({}) // Clear errors when moving to next step
     } else {
-      toast.success('Profile completed successfully!')
+      toast.success('Profile completed successfully!', {
+        description: `Your matric number is now visible: ${studentData?.matriculationNumber || 'Not assigned'}`
+      })
     }
   }
 
@@ -340,13 +355,14 @@ export default function StudentProfilePage() {
             Place of Birth <span className="text-red-500">*</span>
           </label>
           <input
-             ref={setInputRef('placeOfBirth')}
-             type="text"
-             value={studentData?.placeOfBirth || ''}
-             onChange={(e) => handleInputChange('placeOfBirth', e.target.value)}
-             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-               validationErrors.placeOfBirth ? 'border-red-500 bg-red-50' : 'border-gray-300'
-             }`}
+            ref={setInputRef('placeOfBirth')}
+            type="text"
+            value={studentData?.placeOfBirth || ''}
+            onChange={(e) => handleInputChange('placeOfBirth', e.target.value)}
+             disabled={!isEditing}
+             className={`w-full px-3 py-2 border rounded-md ${
+               isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+             } ${validationErrors.placeOfBirth ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
              placeholder="Enter place of birth"
            />
            {validationErrors.placeOfBirth && (
@@ -362,9 +378,10 @@ export default function StudentProfilePage() {
             type="text"
             value={studentData?.origin || ''}
             onChange={(e) => handleInputChange('origin', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              validationErrors.origin ? 'border-red-500 bg-red-50' : 'border-gray-300'
-            }`}
+            disabled={!isEditing}
+            className={`w-full px-3 py-2 border rounded-md ${
+              isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+            } ${validationErrors.origin ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             placeholder="Enter origin"
           />
           {validationErrors.origin && (
@@ -383,9 +400,10 @@ export default function StudentProfilePage() {
             ref={setInputRef('maritalStatus')}
             value={studentData?.maritalStatus || ''}
             onChange={(e) => handleInputChange('maritalStatus', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              validationErrors.maritalStatus ? 'border-red-500 bg-red-50' : 'border-gray-300'
-            }`}
+            disabled={!isEditing}
+            className={`w-full px-3 py-2 border rounded-md ${
+              isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+            } ${validationErrors.maritalStatus ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
           >
             <option value="">Select marital status</option>
             <option value="Single">Single</option>
@@ -407,9 +425,10 @@ export default function StudentProfilePage() {
               type="text"
               value={studentData?.spouseName || ''}
               onChange={(e) => handleInputChange('spouseName', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                validationErrors.spouseName ? 'border-red-500 bg-red-50' : 'border-gray-300'
-              }`}
+              disabled={!isEditing}
+              className={`w-full px-3 py-2 border rounded-md ${
+                isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+              } ${validationErrors.spouseName ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
               placeholder="Enter spouse name"
             />
             {validationErrors.spouseName && (
@@ -471,9 +490,10 @@ export default function StudentProfilePage() {
              ref={setInputRef('address')}
              value={studentData?.homeAddress || ''}
              onChange={(e) => handleInputChange('homeAddress', e.target.value)}
-             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-               validationErrors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'
-             }`}
+             disabled={!isEditing}
+             className={`w-full px-3 py-2 border rounded-md ${
+               isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+             } ${validationErrors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
              rows={3}
              placeholder="Enter your home address"
            />
@@ -489,9 +509,10 @@ export default function StudentProfilePage() {
              ref={setInputRef('officeAddress')}
              value={studentData?.officePostalAddress || ''}
              onChange={(e) => handleInputChange('officePostalAddress', e.target.value)}
-             className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-               validationErrors.officeAddress ? 'border-red-500 bg-red-50' : 'border-gray-300'
-             }`}
+             disabled={!isEditing}
+             className={`w-full px-3 py-2 border rounded-md ${
+               isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+             } ${validationErrors.officeAddress ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
              rows={3}
              placeholder="Enter your office or postal address"
            />
@@ -516,9 +537,10 @@ export default function StudentProfilePage() {
             type="text"
             value={studentData?.presentOccupation || ''}
             onChange={(e) => handleInputChange('presentOccupation', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              validationErrors.occupation ? 'border-red-500 bg-red-50' : 'border-gray-300'
-            }`}
+            disabled={!isEditing}
+            className={`w-full px-3 py-2 border rounded-md ${
+              isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+            } ${validationErrors.occupation ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             placeholder="Enter your current occupation"
           />
           {validationErrors.occupation && (
@@ -534,9 +556,10 @@ export default function StudentProfilePage() {
             type="text"
             value={studentData?.placeOfWork || ''}
             onChange={(e) => handleInputChange('placeOfWork', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              validationErrors.employer ? 'border-red-500 bg-red-50' : 'border-gray-300'
-            }`}
+            disabled={!isEditing}
+            className={`w-full px-3 py-2 border rounded-md ${
+              isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+            } ${validationErrors.employer ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             placeholder="Enter your workplace"
           />
           {validationErrors.employer && (
@@ -555,9 +578,10 @@ export default function StudentProfilePage() {
           type="text"
           value={studentData?.positionHeldInOffice || ''}
           onChange={(e) => handleInputChange('positionHeldInOffice', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-            validationErrors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'
-          }`}
+          disabled={!isEditing}
+          className={`w-full px-3 py-2 border rounded-md ${
+            isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+          } ${validationErrors.position ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
           placeholder="Enter your position/title"
         />
         {validationErrors.position && (
@@ -596,7 +620,8 @@ export default function StudentProfilePage() {
                       updatedSchools[index].institutionName = e.target.value
                       handleInputChange('schoolsAttended', updatedSchools)
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md ${isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'}`}
                     placeholder="Enter institution name"
                   />
                 </div>
@@ -617,7 +642,8 @@ export default function StudentProfilePage() {
                       updatedSchools[index].certificatesHeld = e.target.value
                       handleInputChange('schoolsAttended', updatedSchools)
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md ${isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'}`}
                     placeholder="Enter certificates obtained"
                   />
                 </div>
@@ -628,6 +654,7 @@ export default function StudentProfilePage() {
                       variant="outline"
                       size="sm"
                       className="border-red-300 text-red-700 hover:bg-red-50"
+                      disabled={!isEditing}
                       onClick={() => {
                         const updatedSchools = [...(studentData?.schoolsAttended || [])]
                         if (updatedSchools[index]) {
@@ -651,6 +678,7 @@ export default function StudentProfilePage() {
           <Button
             type="button"
             className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md"
+            disabled={!isEditing}
             onClick={() => {
               const base = studentData?.schoolsAttended && studentData.schoolsAttended.length > 0
                 ? studentData.schoolsAttended
@@ -696,11 +724,11 @@ export default function StudentProfilePage() {
                   ? 'yes'
                   : 'no'
               }
-              onValueChange={(val) => handleInputChange('acceptedJesusChrist', val === 'yes')}
+              onValueChange={(val) => { if (!isEditing) return; handleInputChange('acceptedJesusChrist', val === 'yes') }}
             >
-              <SelectTrigger className={`h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 ${
-                validationErrors.acceptedJesus ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
-              }`}>
+              <SelectTrigger className={`h-10 border-gray-300 ${
+                isEditing ? 'focus:border-indigo-500 focus:ring-indigo-500' : 'bg-gray-100 cursor-not-allowed pointer-events-none opacity-60'
+              } ${validationErrors.acceptedJesus ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}>
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
@@ -715,17 +743,14 @@ export default function StudentProfilePage() {
         </div>
         {studentData?.acceptedJesusChrist === true && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              When (if applicable)
-            </label>
-            <input
-              type="text"
-              value={studentData?.whenAcceptedJesus || ''}
-              onChange={(e) => handleInputChange('whenAcceptedJesus', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                validationErrors.whenAcceptedJesus ? 'border-red-500 bg-red-50' : 'border-gray-300'
-              }`}
-              placeholder="Enter when you accepted Jesus Christ"
+            <ModernDatePicker
+              label="When (if applicable)"
+              value={toDateInputValue(studentData?.whenAcceptedJesus)}
+              onChange={(date) => handleInputChange('whenAcceptedJesus', date)}
+              placeholder="Select date"
+              disabled={!isEditing}
+              maxDate={new Date().toISOString().split('T')[0]}
+              error={!!validationErrors.whenAcceptedJesus}
             />
             {validationErrors.whenAcceptedJesus && (
               <p className="text-red-500 text-sm mt-1">{validationErrors.whenAcceptedJesus}</p>
@@ -744,9 +769,10 @@ export default function StudentProfilePage() {
             type="text"
             value={studentData?.churchAffiliation || ''}
             onChange={(e) => handleInputChange('churchAffiliation', e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              validationErrors.churchName ? 'border-red-500 bg-red-50' : 'border-gray-300'
-            }`}
+            disabled={!isEditing}
+            className={`w-full px-3 py-2 border rounded-md ${
+              isEditing ? 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500' : 'bg-gray-100 cursor-not-allowed'
+            } ${validationErrors.churchName ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
             placeholder="Enter your church affiliation"
           />
           {validationErrors.churchName && (
@@ -902,10 +928,37 @@ export default function StudentProfilePage() {
             <div className="p-4 sm:p-6 border-b border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-base sm:text-lg text-gray-900">Complete Your Profile</h3>
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-1 items-center justify-end space-x-3">
                   <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                     Step {currentStep + 1} of {FORM_STEPS.length}
                   </span>
+                </div>
+              </div>
+
+              {/* Informative message with action */}
+              <div className="mb-4">
+                <div className="flex items-center gap-3 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
+                  <Info className="h-4 w-4" />
+                  <p className="text-sm text-amber-700 flex-1">
+                    Use the button here to edit your information.
+                  </p>
+                  {!isEditing ? (
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded-md bg-amber-600 text-white hover:bg-amber-700"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      Edit Information
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700"
+                      onClick={() => { setIsEditing(false); }}
+                    >
+                      Done
+                    </button>
+                  )}
                 </div>
               </div>
               
