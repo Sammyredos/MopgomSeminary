@@ -50,6 +50,8 @@ interface StudentData {
     certificatesHeld: string
   }>
   courseDesired?: string
+  profilePicture?: string | null
+  status?: string
 }
 
 const FORM_STEPS = [
@@ -81,7 +83,9 @@ export default function StudentProfilePage() {
     whenAcceptedJesus: '',
     churchAffiliation: '',
     schoolsAttended: [],
-    courseDesired: ''
+    courseDesired: '',
+    profilePicture: null,
+    status: ''
   })
   const [loading, setLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(0)
@@ -771,7 +775,7 @@ export default function StudentProfilePage() {
 
   if (loading) {
     return (
-      <ProtectedRoute allowedRoles={['Student']}>
+      <ProtectedRoute>
         <StudentLayout title="Profile" description="View your personal information">
           <div className="min-h-screen">
             <div className="space-y-6 p-4">
@@ -838,7 +842,7 @@ export default function StudentProfilePage() {
 
   if (!studentData) {
     return (
-      <ProtectedRoute allowedRoles={['Student']}>
+      <ProtectedRoute>
         <StudentLayout title="Profile" description="View your personal information">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -852,7 +856,7 @@ export default function StudentProfilePage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={['Student']}>
+    <ProtectedRoute>
       <StudentLayout title="Profile" description="View and update your personal information">
         <div className="min-h-screen">
           <div className="space-y-6 p-4">
@@ -860,12 +864,13 @@ export default function StudentProfilePage() {
             <Card className="shadow-xl border-2 border-[#efefef] backdrop-blur-sm">
             <div className="p-4 sm:p-6">
               <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={studentData.profilePicture} alt={studentData.name} />
-                  <AvatarFallback className="bg-blue-100 text-blue-700 text-lg font-semibold">
-                    {studentData.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'S'}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative h-16 w-16">
+                  
+                  {/* Initials badge overlay - enlarged to fill the display */}
+                  <div className="absolute -bottom-1 -right-1 h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-base font-bold border border-blue-700 shadow-sm uppercase leading-none">
+                    {(studentData.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)) || 'ST'}
+                  </div>
+                </div>
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-gray-900">{studentData.name}</h2>
                   <p className="text-gray-600">{studentData.email}</p>

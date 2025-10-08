@@ -25,12 +25,23 @@ function Avatar({
 
 function AvatarImage({
   className,
+  onError,
   ...props
 }: React.ImgHTMLAttributes<HTMLImageElement>) {
+  const handleError: React.ReactEventHandler<HTMLImageElement> = (e) => {
+    // Hide the image element on error to prevent broken image icons
+    // The AvatarFallback will remain visible underneath
+    try {
+      (e.currentTarget as HTMLImageElement).style.display = 'none'
+    } catch {}
+    if (onError) onError(e)
+  }
+
   return (
     <img
       data-slot="avatar-image"
       className={cn("aspect-square h-full w-full object-cover", className)}
+      onError={handleError}
       {...props}
     />
   )

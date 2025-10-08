@@ -32,6 +32,8 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
         gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
         bgGradient="bg-gradient-to-br from-white to-blue-50"
         loading={loading}
+        href="/admin/registrations"
+        ariaLabel="Go to registrations"
       />
 
       <StatsCard
@@ -42,6 +44,8 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
         gradient="bg-gradient-to-r from-green-500 to-emerald-600"
         bgGradient="bg-gradient-to-br from-white to-green-50"
         loading={loading}
+        href="/admin/teachers"
+        ariaLabel="Go to teachers"
       />
 
       <StatsCard
@@ -52,6 +56,8 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
         gradient="bg-gradient-to-r from-orange-500 to-amber-600"
         bgGradient="bg-gradient-to-br from-white to-orange-50"
         loading={loading}
+        href="/admin/courses"
+        ariaLabel="Go to courses"
       />
 
       <StatsCard
@@ -62,6 +68,8 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
         gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
         bgGradient="bg-gradient-to-br from-white to-purple-50"
         loading={loading}
+        href="/admin/inbox"
+        ariaLabel="Go to inbox"
       />
     </StatsGrid>
   )

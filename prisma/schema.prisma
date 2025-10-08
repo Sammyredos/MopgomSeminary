@@ -269,11 +269,24 @@ model Registration {
   age                          Int      @default(0)
   gender                       String
   address                      String
+  officePostalAddress          String?
   branch                       String
   phoneNumber                  String   @unique
   emailAddress                 String   @unique
   matriculationNumber          String?  @unique
   courseDesired                String?
+  // Additional profile fields captured from student profile form
+  maritalStatus                String?
+  spouseName                   String?
+  placeOfBirth                 String?
+  origin                       String?
+  presentOccupation            String?
+  placeOfWork                  String?
+  positionHeldInOffice         String?
+  acceptedJesusChrist          Boolean? @default(false)
+  whenAcceptedJesus            String?
+  churchAffiliation            String?
+  schoolsAttended              String?  // JSON string of [{ institutionName, certificatesHeld }]
   emergencyContactName         String
   emergencyContactRelationship String
   emergencyContactPhone        String

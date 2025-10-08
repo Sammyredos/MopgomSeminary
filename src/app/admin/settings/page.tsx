@@ -142,7 +142,12 @@ export default function SettingsPage() {
 
     // Principal has write access to everything except system-critical security settings
     if (currentUser.role.name === 'Principal') {
-      console.log('🔑 Principal - granting write access')
+      // Deny write access for security sections to align with backend
+      if (tabId === 'security-auth' || tabId === 'security' || tabId.startsWith('security-')) {
+        console.log('❌ Principal - denying write access to security sections (read-only)')
+        return false
+      }
+      console.log('🔑 Principal - granting write access to non-security tabs')
       return true
     }
 

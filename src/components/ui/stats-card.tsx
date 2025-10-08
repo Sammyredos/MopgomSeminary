@@ -4,6 +4,7 @@
  */
 
 import React from 'react'
+import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { LucideIcon } from 'lucide-react'
 
@@ -15,6 +16,9 @@ interface StatsCardProps {
   gradient: string
   bgGradient: string
   loading?: boolean
+  href?: string
+  onClick?: () => void
+  ariaLabel?: string
 }
 
 export function StatsCard({
@@ -24,7 +28,10 @@ export function StatsCard({
   icon: Icon,
   gradient,
   bgGradient,
-  loading = false
+  loading = false,
+  href,
+  onClick,
+  ariaLabel
 }: StatsCardProps) {
   if (loading) {
     return (
@@ -43,8 +50,8 @@ export function StatsCard({
     )
   }
 
-  return (
-    <Card className={`relative overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 group ${bgGradient || 'bg-white'}`}>
+  const inner = (
+    <Card className={`relative overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 group ${bgGradient || 'bg-white'} ${href || onClick ? 'cursor-pointer' : ''}`} onClick={onClick}>
       <div className="p-4 sm:p-5">
         <div className="flex items-start space-x-3">
           {/* Icon */}
@@ -70,6 +77,16 @@ export function StatsCard({
       </div>
     </Card>
   )
+
+  if (href) {
+    return (
+      <Link href={href} aria-label={ariaLabel || title} className="block focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg">
+        {inner}
+      </Link>
+    )
+  }
+
+  return inner
 }
 
 interface StatsGridProps {
