@@ -306,13 +306,10 @@ export default function StudentDashboard() {
   const handleCalendarDateClick = (clickedDate: Date) => {
     setSelectedCalendarDate(clickedDate)
     const dayEvents = getEventsForDate(clickedDate)
-    if (dayEvents.length > 0) {
-      setSelectedCalendarEvents(dayEvents)
-      setIsCalendarModalOpen(true)
-    } else {
-      setIsCalendarModalOpen(false)
-      setSelectedCalendarEvents([])
-    }
+    // Always open the modal and show a minimal state indicating
+    // whether there are events for the selected day or not
+    setSelectedCalendarEvents(dayEvents)
+    setIsCalendarModalOpen(true)
   }
   const getDeadlineColor = (date: string) => {
     const deadline = new Date(date)
@@ -485,7 +482,7 @@ export default function StudentDashboard() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Upcoming Deadlines */}
                     <Card className="bg-white">
-                      <div className="p-4 sm:p-6 border-b border-gray-100">
+                      <div className="p-4 sm:p-6 border-b border-gray-100 bg-orange-50">
                         <div className="flex items-center space-x-3">
                           <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center">
                             <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -498,28 +495,36 @@ export default function StudentDashboard() {
                       </div>
                       <div className="p-4 sm:p-6">
                         <div className="space-y-4">
-                          {(academicInfo?.upcomingDeadlines?.length ? academicInfo?.upcomingDeadlines : upcomingFromCalendar).map((deadline) => (
-                            <div key={deadline.id} className="flex items-center justify-between p-3 rounded-lg border">
-                              <div className="flex items-center space-x-3">
-                                <div className={`p-2 rounded-full ${getDeadlineColor(deadline.date)}`}>
-                                  {deadline.type === 'assignment' && <FileText className="h-4 w-4" />}
-                                  {deadline.type === 'exam' && <BookOpen className="h-4 w-4" />}
-                                  {deadline.type === 'project' && <Award className="h-4 w-4" />}
-                                  {deadline.type === 'event' && <Calendar className="h-4 w-4" />}
+                          {(academicInfo?.upcomingDeadlines?.length ? academicInfo?.upcomingDeadlines : upcomingFromCalendar).map((deadline) => {
+                            const ev = calendarEvents.find(e => e.id === deadline.id)
+                            const typeSoft: Record<string, string> = {
+                              assignment: 'bg-blue-100 text-blue-700',
+                              exam: 'bg-red-100 text-red-700',
+                              project: 'bg-purple-100 text-purple-700',
+                              event: 'bg-orange-100 text-orange-700'
+                            }
+                            const typeLabel = deadline.type.charAt(0).toUpperCase() + deadline.type.slice(1)
+
+                            return (
+                              <div key={deadline.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="font-medium text-sm text-gray-900 flex-1">{deadline.title}</div>
+                                  <span className={`text-xs px-2 py-1 rounded-md ${typeSoft[deadline.type]}`}>{typeLabel}</span>
                                 </div>
-                                <div>
-                                  <div className="font-medium">{deadline.title}</div>
-                                  <div className="text-sm text-gray-600">{deadline.course}</div>
+                                {deadline.course && (
+                                  <p className="text-xs text-gray-600 mb-3">{deadline.course}</p>
+                                )}
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-gray-200 text-gray-800 text-xs">
+                                    <Calendar className="h-3 w-3" />
+                                    <span>
+                                      {ev ? `${formatDate(ev.startDate)} - ${formatDate(ev.endDate)}` : `${formatDate(deadline.date)}`}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <div className="font-medium">{formatDate(deadline.date)}</div>
-                                <Badge variant="outline" className="text-xs">
-                                  {deadline.type}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
+                            )
+                          })}
                           {(!academicInfo?.upcomingDeadlines?.length && !upcomingFromCalendar.length) && (
                             <div className="flex flex-col items-center justify-center py-8 text-center">
                               <div className="h-9 w-9 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mb-2">
@@ -539,8 +544,8 @@ export default function StudentDashboard() {
                   </div>
 
                   {/* Recent Notifications */}
-                  <Card className="bg-white">
-                    <div className="p-4 sm:p-6 border-b border-gray-100">
+                  <Card className="bg-white lg:h-[418px] flex flex-col">
+                    <div className="p-4 sm:p-6 border-b border-gray-100 bg-pink-50">
                       <div className="flex items-center space-x-3">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
                           <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -551,7 +556,7 @@ export default function StudentDashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="p-4 sm:p-6">
+                    <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
                       {notifications.length === 0 ? (
                         <div className="p-4 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600">No notifications available</div>
                       ) : (
@@ -603,7 +608,7 @@ export default function StudentDashboard() {
                   {/* Student Information */}
                   <div ref={studentInfoRef}>
                     <Card className="bg-white">
-                    <div className="p-4 sm:p-6 border-b border-gray-100">
+                    <div className="p-4 sm:p-6 border-b border-gray-100 bg-cyan-50">
                       <div className="flex items-center space-x-3">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
                           <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -650,7 +655,7 @@ export default function StudentDashboard() {
 
                   {/* Quick Actions */}
                   <Card className="bg-white">
-                    <div className="p-4 sm:p-6 border-b border-gray-100">
+                    <div className="p-4 sm:p-6 border-b border-gray-100 bg-indigo-50">
                       <div className="flex items-center space-x-3">
                         <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
                           <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -724,35 +729,65 @@ export default function StudentDashboard() {
             {/* Secondary Content Row removed as requested */}
           </div>
     <Dialog open={isCalendarModalOpen} onOpenChange={setIsCalendarModalOpen}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="font-semibold">
-            {selectedCalendarDate ? selectedCalendarDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Selected Day'}
-          </DialogTitle>
-          <DialogDescription>
-            {selectedCalendarEvents.length} event{selectedCalendarEvents.length !== 1 ? 's' : ''} scheduled
-          </DialogDescription>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <DialogTitle className="font-semibold">
+                {selectedCalendarDate ? selectedCalendarDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Selected Day'}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedCalendarEvents.length} event{selectedCalendarEvents.length !== 1 ? 's' : ''} scheduled
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-3">
-          {selectedCalendarEvents.map((event) => (
-            <div key={event.id} className="flex items-start gap-3 p-3 bg-white rounded-lg border">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100 text-gray-700">
-                <span className="w-2 h-2 rounded-full bg-gray-500" />
-              </div>
-              <div className="flex-1">
-                <div className="font-medium text-sm">{event.title}</div>
-                {event.description && (
-                  <div className="text-xs text-gray-600 mt-1 line-clamp-2">{event.description}</div>
-                )}
-                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                  <div>{formatDate(event.startDate)} - {formatDate(event.endDate)}</div>
-                  <Badge variant="secondary" className="text-xs">{event.eventType}</Badge>
-                </div>
-              </div>
+        {selectedCalendarEvents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="h-10 w-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mb-2">
+              <Calendar className="h-5 w-5" />
             </div>
-          ))}
-        </div>
+            <p className="text-sm text-gray-700">No events on this day.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {selectedCalendarEvents.map((event) => {
+              const typeSoft: Record<string, string> = {
+                TERM: 'bg-blue-100 text-blue-700',
+                HOLIDAY: 'bg-green-100 text-green-700',
+                EXAM: 'bg-red-100 text-red-700',
+                EVENT: 'bg-purple-100 text-purple-700',
+                MEETING: 'bg-orange-100 text-orange-700'
+              }
+              return (
+                <div key={event.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="font-medium text-sm text-gray-900 flex-1">{event.title}</div>
+                    <span className={`text-xs px-2 py-1 rounded-md ${typeSoft[event.eventType]}`}>{event.eventType.charAt(0) + event.eventType.slice(1).toLowerCase()}</span>
+                  </div>
+                  {event.description && (
+                    <p className="text-xs text-gray-600 mb-3">{event.description}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-xs">
+                      <Calendar className="h-3 w-3" />
+                      <span>{formatDate(event.startDate)} - {formatDate(event.endDate)}</span>
+                    </div>
+                    {event.academicYear && (
+                      <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-xs">
+                        <span>{event.academicYear}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <DialogClose asChild>
           <Button variant="outline" className="mt-4 w-full">Close</Button>

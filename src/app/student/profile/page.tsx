@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
-import { ChevronLeft, ChevronRight, User, Home, Briefcase, GraduationCap, Heart, ChevronDown, Check, Info } from 'lucide-react'
+import { ChevronLeft, ChevronRight, User, Home, Briefcase, GraduationCap, Heart, ChevronDown, Check, Info, Loader2 } from 'lucide-react'
 import { ModernDatePicker } from '@/components/ui/modern-date-picker'
 import { toast } from 'sonner'
 import { StudentLayout } from '@/components/student/StudentLayout'
@@ -160,6 +160,11 @@ export default function StudentProfilePage() {
     return { isValid: Object.keys(errors).length === 0, errors }
   }
 
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [verifyResult, setVerifyResult] = useState<any>(null)
+  const [profileCompleted, setProfileCompleted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const handleNext = async () => {
     // Validate current step
     const { isValid, errors } = validateStep(currentStep)
@@ -186,9 +191,31 @@ export default function StudentProfilePage() {
       setCurrentStep(currentStep + 1)
       setValidationErrors({}) // Clear errors when moving to next step
     } else {
-      toast.success('Profile completed successfully!', {
-        description: `Your matric number is now visible: ${studentData?.matriculationNumber || 'Not assigned'}`
-      })
+      setIsSubmitting(true)
+      try {
+        const res = await fetch('/api/student/registration/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(studentData)
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setVerifyResult(data)
+          setProfileCompleted(true)
+          setIsEditing(false)
+          setShowSuccessModal(true)
+        } else {
+          const err = await res.json().catch(() => ({}))
+          toast.error('Profile completion sync failed', {
+            description: err?.error || err?.message || 'Please try again.'
+          })
+          setIsSubmitting(false)
+        }
+      } catch (e) {
+        console.error('Verify sync error:', e)
+        toast.error('Network error syncing completion')
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -935,31 +962,40 @@ export default function StudentProfilePage() {
                 </div>
               </div>
 
-              {/* Informative message with action */}
+              {/* Informative / Completion message */}
               <div className="mb-4">
-                <div className="flex items-center gap-3 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
-                  <Info className="h-4 w-4" />
-                  <p className="text-sm text-amber-700 flex-1">
-                    Use the button here to edit your information.
-                  </p>
-                  {!isEditing ? (
-                    <button
-                      type="button"
-                      className="px-3 py-1 rounded-md bg-amber-600 text-white hover:bg-amber-700"
-                      onClick={() => setIsEditing(true)}
-                    >
-                      Edit Information
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700"
-                      onClick={() => { setIsEditing(false); }}
-                    >
-                      Done
-                    </button>
-                  )}
-                </div>
+                {profileCompleted ? (
+                  <div className="flex items-center gap-3 p-3 rounded-md bg-green-50 border border-green-200 text-green-800">
+                    <Check className="h-4 w-4" />
+                    <p className="text-sm text-green-700">
+                      Your profile has been updated successfully.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
+                    <Info className="h-4 w-4" />
+                    <p className="text-sm text-amber-700 flex-1">
+                      Use the button here to edit your information.
+                    </p>
+                    {!isEditing ? (
+                      <button
+                        type="button"
+                        className="px-3 py-1 rounded-md bg-amber-600 text-white hover:bg-amber-700"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        Edit Information
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700"
+                        onClick={() => { setIsEditing(false); }}
+                      >
+                        Done
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               
               {/* Enhanced Progress Bar - Fixed responsive design */}
@@ -1080,14 +1116,54 @@ export default function StudentProfilePage() {
                    </div>
                    <button
                      onClick={handleNext}
-                     className="px-6 py-2 rounded-md font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                     disabled={isSubmitting}
+                     className="px-6 py-2 rounded-md font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                    >
-                     {currentStep === FORM_STEPS.length - 1 ? 'Complete Profile' : 'Next Step'}
+                     {currentStep === FORM_STEPS.length - 1 ? (
+                       isSubmitting ? (
+                         <span className="inline-flex items-center gap-2">
+                           <Loader2 className="h-4 w-4 animate-spin" />
+                           Completing...
+                         </span>
+                       ) : (
+                         'Complete Information'
+                       )
+                     ) : 'Next Step'}
                    </button>
                  </div>
                </div>
             </div>
           </Card>
+          {/* Success Modal */}
+          {showSuccessModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+                <div className="flex items-center gap-2 text-green-600 mb-2">
+                  <Check className="h-5 w-5" />
+                  <h2 className="text-lg font-semibold">Profile Completed</h2>
+                </div>
+                <p className="text-sm text-gray-700">
+                  Your Registration is Verified. Your Matriculation Number
+                  <span className="font-medium"> {studentData?.matriculationNumber || 'Not assigned'} </span>
+                  will now display on your dashboard.
+                </p>
+                <div className="mt-4 flex justify-end gap-3">
+                  <button
+                    onClick={() => { setShowSuccessModal(false); setIsSubmitting(false) }}
+                    className="px-4 py-2 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => router.push('/student/dashboard')}
+                    className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    Go to dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           </div>
         </div>
       </StudentLayout>

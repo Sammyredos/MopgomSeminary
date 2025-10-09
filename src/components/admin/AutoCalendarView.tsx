@@ -145,11 +145,13 @@ export function AutoCalendarView({ events, onEventClick, onDateClick, compact = 
 
   // Get events for a specific date
   const getEventsForDate = (date: number) => {
-    const targetDate = new Date(currentYear, currentMonth, date);
+    // Normalize comparisons to day boundaries to avoid timezone offsets
+    const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const targetDay = new Date(currentYear, currentMonth, date);
     return monthEvents.filter(event => {
-      const eventStart = new Date(event.startDate);
-      const eventEnd = new Date(event.endDate);
-      return targetDate >= eventStart && targetDate <= eventEnd;
+      const start = toDay(new Date(event.startDate));
+      const end = toDay(new Date(event.endDate));
+      return targetDay >= start && targetDay <= end;
     });
   };
 
@@ -222,9 +224,20 @@ export function AutoCalendarView({ events, onEventClick, onDateClick, compact = 
             compact ? "text-xs sm:text-sm font-medium mb-1 flex-shrink-0" : "text-sm sm:text-base font-medium mb-1 flex-shrink-0"
           )}>
             <span className={cn(
-              "inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full",
-              isCurrentDay ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-700"
-            )}>{date}</span>
+              "relative inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full transition-colors",
+              isCurrentDay ? "bg-indigo-100 text-indigo-700" : "bg-gray-100 text-gray-700",
+              isSelectedDay ? "ring-2 ring-indigo-400" : ""
+            )}>
+              {date}
+              {dayEvents.length > 0 && (
+                <span
+                  className={cn(
+                    "absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white",
+                    eventTypeDots[dayEvents[0].eventType]
+                  )}
+                />
+              )}
+            </span>
           </div>
           
           {/* Event indicators */}
@@ -390,11 +403,30 @@ export function AutoCalendarView({ events, onEventClick, onDateClick, compact = 
             </div>
           ))}
         </div>
-        
+
         {/* Calendar grid */}
         <div className="grid grid-cols-7 grid-rows-6 gap-1">
           {generateCalendarDays()}
         </div>
+
+        {/* Compact legend and hint placed at bottom */}
+        {compact && (
+          <div className="px-2 mt-2">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {Object.entries(eventTypeDots).map(([type, cls]) => (
+                <div key={type} className="flex items-center gap-2">
+                  <div className={cn("w-2.5 h-2.5 rounded", cls)} />
+                  <span className="text-[11px] text-gray-600">
+                    {type.charAt(0) + type.slice(1).toLowerCase()}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="text-center text-[11px] text-gray-500 mt-2">
+              Click a day to view events
+            </div>
+          </div>
+        )}
         
         {/* Legend */}
         {!compact && (
