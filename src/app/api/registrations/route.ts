@@ -46,9 +46,22 @@ export async function GET(request: NextRequest) {
           dateOfBirth: true,
           gender: true,
           address: true,
+          officePostalAddress: true,
           branch: true,
           phoneNumber: true,
           emailAddress: true,
+          courseDesired: true,
+          maritalStatus: true,
+          spouseName: true,
+          placeOfBirth: true,
+          origin: true,
+          presentOccupation: true,
+          placeOfWork: true,
+          positionHeldInOffice: true,
+          acceptedJesusChrist: true,
+          whenAcceptedJesus: true,
+          churchAffiliation: true,
+          schoolsAttended: true,
           matriculationNumber: true,
           emergencyContactName: true,
           emergencyContactRelationship: true,
@@ -68,11 +81,21 @@ export async function GET(request: NextRequest) {
       })
     ])
 
-    // Map registrations to include matricNumber field for frontend compatibility
-    const registrationsWithMatricNumbers = registrations.map(registration => ({
-      ...registration,
-      matricNumber: registration.matriculationNumber
-    }))
+    // Map registrations to include matricNumber, homeAddress and parsed schoolsAttended for frontend compatibility
+    const registrationsWithMatricNumbers = registrations.map((registration: any) => {
+      let schools: any[] = []
+      try {
+        schools = registration.schoolsAttended ? JSON.parse(registration.schoolsAttended) : []
+      } catch {
+        schools = []
+      }
+      return {
+        ...registration,
+        matricNumber: registration.matriculationNumber,
+        homeAddress: registration.address,
+        schoolsAttended: schools
+      }
+    })
 
     const totalPages = Math.ceil(totalCount / limit)
 
