@@ -246,28 +246,48 @@ async function createSuperAdmin() {
     console.log('👤 Creating Super Admin user...')
 
     // Use environment variable for password, fallback to default
-    const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin123!'
+    const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin123@'
     const hashedPassword = await bcrypt.hash(adminPassword, 12)
 
-    const superAdmin = await prisma.admin.upsert({
-      where: { email: 'superadmin@mopgomseminary.com' },
-      update: {
-        password: hashedPassword,
-        name: 'System Administrator',
-        roleId: superAdminRole.id,
-        isActive: true
-      },
-      create: {
-        email: 'superadmin@mopgomseminary.com',
-        password: hashedPassword,
-        name: 'System Administrator',
-        roleId: superAdminRole.id,
-        isActive: true
-      }
-    })
+    const oldEmail = 'superadmin@mopgomseminary.com'
+    const newEmail = 's.obadina@mopgomts.com'
+
+    // If an admin exists with the old email, update it to the new email.
+    const existingOld = await prisma.admin.findUnique({ where: { email: oldEmail } })
+
+    let superAdmin
+    if (existingOld) {
+      superAdmin = await prisma.admin.update({
+        where: { email: oldEmail },
+        data: {
+          email: newEmail,
+          password: hashedPassword,
+          name: 'System Administrator',
+          roleId: superAdminRole.id,
+          isActive: true
+        }
+      })
+    } else {
+      superAdmin = await prisma.admin.upsert({
+        where: { email: newEmail },
+        update: {
+          password: hashedPassword,
+          name: 'System Administrator',
+          roleId: superAdminRole.id,
+          isActive: true
+        },
+        create: {
+          email: newEmail,
+          password: hashedPassword,
+          name: 'System Administrator',
+          roleId: superAdminRole.id,
+          isActive: true
+        }
+      })
+    }
 
     console.log('\n🎉 Super Admin created successfully!')
-    console.log('📧 Email: superadmin@mopgomseminary.com')
+    console.log('📧 Email: s.obadina@mopgomts.com')
     console.log(`🔑 Password: ${adminPassword}`)
     console.log('👑 Role: Super Admin')
     console.log(`🛡️  Permissions: ${createdPermissions.length} permissions`)

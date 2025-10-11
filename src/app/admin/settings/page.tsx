@@ -81,7 +81,7 @@ export default function SettingsPage() {
   const { currentUser, loading: userLoading } = useUser()
   const { branding, updateSystemName, updateLogo, refreshBranding } = useBranding()
   const [settings, setSettings] = useState<SettingsState>({})
-  const [loading, setLoading] = useState(false) // Start with false for instant display
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   // Removed legacy message state - now using useToast consistently
   const [editingCategories, setEditingCategories] = useState<Record<string, boolean>>({})
@@ -392,9 +392,10 @@ export default function SettingsPage() {
 
 
   const loadSettings = async () => {
+    setLoading(true)
     try {
       // Load main settings
-      const response = await fetch('/api/admin/settings')
+      const response = await fetch('/api/admin/settings', { cache: 'no-store' })
 
       if (response.status === 403) {
         // User doesn't have permission to access settings
@@ -433,10 +434,10 @@ export default function SettingsPage() {
         // Load additional settings (email, sms, notifications and security)
         try {
           const [emailRes, smsRes, notificationsRes, securityRes] = await Promise.all([
-            fetch('/api/admin/settings/email'),
-            fetch('/api/admin/settings/sms'),
-            fetch('/api/admin/settings/notifications'),
-            fetch('/api/admin/settings/security')
+            fetch('/api/admin/settings/email', { cache: 'no-store' }),
+            fetch('/api/admin/settings/sms', { cache: 'no-store' }),
+            fetch('/api/admin/settings/notifications', { cache: 'no-store' }),
+            fetch('/api/admin/settings/security', { cache: 'no-store' })
           ])
 
           // Load email settings

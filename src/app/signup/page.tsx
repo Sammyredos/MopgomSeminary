@@ -31,6 +31,7 @@ import { InternationalPhoneInput } from '@/components/ui/international-phone-inp
 import { ModernDatePicker } from '@/components/ui/modern-date-picker'
 import { PasswordRequirements } from '@/components/ui/passwordrequirements'
 import '@/styles/login-animations.css'
+import { RegistrationFormSkeleton } from '@/components/ui/skeleton'
 
 interface FormData {
   surname: string
@@ -89,13 +90,14 @@ export default function StudentSignup() {
     minimumAge: 13,
     isFormClosed: false
   })
+  const [statusLoading, setStatusLoading] = useState(true)
 
 
   // Fetch registration settings from public endpoint
   useEffect(() => {
     const fetchRegistrationSettings = async () => {
       try {
-        const response = await fetch('/api/registration/settings')
+        const response = await fetch('/api/registration/settings', { cache: 'no-store' })
         
         if (response.ok) {
           const data = await response.json()
@@ -122,7 +124,7 @@ export default function StudentSignup() {
           isFormClosed: false
         })
       } finally {
-        // Settings loaded
+        setStatusLoading(false)
       }
     }
 
@@ -530,6 +532,11 @@ export default function StudentSignup() {
         </div>
       </div>
     )
+  }
+
+  // Prevent initial flicker: wait until status loads before showing form
+  if (statusLoading) {
+    return <RegistrationFormSkeleton />
   }
 
   return (

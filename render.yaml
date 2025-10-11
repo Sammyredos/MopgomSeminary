@@ -21,7 +21,7 @@ services:
       npx tsx scripts/cleanup-placeholder-platoons.ts &&
       echo "✅ Placeholder data cleanup completed" &&
       echo "👑 Setting up Super Admin account..." &&
-      (npx tsx scripts/create-super-admin.ts && echo "✅ Super Admin account ready (superadmin@mopgomseminary.com)" || echo "⚠️ Admin creation skipped (may already exist)") &&
+      (npx tsx scripts/create-super-admin.ts && echo "✅ Super Admin account ready (s.obadina@mopgomts.com)" || echo "⚠️ Admin creation skipped (may already exist)") &&
       echo "⚙️ Seeding system settings..." &&
       (npx tsx scripts/seed-settings.ts && echo "✅ Settings seeded successfully" || echo "⚠️ Settings seeding skipped (may already exist)") &&
       echo "🔐 Seeding notification and security settings..." &&
@@ -91,11 +91,11 @@ services:
       - key: ORGANIZATION_NAME
         value: Mopgomglobal
       - key: SUPPORT_EMAIL
-        value: superadmin@mopgomseminary.com
+        value: s.obadina@mopgomts.com
       - key: DEFAULT_ADMIN_EMAIL
-        value: superadmin@mopgomseminary.com
+        value: s.obadina@mopgomts.com
       - key: DEFAULT_ADMIN_PASSWORD
-        value: Admin123!
+        value: SuperAdmin123@
       - key: MINIMUM_AGE
         value: 13
       - key: REGISTRATION_OPEN

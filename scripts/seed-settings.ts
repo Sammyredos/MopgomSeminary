@@ -157,7 +157,7 @@ async function seedSettings() {
         category: 'email',
         key: 'adminEmails',
         name: 'Admin Emails',
-        value: process.env.ADMIN_EMAILS || 'superadmin@mopgomseminary.com',
+        value: process.env.ADMIN_EMAILS || 's.obadina@mopgomts.com',
         type: 'text',
         description: 'Comma-separated list of admin email addresses'
       },
