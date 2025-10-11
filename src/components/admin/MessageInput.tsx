@@ -16,6 +16,50 @@ export function MessageInput({ onSend, onFileUpload, placeholder = "Type a messa
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Compress images client-side to ~20% quality (reduce by ~80%)
+  const compressImage = async (file: File, quality = 0.2): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          if (!ctx) {
+            reject(new Error('Canvas not supported'))
+            return
+          }
+          // Fill background white to avoid black on PNG transparency when converting to JPEG
+          ctx.fillStyle = '#ffffff'
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Compression failed'))
+                return
+              }
+              const compressedFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, '') + '-compressed.jpg',
+                { type: 'image/jpeg', lastModified: Date.now() }
+              )
+              resolve(compressedFile)
+            },
+            'image/jpeg',
+            Math.max(0.05, Math.min(quality, 1))
+          )
+        }
+        img.onerror = (e) => reject(e)
+        img.src = reader.result as string
+      }
+      reader.onerror = (e) => reject(e)
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handleSend = () => {
     if ((message.trim() || selectedFile) && !disabled) {
       if (selectedFile && onFileUpload) {
@@ -36,15 +80,34 @@ export function MessageInput({ onSend, onFileUpload, placeholder = "Type a messa
     }
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB')
-        return
+      try {
+        if (file.type.startsWith('image/')) {
+          // Compress image to ~20% quality
+          const compressed = await compressImage(file, 0.2)
+          // If original was >10MB, accept compressed if now ≤10MB
+          if (compressed.size > 10 * 1024 * 1024) {
+            alert('Compressed image is still larger than 10MB')
+            setSelectedFile(null)
+          } else {
+            setSelectedFile(compressed)
+          }
+        } else {
+          // Non-image: enforce 10MB as-is
+          if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB')
+            setSelectedFile(null)
+          } else {
+            setSelectedFile(file)
+          }
+        }
+      } catch (err) {
+        console.error('File processing error:', err)
+        alert('Unable to process the selected file. Please try another.')
+        setSelectedFile(null)
       }
-      setSelectedFile(file)
     }
   }
 

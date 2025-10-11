@@ -105,7 +105,7 @@ function ChatMessageComponent({
       >
         {/* Sender name for received messages */}
         {!isFromUser && senderName && (
-          <div className="text-xs font-apercu-medium text-gray-600 mb-1">
+          <div className="text-sm font-apercu-bold text-gray-800 mb-1">
             {senderName}
           </div>
         )}
@@ -219,7 +219,9 @@ function ChatMessageComponent({
 
         {/* Message content */}
         {content && (
-          <div className="font-apercu-regular text-sm leading-relaxed text-white whitespace-pre-wrap">
+          <div className={`font-apercu-regular text-sm leading-relaxed whitespace-pre-wrap ${
+            isFromUser ? 'text-white' : 'text-gray-700'
+          }`}>
             {content}
           </div>
         )}

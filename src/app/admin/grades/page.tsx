@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/contexts/ToastContext'
 import { useUser } from '@/contexts/UserContext'
 import { AdminLayoutNew } from '@/components/admin/AdminLayoutNew'
-import { StatsGrid, StatsCard } from '@/components/admin/StatsGrid'
+import { StatsGrid, StatsCard } from '@/components/ui/stats-card'
 import {
   Dialog,
   DialogContent,
@@ -407,7 +407,7 @@ export default function GradesPage() {
       <div className="space-y-6 px-6">
         {/* Stats Cards */}
         {stats && (
-        <StatsGrid>
+        <StatsGrid columns={4}>
           <StatsCard
             title="Total Grades"
             value={stats.totalGrades}
@@ -429,16 +429,16 @@ export default function GradesPage() {
             value={stats.gradeDistribution.A}
             subtitle="90% and above"
             icon={GraduationCap}
-            gradient="bg-gradient-to-r from-purple-500 to-pink-600"
-            bgGradient="bg-gradient-to-br from-white to-purple-50"
+            gradient="bg-gradient-to-r from-orange-500 to-amber-600"
+            bgGradient="bg-gradient-to-br from-white to-orange-50"
           />
           <StatsCard
             title="Grade Types"
             value={Object.keys(stats.gradeTypeBreakdown).length}
             subtitle="Assessment categories"
             icon={BarChart3}
-            gradient="bg-gradient-to-r from-orange-500 to-red-600"
-            bgGradient="bg-gradient-to-br from-white to-orange-50"
+            gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
+            bgGradient="bg-gradient-to-br from-white to-purple-50"
           />
         </StatsGrid>
       )}

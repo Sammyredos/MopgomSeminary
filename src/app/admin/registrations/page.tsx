@@ -1212,8 +1212,8 @@ export default function AdminRegistrations() {
               value={analyticsData.registrationsToday}
               subtitle="Registrations today"
               icon={Calendar}
-              gradient="bg-gradient-to-r from-purple-500 to-pink-600"
-              bgGradient="bg-gradient-to-br from-white to-purple-50"
+              gradient="bg-gradient-to-r from-green-500 to-emerald-600"
+              bgGradient="bg-gradient-to-br from-white to-green-50"
             />
 
             <StatsCard
@@ -1221,8 +1221,8 @@ export default function AdminRegistrations() {
               value={analyticsData.registrationsThisWeek}
               subtitle="Weekly registrations"
               icon={UserCheck}
-              gradient="bg-gradient-to-r from-green-500 to-emerald-600"
-              bgGradient="bg-gradient-to-br from-white to-green-50"
+              gradient="bg-gradient-to-r from-orange-500 to-amber-600"
+              bgGradient="bg-gradient-to-br from-white to-orange-50"
             />
 
             <StatsCard
@@ -1230,8 +1230,8 @@ export default function AdminRegistrations() {
               value={`${Math.round(analyticsData.averageAge)} years`}
               subtitle="Participant demographics"
               icon={Users}
-              gradient="bg-gradient-to-r from-orange-500 to-red-600"
-              bgGradient="bg-gradient-to-br from-white to-orange-50"
+              gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
+              bgGradient="bg-gradient-to-br from-white to-purple-50"
             />
           </StatsGrid>
         </div>

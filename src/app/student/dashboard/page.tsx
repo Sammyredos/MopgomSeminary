@@ -334,6 +334,9 @@ export default function StudentDashboard() {
       course: 'Academic Calendar'
     }))
 
+  // Source list for upcoming deadlines (limit display later to 3)
+  const upcomingSource = (academicInfo?.upcomingDeadlines?.length ? academicInfo.upcomingDeadlines : upcomingFromCalendar)
+
   // Stats derivations
   const pendingAssignments = (academicInfo?.upcomingDeadlines?.length ? academicInfo.upcomingDeadlines : upcomingFromCalendar)
     .filter(d => {
@@ -495,7 +498,7 @@ export default function StudentDashboard() {
                       </div>
                       <div className="p-4 sm:p-6">
                         <div className="space-y-4">
-                          {(academicInfo?.upcomingDeadlines?.length ? academicInfo?.upcomingDeadlines : upcomingFromCalendar).map((deadline) => {
+                          {upcomingSource.slice(0, 3).map((deadline) => {
                             const ev = calendarEvents.find(e => e.id === deadline.id)
                             const typeSoft: Record<string, string> = {
                               assignment: 'bg-blue-100 text-blue-700',
@@ -525,6 +528,13 @@ export default function StudentDashboard() {
                               </div>
                             )
                           })}
+                          {upcomingSource.length > 3 && (
+                            <div className="pt-1">
+                              <Link href="/student/calendar" className="inline-flex">
+                                <Button variant="outline" size="sm" className="text-xs">View More</Button>
+                              </Link>
+                            </div>
+                          )}
                           {(!academicInfo?.upcomingDeadlines?.length && !upcomingFromCalendar.length) && (
                             <div className="flex flex-col items-center justify-center py-8 text-center">
                               <div className="h-9 w-9 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mb-2">

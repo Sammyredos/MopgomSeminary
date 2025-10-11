@@ -720,16 +720,16 @@ function AttendancePageContent() {
                 title="Today's Verifications"
                 value={stats.verificationTrends?.todayVerifications || 0}
                 icon={Clock}
-                gradient="bg-gradient-to-r from-indigo-500 to-purple-600"
-                bgGradient="bg-gradient-to-br from-white to-indigo-50"
+                gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
+                bgGradient="bg-gradient-to-br from-white to-blue-50"
               />
 
               <StatsCard
                 title="This Week"
                 value={stats.verificationTrends?.thisWeekVerifications || 0}
                 icon={Activity}
-                gradient="bg-gradient-to-r from-teal-500 to-cyan-600"
-                bgGradient="bg-gradient-to-br from-white to-teal-50"
+                gradient="bg-gradient-to-r from-green-500 to-emerald-600"
+                bgGradient="bg-gradient-to-br from-white to-green-50"
               />
             </StatsGrid>
           ) : null}

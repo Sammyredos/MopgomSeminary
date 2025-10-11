@@ -29,7 +29,7 @@ import { useReactiveSystemName } from '@/components/ui/reactive-system-name'
 
 import { InternationalPhoneInput } from '@/components/ui/international-phone-input'
 import { ModernDatePicker } from '@/components/ui/modern-date-picker'
-import { PasswordRequirements } from '@/components/ui/PasswordRequirements'
+import { PasswordRequirements } from '@/components/ui/passwordrequirements'
 import '@/styles/login-animations.css'
 
 interface FormData {
@@ -131,15 +131,17 @@ export default function StudentSignup() {
 
   // Countdown timer and redirect effect
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
     if (success && countdown > 0) {
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setCountdown(countdown - 1)
       }, 1000)
-      
-      return () => clearTimeout(timer)
     } else if (success && countdown === 0) {
       // Redirect to login page when countdown reaches 0
       window.location.href = '/login'
+    }
+    return () => {
+      if (timer) clearTimeout(timer)
     }
   }, [success, countdown])
 
@@ -394,7 +396,7 @@ export default function StudentSignup() {
 
     try {
       // Check if registration is closed
-      if (registrationSettings.isRegistrationClosed) {
+      if (registrationSettings.isFormClosed) {
         setErrors({ general: 'Registration is currently closed. Please try again later.' })
         return
       }

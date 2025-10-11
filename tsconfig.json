@@ -68,12 +68,11 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.ts",
-    "src/**/*",
-    "prisma/**/*",
-    "scripts/**/*"
+    "prisma/**/*.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",

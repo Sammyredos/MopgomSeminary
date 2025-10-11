@@ -26,8 +26,11 @@ import {
   Trash2,
   Eye,
   Download,
-  RefreshCw
+  RefreshCw,
+  UserCog,
+  GraduationCap
 } from 'lucide-react';
+import { StatsCard, StatsGrid } from '@/components/ui/stats-card';
 import { getDynamicAcademicYearOptions } from '@/lib/utils/dynamic-years';
 import { TableSkeleton } from '@/components/ui/skeleton';
 import { useAcademicYear } from '@/hooks/useAcademicYear';
@@ -411,61 +414,62 @@ function TimetablePageContent() {
   return (
     <div className="space-y-6 px-6">
 
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6 bg-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Sessions</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.totalSessions}</p>
-              <p className="text-sm text-gray-500">All class sessions</p>
-            </div>
-            <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Clock className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6 bg-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Instructors</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.activeTeachers}</p>
-              <p className="text-sm text-gray-500">Currently teaching</p>
-            </div>
-            <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Users className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6 bg-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Courses Used</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.usedCourses}</p>
-              <p className="text-sm text-gray-500">Active courses</p>
-            </div>
-            <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <MapPin className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6 bg-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Subjects</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.subjects}</p>
-              <p className="text-sm text-gray-500">Total subjects</p>
-            </div>
-            <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <BookOpen className="h-6 w-6 text-orange-600" />
-            </div>
-          </div>
-        </Card>
+      {/* Stats Cards - Consistent with Dashboard (Top of Page, no white card) */}
+      <div className="mb-6">
+        {loading ? (
+          <StatsGrid columns={4}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <StatsCard
+                key={i}
+                title=""
+                value=""
+                icon={Calendar}
+                gradient="bg-gradient-to-r from-gray-400 to-gray-500"
+                bgGradient="bg-gradient-to-br from-white to-gray-50"
+                loading={true}
+              />
+            ))}
+          </StatsGrid>
+        ) : (
+          <StatsGrid columns={4}>
+            <StatsCard
+              title="Total Sessions"
+              value={classSessions.length}
+              subtitle="Scheduled classes"
+              icon={Calendar}
+              gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
+              bgGradient="bg-gradient-to-br from-white to-blue-50"
+            />
+            <StatsCard
+              title="Instructors"
+              value={teachers.length}
+              subtitle="Active instructors"
+              icon={UserCog}
+              gradient="bg-gradient-to-r from-green-500 to-emerald-600"
+              bgGradient="bg-gradient-to-br from-white to-green-50"
+            />
+            <StatsCard
+              title="Subjects"
+              value={subjects.length}
+              subtitle="Available subjects"
+              icon={BookOpen}
+              gradient="bg-gradient-to-r from-orange-500 to-amber-600"
+              bgGradient="bg-gradient-to-br from-white to-orange-50"
+            />
+            <StatsCard
+              title="Courses"
+              value={courses.length}
+              subtitle="Active courses"
+              icon={GraduationCap}
+              gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
+              bgGradient="bg-gradient-to-br from-white to-purple-50"
+            />
+          </StatsGrid>
+        )}
       </div>
+
+
+      
 
       {/* Action Buttons */}
       {canCreate && (
@@ -617,6 +621,8 @@ function TimetablePageContent() {
           </Select>
         </div>
       </Card>
+
+      
 
       {/* Timetable Content */}
       {viewMode === 'grid' ? (

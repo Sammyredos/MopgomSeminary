@@ -622,8 +622,8 @@ export default function UsersPage() {
           value={roles.length}
           subtitle="Total permission roles"
           icon={Shield}
-          gradient="bg-gradient-to-r from-purple-500 to-pink-600"
-          bgGradient="bg-gradient-to-br from-white to-purple-50"
+          gradient="bg-gradient-to-r from-orange-500 to-amber-600"
+          bgGradient="bg-gradient-to-br from-white to-orange-50"
         />
 
         <StatsCard
@@ -631,8 +631,8 @@ export default function UsersPage() {
           value={roles.filter(r => r.isSystem).length}
           subtitle="Built-in protected roles"
           icon={Crown}
-          gradient="bg-gradient-to-r from-indigo-500 to-purple-600"
-          bgGradient="bg-gradient-to-br from-white to-indigo-50"
+          gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
+          bgGradient="bg-gradient-to-br from-white to-purple-50"
         />
       </StatsGrid>
 

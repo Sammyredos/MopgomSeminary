@@ -197,7 +197,7 @@ export function AutoCalendarView({ events, onEventClick, onDateClick, compact = 
 
   // Generate calendar grid
   const generateCalendarDays = () => {
-    const days = [];
+    const days: JSX.Element[] = [];
     
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayWeekday; i++) {

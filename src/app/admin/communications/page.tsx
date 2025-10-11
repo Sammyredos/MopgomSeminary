@@ -769,8 +769,8 @@ export default function CommunicationsPage() {
               value={filteredRegistrations.filter(r => !r.isVerified).length}
               subtitle="Awaiting verification"
               icon={UserX}
-              gradient="bg-gradient-to-r from-amber-500 to-orange-600"
-              bgGradient="bg-gradient-to-br from-white to-amber-50"
+              gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
+              bgGradient="bg-gradient-to-br from-white to-blue-50"
             />
 
             <StatsCard
@@ -787,8 +787,8 @@ export default function CommunicationsPage() {
               value={phonePagination.totalItems}
               subtitle="Unique phone contacts"
               icon={Phone}
-              gradient="bg-gradient-to-r from-purple-500 to-pink-600"
-              bgGradient="bg-gradient-to-br from-white to-purple-50"
+              gradient="bg-gradient-to-r from-orange-500 to-amber-600"
+              bgGradient="bg-gradient-to-br from-white to-orange-50"
             />
 
             <StatsCard
@@ -796,8 +796,8 @@ export default function CommunicationsPage() {
               value={getEffectiveSelectedEmailsCount() + getEffectiveSelectedPhonesCount()}
               subtitle="Ready for messaging"
               icon={MessageSquare}
-              gradient="bg-gradient-to-r from-indigo-500 to-purple-600"
-              bgGradient="bg-gradient-to-br from-white to-indigo-50"
+              gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
+              bgGradient="bg-gradient-to-br from-white to-purple-50"
             />
           </StatsGrid>
         )}

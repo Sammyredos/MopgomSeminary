@@ -16,6 +16,7 @@ import { DateSeparator } from '@/components/admin/DateSeparator'
 import { UserDirectory } from '@/components/admin/UserDirectory'
 import { useTranslation } from '@/contexts/LanguageContext'
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
+import { PageTransition } from '@/components/ui/page-transition'
 // import { InboxContentSkeleton } from '@/components/ui/skeleton' // Commented out as unused
 import {
   Mail,
@@ -561,8 +562,16 @@ export default function InboxPage() {
     return (
       <ProtectedRoute requiredRoles={['Super Admin', 'Admin', 'Manager', 'Staff', 'Viewer']}>
         <AdminLayoutNew title={t('page.inbox.title')} description={t('page.inbox.description')}>
-          <StatsSkeleton />
-          <ConversationsSkeleton />
+          <PageTransition>
+            <div className="space-y-6">
+              <div className="px-6">
+                <StatsSkeleton />
+              </div>
+              <div className="px-6">
+                <ConversationsSkeleton />
+              </div>
+            </div>
+          </PageTransition>
         </AdminLayoutNew>
       </ProtectedRoute>
     )
@@ -571,48 +580,53 @@ export default function InboxPage() {
   return (
     <ProtectedRoute requiredRoles={['Super Admin', 'Admin', 'Manager', 'Staff', 'Viewer']}>
       <AdminLayoutNew title={t('page.inbox.title')} description={t('page.inbox.description')}>
-        {/* Stats Cards - Consistent Design */}
-        <StatsGrid columns={4}>
-          <StatsCard
-            title="Conversations"
-            value={conversations.length}
-            subtitle="Active message threads"
-            icon={MessageSquare}
-            gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
-            bgGradient="bg-gradient-to-br from-white to-blue-50"
-          />
+        <PageTransition>
+          <div className="space-y-6">
+            {/* Stats Cards - Consistent Design */}
+            <div className="px-6">
+              <StatsGrid columns={4}>
+                <StatsCard
+                  title="Conversations"
+                  value={conversations.length}
+                  subtitle="Active message threads"
+                  icon={MessageSquare}
+                  gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
+                  bgGradient="bg-gradient-to-br from-white to-blue-50"
+                />
 
-          <StatsCard
-            title="Unread Messages"
-            value={totalUnreadCount}
-            subtitle="Pending your attention"
-            icon={MailOpen}
-            gradient="bg-gradient-to-r from-red-500 to-pink-600"
-            bgGradient="bg-gradient-to-br from-white to-red-50"
-          />
+                <StatsCard
+                  title="Unread Messages"
+                  value={totalUnreadCount}
+                  subtitle="Pending your attention"
+                  icon={MailOpen}
+                  gradient="bg-gradient-to-r from-red-500 to-pink-600"
+                  bgGradient="bg-gradient-to-br from-white to-red-50"
+                />
 
-          <StatsCard
-            title="Total Messages"
-            value={totalMessages}
-            subtitle="All message history"
-            icon={Mail}
-            gradient="bg-gradient-to-r from-green-500 to-emerald-600"
-            bgGradient="bg-gradient-to-br from-white to-green-50"
-          />
+                <StatsCard
+                  title="Total Messages"
+                  value={totalMessages}
+                  subtitle="All message history"
+                  icon={Mail}
+                  gradient="bg-gradient-to-r from-green-500 to-emerald-600"
+                  bgGradient="bg-gradient-to-br from-white to-green-50"
+                />
 
-          <StatsCard
-            title="Online Users"
-            value={conversations.filter(conv => conv.isOnline).length}
-            subtitle="Currently active"
-            icon={CheckCircle}
-            gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
-            bgGradient="bg-gradient-to-br from-white to-purple-50"
-          />
-        </StatsGrid>
+                <StatsCard
+                  title="Online Users"
+                  value={conversations.filter(conv => conv.isOnline).length}
+                  subtitle="Currently active"
+                  icon={CheckCircle}
+                  gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
+                  bgGradient="bg-gradient-to-br from-white to-purple-50"
+                />
+              </StatsGrid>
+            </div>
 
-        {/* WhatsApp Web-Style Chat Interface */}
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 mt-8 overflow-hidden h-[calc(100vh-280px)]">
-          <div className="flex h-full">
+            {/* WhatsApp Web-Style Chat Interface */}
+            <div className="px-6">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden h-[calc(100vh-280px)]">
+                <div className="flex h-full">
             {/* Left Sidebar - Conversations List */}
             <div className={`${showMobileChat ? 'hidden' : 'flex'} lg:flex flex-col w-full lg:w-1/3 border-r border-gray-200 bg-white`}>
               {/* Header with Search and New Chat */}
@@ -847,9 +861,12 @@ export default function InboxPage() {
                 </div>
               )}
             </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
+        </PageTransition>
+        
         {/* User Directory Modal */}
         <UserDirectory
           isOpen={showUserDirectory}

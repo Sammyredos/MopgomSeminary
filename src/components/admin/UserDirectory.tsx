@@ -36,9 +36,11 @@ interface UserDirectoryProps {
   isOpen: boolean
   onClose: () => void
   onSendMessage: (user: User) => void
+  allowedRoles?: string[]
+  excludeRoles?: string[]
 }
 
-export function UserDirectory({ isOpen, onClose, onSendMessage }: UserDirectoryProps) {
+export function UserDirectory({ isOpen, onClose, onSendMessage, allowedRoles, excludeRoles }: UserDirectoryProps) {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -99,15 +101,25 @@ export function UserDirectory({ isOpen, onClose, onSendMessage }: UserDirectoryP
     }
   }
 
+  const allowedRolesSet = allowedRoles ? new Set(allowedRoles) : null
+  const excludeRolesSet = excludeRoles ? new Set(excludeRoles) : null
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = selectedRole === 'all' || user.role.name === selectedRole
+    const roleAllowed = !allowedRolesSet || allowedRolesSet.has(user.role.name)
+    const roleNotExcluded = !excludeRolesSet || !excludeRolesSet.has(user.role.name)
+    const matchesRoleSelection = selectedRole === 'all' || user.role.name === selectedRole
+    const matchesRole = roleAllowed && roleNotExcluded && matchesRoleSelection
     const isNotCurrentUser = user.id !== currentUser?.id // Exclude current user
     return matchesSearch && matchesRole && user.isActive && isNotCurrentUser
   })
 
-  const roles = ['all', ...Array.from(new Set(users.map(user => user.role.name)))]
+  const roles = ['all', ...Array.from(new Set(
+    users
+      .filter(u => (!allowedRolesSet || allowedRolesSet.has(u.role.name)) && (!excludeRolesSet || !excludeRolesSet.has(u.role.name)))
+      .map(user => user.role.name)
+  ))]
 
   if (!isOpen) return null
 

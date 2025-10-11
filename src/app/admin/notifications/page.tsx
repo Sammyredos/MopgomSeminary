@@ -419,8 +419,8 @@ export default function NotificationsPage() {
           value={stats.high}
           subtitle="Urgent notifications"
           icon={AlertCircle}
-          gradient="bg-gradient-to-r from-yellow-500 to-orange-600"
-          bgGradient="bg-gradient-to-br from-white to-yellow-50"
+          gradient="bg-gradient-to-r from-orange-500 to-amber-600"
+          bgGradient="bg-gradient-to-br from-white to-orange-50"
         />
 
         <StatsCard
