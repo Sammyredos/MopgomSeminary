@@ -1226,10 +1226,10 @@ export default function AdminRegistrations() {
             />
 
             <StatsCard
-              title="Average Age"
-              value={`${Math.round(analyticsData.averageAge)} years`}
-              subtitle="Participant demographics"
-              icon={Users}
+              title="Verified Users"
+              value={registrations.filter(r => r.isVerified).length}
+              subtitle="Verified participants"
+              icon={UserCheck}
               gradient="bg-gradient-to-r from-purple-500 to-indigo-600"
               bgGradient="bg-gradient-to-br from-white to-purple-50"
             />
@@ -1326,7 +1326,7 @@ export default function AdminRegistrations() {
                     emailAddress: registration.emailAddress,
                     phoneNumber: registration.phoneNumber,
                     gender: registration.gender,
-                    age: calculateAge(registration.dateOfBirth),
+                    courseDesired: registration.courseDesired,
                     dateOfBirth: registration.dateOfBirth,
                     createdAt: registration.createdAt,
                     matricNumber: registration.matricNumber,
@@ -1348,7 +1348,7 @@ export default function AdminRegistrations() {
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Name</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Age</th>
+                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Course</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Gender</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Matric Number</th>
@@ -1377,7 +1377,7 @@ export default function AdminRegistrations() {
                           <div className="text-sm text-gray-500 font-apercu-regular">{registration.phoneNumber}</div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
-                          {calculateAge(registration.dateOfBirth)} years
+                          {registration.courseDesired || 'N/A'}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
                           {registration.gender}

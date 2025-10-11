@@ -409,9 +409,12 @@ export function AutoCalendarView({ events, onEventClick, onDateClick, compact = 
           {generateCalendarDays()}
         </div>
 
-        {/* Compact legend and hint placed at bottom */}
+        {/* Compact legend and hint placed at top */}
         {compact && (
           <div className="px-2 mt-2">
+            <div className="text-center text-[11px] text-gray-700 font-semibold mb-2">
+              Click a day to view events
+            </div>
             <div className="flex flex-wrap items-center justify-center gap-3">
               {Object.entries(eventTypeDots).map(([type, cls]) => (
                 <div key={type} className="flex items-center gap-2">
@@ -422,23 +425,25 @@ export function AutoCalendarView({ events, onEventClick, onDateClick, compact = 
                 </div>
               ))}
             </div>
-            <div className="text-center text-[11px] text-gray-500 mt-2">
-              Click a day to view events
-            </div>
           </div>
         )}
         
-        {/* Legend */}
+        {/* Legend with helper text above in full layout */}
         {!compact && (
-          <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 justify-center">
-            {Object.entries(eventTypeColors).map(([type]) => (
-              <div key={type} className="flex items-center gap-1 sm:gap-2">
-                <div className={cn("w-2 h-2 sm:w-3 sm:h-3 rounded", eventTypeDots[type as keyof typeof eventTypeDots])} />
-                <span className="text-xs sm:text-sm text-gray-600">
-                  {type.charAt(0) + type.slice(1).toLowerCase()}
-                </span>
-              </div>
-            ))}
+          <div className="mt-4">
+            <div className="text-center text-sm text-gray-700 font-semibold mb-2">
+              Click a day to view events
+            </div>
+            <div className="flex flex-wrap gap-2 sm:gap-4 justify-center">
+              {Object.entries(eventTypeColors).map(([type]) => (
+                <div key={type} className="flex items-center gap-1 sm:gap-2">
+                  <div className={cn("w-2 h-2 sm:w-3 sm:h-3 rounded", eventTypeDots[type as keyof typeof eventTypeDots])} />
+                  <span className="text-xs sm:text-sm text-gray-600">
+                    {type.charAt(0) + type.slice(1).toLowerCase()}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
         

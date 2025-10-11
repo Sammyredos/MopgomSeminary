@@ -17,13 +17,10 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Dynamic warning threshold based on session timeout
-  // For sessions <= 2 minutes: warn at 50% of session time (minimum 30 seconds)
-  // For sessions > 2 minutes: warn 1 minute before expiry
+  // Always warn only at final 1 minute before expiry
+  // This ensures the modal does not appear early.
   const sessionTimeoutMs = sessionTimeoutHours * 60 * 60 * 1000
-  const warningTimeMs = sessionTimeoutMs <= 2 * 60 * 1000 
-    ? Math.max(sessionTimeoutMs * 0.5, 30 * 1000) // At least 30 seconds warning
-    : 1 * 60 * 1000 // 1 minute for longer sessions
+  const warningTimeMs = 1 * 60 * 1000
 
   console.log('SessionTimeout Debug:')
   console.log('- sessionTimeoutHours:', sessionTimeoutHours)

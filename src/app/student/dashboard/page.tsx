@@ -243,23 +243,51 @@ export default function StudentDashboard() {
     }
   }, [])
 
-  // Fetch calendar events for Live Calendar
-  useEffect(() => {
-    const fetchCalendar = async () => {
-      try {
-        setCalendarLoading(true)
-        const res = await fetch('/api/student/calendar?limit=200')
-        if (res.ok) {
-          const data = await res.json()
-          setCalendarEvents(data.events || [])
+  // Calendar fetcher reused by effects
+  const fetchCalendar = async () => {
+    try {
+      setCalendarLoading(true)
+      const ts = Date.now()
+      const res = await fetch(`/api/student/calendar?limit=200&_t=${ts}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         }
-      } catch (err) {
-        console.error('Error fetching student calendar:', err)
-      } finally {
-        setCalendarLoading(false)
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setCalendarEvents(data.events || [])
+      }
+    } catch (err) {
+      console.error('Error fetching student calendar:', err)
+    } finally {
+      setCalendarLoading(false)
+    }
+  }
+
+  // Initial fetch
+  useEffect(() => {
+    fetchCalendar()
+  }, [])
+
+  // Refresh calendar when tab regains focus
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchCalendar()
       }
     }
-    fetchCalendar()
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+  }, [])
+
+  // Poll calendar periodically to keep events current
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCalendar()
+    }, 60000) // refresh every minute
+    return () => clearInterval(interval)
   }, [])
 
   // Fetch enrolled course count
@@ -322,8 +350,14 @@ export default function StudentDashboard() {
   }
 
   // Derive upcoming deadlines from calendar events if academicInfo has none
+  // Include ongoing events (start <= now <= end) and future events
+  const nowTs = new Date().getTime()
   const upcomingFromCalendar = calendarEvents
-    .filter(e => new Date(e.startDate) >= new Date())
+    .filter(e => {
+      const startTs = new Date(e.startDate).getTime()
+      const endTs = new Date(e.endDate).getTime()
+      return endTs >= nowTs // ongoing or in the future
+    })
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
     .slice(0, 6)
     .map(e => ({

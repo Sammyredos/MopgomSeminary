@@ -163,6 +163,7 @@ export default function StudentProfilePage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [verifyResult, setVerifyResult] = useState<any>(null)
   const [profileCompleted, setProfileCompleted] = useState(false)
+  const [alreadyCompleted, setAlreadyCompleted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleNext = async () => {
@@ -235,6 +236,37 @@ export default function StudentProfilePage() {
         if (response.ok) {
           const data = await response.json()
           setStudentData(data.user)
+          // Determine if profile was already complete before any edits
+          const isComplete = (() => {
+            const d = data.user || {}
+            // Personal Information
+            if (!d?.name?.trim()) return false
+            if (!d?.dateOfBirth) return false
+            if (!d?.gender) return false
+            if (!d?.placeOfBirth?.trim()) return false
+            if (!d?.origin?.trim()) return false
+            if (!d?.maritalStatus) return false
+            if (d?.maritalStatus === 'Married' && !d?.spouseName?.trim()) return false
+            // Contact & Address
+            if (!d?.email?.trim()) return false
+            if (!d?.phone?.trim()) return false
+            if (!d?.homeAddress?.trim()) return false
+            if (!d?.officePostalAddress?.trim()) return false
+            // Professional Details
+            if (!d?.presentOccupation?.trim()) return false
+            if (!d?.placeOfWork?.trim()) return false
+            if (!d?.positionHeldInOffice?.trim()) return false
+            // Education & Course
+            const schools = d?.schoolsAttended || []
+            const hasValidSchools = schools.length > 0 && schools.every((s: any) => s?.institutionName?.trim() && s?.certificatesHeld?.trim())
+            if (!hasValidSchools) return false
+            // Spiritual Information
+            if (d?.acceptedJesusChrist === undefined) return false
+            if (d?.acceptedJesusChrist === true && !d?.whenAcceptedJesus?.trim()) return false
+            if (!d?.churchAffiliation?.trim()) return false
+            return true
+          })()
+          setAlreadyCompleted(isComplete)
         } else {
           toast.error('Failed to load profile data')
         }
@@ -962,40 +994,31 @@ export default function StudentProfilePage() {
                 </div>
               </div>
 
-              {/* Informative / Completion message */}
+              {/* Edit Information banner (always visible) */}
               <div className="mb-4">
-                {profileCompleted ? (
-                  <div className="flex items-center gap-3 p-3 rounded-md bg-green-50 border border-green-200 text-green-800">
-                    <Check className="h-4 w-4" />
-                    <p className="text-sm text-green-700">
-                      Your profile has been updated successfully.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
-                    <Info className="h-4 w-4" />
-                    <p className="text-sm text-amber-700 flex-1">
-                      Use the button here to edit your information.
-                    </p>
-                    {!isEditing ? (
-                      <button
-                        type="button"
-                        className="px-3 py-1 rounded-md bg-amber-600 text-white hover:bg-amber-700"
-                        onClick={() => setIsEditing(true)}
-                      >
-                        Edit Information
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700"
-                        onClick={() => { setIsEditing(false); }}
-                      >
-                        Done
-                      </button>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-3 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
+                  <Info className="h-4 w-4" />
+                  <p className="text-sm text-amber-700 flex-1">
+                    Use the button here to edit your information.
+                  </p>
+                  {!isEditing ? (
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded-md bg-amber-600 text-white hover:bg-amber-700"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      Edit Information
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700"
+                      onClick={() => { setIsEditing(false); }}
+                    >
+                      Done
+                    </button>
+                  )}
+                </div>
               </div>
               
               {/* Enhanced Progress Bar - Fixed responsive design */}
@@ -1140,14 +1163,20 @@ export default function StudentProfilePage() {
               <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
                 <div className="flex items-center gap-2 text-green-600 mb-2">
                   <Check className="h-5 w-5" />
-                  <h2 className="text-lg font-semibold">Profile Completed</h2>
+                  <h2 className="text-lg font-semibold">{alreadyCompleted ? 'Information Updated' : 'Profile Completed'}</h2>
                 </div>
-                <p className="text-sm text-gray-700">
-                  Your profile is complete. An admin will verify your registration.
-                  Your matriculation number
-                  <span className="font-medium"> {studentData?.matriculationNumber || 'Not assigned'} </span>
-                  will be displayed after verification.
-                </p>
+                {alreadyCompleted ? (
+                  <p className="text-sm text-gray-700">
+                    Your information has been updated.
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-700">
+                    Your profile is complete. An admin will verify your registration.
+                    Your matriculation number
+                    <span className="font-medium"> {studentData?.matriculationNumber || 'Not assigned'} </span>
+                    will be displayed after verification.
+                  </p>
+                )}
                 <div className="mt-4 flex justify-end gap-3">
                   <button
                     onClick={() => { setShowSuccessModal(false); setIsSubmitting(false) }}

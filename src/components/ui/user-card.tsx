@@ -29,6 +29,7 @@ interface UserCardProps {
     gender: string
     age?: number
     dateOfBirth?: string
+    courseDesired?: string
     createdAt: string
     matricNumber?: string
     isVerified?: boolean
@@ -165,14 +166,7 @@ export function UserCard({
           <div className="flex items-center text-xs lg:text-sm">
             <User className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
             <span className="font-apercu-regular text-gray-500">
-              {(() => {
-                if (user.age) return `Age ${user.age}`
-                if (user.dateOfBirth) {
-                  const calculatedAge = calculateAge(user.dateOfBirth)
-                  return calculatedAge !== null ? `Age ${calculatedAge}` : 'Age N/A'
-                }
-                return 'Age N/A'
-              })()} • {user.gender}
+              {user.courseDesired ? `Course: ${user.courseDesired}` : 'Course: N/A'} • {user.gender}
             </span>
           </div>
           <div className="flex items-center text-xs lg:text-sm">
