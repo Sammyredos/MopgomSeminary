@@ -219,31 +219,30 @@ async function seedSettings() {
         type: 'number',
         description: 'Maximum age gap allowed between youngest and oldest person in the same room'
       },
-      // Security Settings
+      // Security Settings (aligned with Admin Settings UI)
+      {
+        category: 'security',
+        key: 'sessionTimeout',
+        name: 'Session Timeout',
+        value: 60,
+        type: 'number',
+        description: 'Minutes before automatic logout due to inactivity'
+      },
       {
         category: 'security',
         key: 'maxLoginAttempts',
         name: 'Max Login Attempts',
         value: 5,
         type: 'number',
-        description: 'Maximum login attempts before lockout'
+        description: 'Failed login attempts before account lockout'
       },
       {
         category: 'security',
         key: 'lockoutDuration',
         name: 'Lockout Duration',
-        value: 30,
+        value: 15,
         type: 'number',
-        description: 'Account lockout duration in minutes'
-      },
-      {
-        category: 'security',
-        key: 'twoFactor',
-        name: 'Two-Factor Authentication',
-        value: 'Optional',
-        type: 'select',
-        options: ['Disabled', 'Optional', 'Required'],
-        description: 'Two-factor authentication requirement'
+        description: 'Minutes to lock account after failed attempts'
       },
       {
         category: 'security',
@@ -251,39 +250,47 @@ async function seedSettings() {
         name: 'Minimum Password Length',
         value: 8,
         type: 'number',
-        description: 'Minimum required password length'
+        description: 'Minimum characters required for passwords'
       },
       {
         category: 'security',
-        key: 'passwordRequireUppercase',
-        name: 'Require Uppercase',
+        key: 'requireStrongPassword',
+        name: 'Require Strong Passwords',
         value: true,
         type: 'boolean',
-        description: 'Require uppercase letters in passwords'
+        description: 'Enforce uppercase, lowercase, numbers, and symbols'
       },
       {
         category: 'security',
-        key: 'passwordRequireNumbers',
-        name: 'Require Numbers',
+        key: 'twoFactorAuth',
+        name: 'Two-Factor Authentication',
+        value: false,
+        type: 'boolean',
+        description: 'Enable 2FA requirement for admin accounts'
+      },
+      {
+        category: 'security',
+        key: 'enableAuditLog',
+        name: 'Enable Audit Logging',
+        value: false,
+        type: 'boolean',
+        description: 'Log all admin actions for security auditing'
+      },
+      {
+        category: 'security',
+        key: 'apiKeyRequired',
+        name: 'API Key Required',
         value: true,
         type: 'boolean',
-        description: 'Require numbers in passwords'
+        description: 'Require API keys for external access'
       },
       {
         category: 'security',
-        key: 'passwordRequireSpecial',
-        name: 'Require Special Characters',
-        value: true,
+        key: 'corsEnabled',
+        name: 'CORS Enabled',
+        value: false,
         type: 'boolean',
-        description: 'Require special characters in passwords'
-      },
-      {
-        category: 'security',
-        key: 'sessionTimeout',
-        name: 'Session Timeout',
-        value: 24,
-        type: 'number',
-        description: 'Session timeout in hours'
+        description: 'Allow cross-origin requests'
       },
       // User Management Settings
       {
