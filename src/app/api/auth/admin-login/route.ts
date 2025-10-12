@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     if (!admin.isActive) {
       await trackLoginAttempt(email, clientIP, false)
       return NextResponse.json(
-        { error: 'Account is inactive' },
+        { error: 'Account is Inactive' },
         { status: 401 }
       )
     }

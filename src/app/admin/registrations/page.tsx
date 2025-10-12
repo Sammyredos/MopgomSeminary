@@ -20,6 +20,7 @@ import { useTranslation } from '@/contexts/LanguageContext'
 import { clearStatisticsCache } from '@/lib/statistics'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { Pagination } from '@/components/ui/pagination'
+import { BanConfirmModal } from '@/components/modals/BanConfirmModal'
 
 
 import {
@@ -42,7 +43,9 @@ import {
   FileText,
   UserCheck,
   Loader2,
-  Trash2
+  Trash2,
+  LogIn,
+  Ban
 } from 'lucide-react'
 
 interface Registration {
@@ -85,6 +88,8 @@ interface Registration {
   verifiedBy?: string
   attendanceMarked?: boolean
   attendanceTime?: string
+  // Student account status (optional, populated when requested)
+  userIsActive?: boolean
 }
 
 interface PaginationInfo {
@@ -123,6 +128,10 @@ export default function AdminRegistrations() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [registrationToDelete, setRegistrationToDelete] = useState<Registration | null>(null)
+  // Ban confirmation modal state
+  const [showBanConfirm, setShowBanConfirm] = useState(false)
+  const [banTarget, setBanTarget] = useState<Registration | null>(null)
+  const [isBanning, setIsBanning] = useState(false)
   const [errorModal, setErrorModal] = useState<{
     isOpen: boolean
     type: 'error' | 'warning' | 'info' | 'success'
@@ -146,7 +155,33 @@ export default function AdminRegistrations() {
 
   const { success, error } = useToast()
 
+  
+  // Adapt labels when rendered under /admin/students
+  const isStudentsRoute = typeof window !== 'undefined' && (
+    window.location.pathname.startsWith('/admin/students') ||
+    new URLSearchParams(window.location.search).get('tab') === 'students'
+  )
+  const pageTitle = isStudentsRoute ? 'Students' : t('page.registrations.title')
+  const pageDescription = isStudentsRoute ? 'Manage student records and details' : t('page.registrations.description')
+  const totalTitle = isStudentsRoute ? 'Total Students' : 'Total Registrations'
+  const todaySubtitle = isStudentsRoute ? 'New today' : 'Registrations today'
+  const weekSubtitle = isStudentsRoute ? 'New this week' : 'Weekly registrations'
+  const loadingText = isStudentsRoute ? 'Loading students...' : 'Loading registrations...'
+  const listCountLabel = isStudentsRoute ? 'students' : 'registrations'
+  const emptyTitle = isStudentsRoute ? 'No Students Yet' : 'No Registrations Yet'
+  const emptyHint = isStudentsRoute 
+    ? 'Try adjusting your search or filter criteria to find students.'
+    : 'Try adjusting your search or filter criteria to find registrations.'
+  const noDataIntro = isStudentsRoute 
+    ? 'When students are added, they will appear here.'
+    : 'When youth register for your program, they will appear here.'
 
+  // Students route filters
+  const [courseFilter, setCourseFilter] = useState<string>('all')
+  const [genderFilter, setGenderFilter] = useState<string>('all')
+  const [verifyFilter, setVerifyFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const availableCourses = Array.from(new Set(registrations.map(r => r.courseDesired).filter(Boolean)))
 
   const fetchRegistrations = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -158,8 +193,11 @@ export default function AdminRegistrations() {
       // Fetch registrations and analytics data in parallel for speed
       // Add cache-busting timestamp to prevent stale data
       const timestamp = Date.now()
+      // Build registrations query and always include student status for accuracy
+      const regParams = new URLSearchParams({ limit: '50000', refresh: 'true', includeStudentStatus: 'true' })
+
       const [registrationsResponse, analyticsResponse] = await Promise.all([
-        fetch(`/api/registrations?limit=50000&refresh=true&_t=${timestamp}`, {
+        fetch(`/api/registrations?${regParams.toString()}&_t=${timestamp}`, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -211,6 +249,16 @@ export default function AdminRegistrations() {
     fetchRegistrations()
   }, []) // Remove fetchRegistrations dependency to prevent infinite loop
 
+  // Default to grid view on Students tab
+  useEffect(() => {
+    if (isStudentsRoute && viewMode !== 'grid') {
+      setViewMode('grid')
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('registrations-view-mode', 'grid')
+      }
+    }
+  }, [])
+
   // Reset to page 1 when search changes
   useEffect(() => {
     setPagination(prev => ({ ...prev, page: 1 }))
@@ -231,6 +279,32 @@ export default function AdminRegistrations() {
     return age
   }
 
+  // Ban confirmation handlers
+  const handleBanRequest = (registration: Registration) => {
+    // Only allow ban when status is known and currently active
+    if (registration.userIsActive !== true) return
+    setBanTarget(registration)
+    setShowBanConfirm(true)
+  }
+
+  const confirmBan = async () => {
+    if (!banTarget) return
+    try {
+      setIsBanning(true)
+      // Deactivate explicitly when confirming ban
+      await handleToggleStudentActive(banTarget.emailAddress, true)
+      setShowBanConfirm(false)
+      setBanTarget(null)
+    } finally {
+      setIsBanning(false)
+    }
+  }
+
+  const cancelBan = () => {
+    setShowBanConfirm(false)
+    setBanTarget(null)
+  }
+
   const getInitials = (name: string): string => {
     return name
       .split(' ')
@@ -242,14 +316,20 @@ export default function AdminRegistrations() {
 
 
 
-  // Filter registrations based on search (client-side like user management)
+  // Filter registrations based on search and students route filters
   const allFilteredRegistrations = registrations.filter(registration => {
     const matchesSearch = searchTerm === '' ||
       registration.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       registration.emailAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (registration.matricNumber && registration.matricNumber.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    return matchesSearch
+    // Students route specific filters
+    const matchesCourse = !isStudentsRoute || courseFilter === 'all' || registration.courseDesired === courseFilter
+    const matchesGender = !isStudentsRoute || genderFilter === 'all' || registration.gender === genderFilter
+    const matchesVerify = !isStudentsRoute || verifyFilter === 'all' || (verifyFilter === 'verified' ? !!registration.isVerified : !registration.isVerified)
+    const matchesStatus = !isStudentsRoute || statusFilter === 'all' || (statusFilter === 'banned' ? registration.userIsActive === false : registration.userIsActive === true)
+
+    return matchesSearch && matchesCourse && matchesGender && matchesVerify && matchesStatus
   })
 
   // Client-side pagination
@@ -447,6 +527,68 @@ export default function AdminRegistrations() {
     setRegistrationToDelete(null)
   }
 
+  // Impersonate student and open dashboard (new tab, popup-safe)
+  const handleImpersonateStudent = async (email: string) => {
+    // Open a blank tab immediately to avoid popup blockers
+    const newTab = window.open('about:blank', '_blank')
+    try {
+      const res = await fetch('/api/admin/impersonate/student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        error(data.error || 'Failed to login as student')
+        // Close the placeholder tab if impersonation fails
+        if (newTab && !newTab.closed) newTab.close()
+        return
+      }
+      success('Logged in as student. Opening dashboard...')
+      const url = data.redirectUrl || '/student/dashboard'
+      if (newTab && !newTab.closed) {
+        // Navigate the already-opened tab after cookie is set
+        newTab.location.href = url
+      } else {
+        // Fallback if popup was blocked or closed
+        window.open(url, '_blank')
+      }
+    } catch (e) {
+      error('Network error while logging in as student')
+      if (newTab && !newTab.closed) newTab.close()
+    }
+  }
+
+  // Deactivate student by email
+  const handleToggleStudentActive = async (email: string, isActive?: boolean) => {
+    try {
+      const endpoint = isActive ? '/api/admin/students/deactivate' : '/api/admin/students/activate'
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        error(data.error || `Failed to ${isActive ? 'deactivate' : 'activate'} student`)
+        return
+      }
+      success(data.message || (isActive ? 'Student marked as inactive' : 'Student activated'))
+
+      // Update local state to reflect new status immediately
+      const emailLower = (email || '').toLowerCase()
+      setRegistrations(prev => prev.map(r => (
+        r.emailAddress?.toLowerCase() === emailLower
+          ? { ...r, userIsActive: !isActive }
+          : r
+      )))
+
+      // Proactively re-fetch to ensure UI stays in sync with server
+      await fetchRegistrations(true)
+    } catch (e) {
+      error(`Network error while ${isActive ? 'deactivating' : 'activating'} student`)
+    }
+  }
   const handleEditRegistration = async () => {
     if (!selectedRegistration) return
 
@@ -1058,7 +1200,7 @@ export default function AdminRegistrations() {
       : 'list'
     
     return (
-      <AdminLayoutNew title={t('page.registrations.title')} description={t('page.registrations.description')}>
+      <AdminLayoutNew title={pageTitle} description={pageDescription}>
         <div className="space-y-6">
           {/* Stats Cards Skeleton */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
@@ -1105,7 +1247,11 @@ export default function AdminRegistrations() {
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Gender</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Matric Number</th>
-                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                      {isStudentsRoute ? (
+                        <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Action</th>
+                      ) : (
+                        <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -1193,13 +1339,13 @@ export default function AdminRegistrations() {
   }
 
   return (
-    <AdminLayoutNew title={t('page.registrations.title')} description={t('page.registrations.description')}>
+    <AdminLayoutNew title={pageTitle} description={pageDescription}>
       <div className="space-y-6">
         {/* Stats Cards */}
         <div className="px-6">
           <StatsGrid columns={4}>
             <StatsCard
-              title="Total Registrations"
+              title={totalTitle}
               value={pagination.total}
               subtitle="All participants registered"
               icon={Users}
@@ -1210,7 +1356,7 @@ export default function AdminRegistrations() {
             <StatsCard
               title="Today"
               value={analyticsData.registrationsToday}
-              subtitle="Registrations today"
+              subtitle={todaySubtitle}
               icon={Calendar}
               gradient="bg-gradient-to-r from-green-500 to-emerald-600"
               bgGradient="bg-gradient-to-br from-white to-green-50"
@@ -1219,7 +1365,7 @@ export default function AdminRegistrations() {
             <StatsCard
               title="This Week"
               value={analyticsData.registrationsThisWeek}
-              subtitle="Weekly registrations"
+              subtitle={weekSubtitle}
               icon={UserCheck}
               gradient="bg-gradient-to-r from-orange-500 to-amber-600"
               bgGradient="bg-gradient-to-br from-white to-orange-50"
@@ -1253,31 +1399,48 @@ export default function AdminRegistrations() {
             </div>
           </div>
 
+          {isStudentsRoute && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All Courses</option>
+                {availableCourses.map((c) => (<option key={c} value={c}>{c}</option>))}
+              </select>
+              <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+              <select value={verifyFilter} onChange={(e) => setVerifyFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All Statuses</option>
+                <option value="verified">Verified</option>
+                <option value="unverified">Unverified</option>
+              </select>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="all">All (Ban/Unban)</option>
+                <option value="unbanned">Unbanned</option>
+                <option value="banned">Banned</option>
+              </select>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-            <ViewToggle 
-              viewMode={viewMode} 
-              onViewChange={(mode) => {
-                setViewMode(mode)
-                // Save view mode to localStorage for persistence
-                localStorage.setItem('registrations-view-mode', mode)
-              }} 
-            />
-            
-            <Button
-              variant="outline"
-              className="font-apercu-medium text-sm lg:text-base"
-              onClick={handleExportCSV}
-              disabled={isExporting || allFilteredRegistrations.length === 0}
-              size="sm"
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export CSV'}</span>
-              <span className="sm:hidden">{isExporting ? 'Exporting...' : 'CSV'}</span>
-            </Button>
+            {!isStudentsRoute && (
+              <Button
+                variant="outline"
+                className="font-apercu-medium text-sm lg:text-base"
+                onClick={handleExportCSV}
+                disabled={isExporting || allFilteredRegistrations.length === 0}
+                size="sm"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export CSV'}</span>
+                <span className="sm:hidden">{isExporting ? 'Exporting...' : 'CSV'}</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -1288,11 +1451,11 @@ export default function AdminRegistrations() {
               {loading ? (
                 <span className="flex items-center">
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Loading registrations...
+                  {loadingText}
                 </span>
               ) : (
                 <>
-                  Showing {allFilteredRegistrations.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, allFilteredRegistrations.length)} of {allFilteredRegistrations.length} registrations
+                  Showing {allFilteredRegistrations.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, allFilteredRegistrations.length)} of {allFilteredRegistrations.length} {listCountLabel}
                   {searchTerm && (
                     <span className="ml-2">
                       • Filtered by: <span className="font-apercu-medium">&quot;{searchTerm}&quot;</span>
@@ -1301,6 +1464,16 @@ export default function AdminRegistrations() {
                 </>
               )}
             </p>
+            <div className="flex items-center">
+              <ViewToggle 
+                viewMode={viewMode} 
+                onViewChange={(mode) => {
+                  setViewMode(mode)
+                  // Save view mode to localStorage for persistence
+                  localStorage.setItem('registrations-view-mode', mode)
+                }} 
+              />
+            </div>
             {refreshing && (
               <div className="flex items-center space-x-2 text-sm text-gray-500">
                 <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
@@ -1334,9 +1507,57 @@ export default function AdminRegistrations() {
                     verifiedAt: registration.verifiedAt,
                     verifiedBy: registration.verifiedBy
                   }}
-                  onView={() => setSelectedRegistration(registration)}
+                  showGender={!isStudentsRoute}
+                  onView={!isStudentsRoute ? () => setSelectedRegistration(registration) : undefined}
                   onDelete={() => handleDeleteRegistration(registration)}
-                  showDeleteButton={true}
+                  showDeleteButton={!isStudentsRoute}
+                  extraActions={
+                    isStudentsRoute ? (
+                      <div className="flex gap-2 w-full">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleImpersonateStudent(registration.emailAddress)}
+                        >
+                          <LogIn className="h-4 w-4 mr-2" />
+                          Login
+                        </Button>
+                        {registration.userIsActive === true ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleBanRequest(registration)}
+                          >
+                            <Ban className="h-4 w-4 mr-2" />
+                            Ban
+                          </Button>
+                        ) : registration.userIsActive === false ? (
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                            onClick={() => handleToggleStudentActive(registration.emailAddress, false)}
+                            aria-label="Unban student"
+                          >
+                            <UserCheck className="h-4 w-4 mr-2" />
+                            Unban
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            disabled
+                            aria-label="Loading status"
+                          >
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Loading
+                          </Button>
+                        )}
+                      </div>
+                    ) : null
+                  }
                 />
               ))}
             </div>
@@ -1349,10 +1570,16 @@ export default function AdminRegistrations() {
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Name</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Contact</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Course</th>
-                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Gender</th>
+                      {!isStudentsRoute && (
+                        <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Gender</th>
+                      )}
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Matric Number</th>
-                      <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                      {isStudentsRoute ? (
+                        <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Action</th>
+                      ) : (
+                        <th className="px-4 py-3 text-left text-xs font-apercu-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -1379,9 +1606,11 @@ export default function AdminRegistrations() {
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
                           {registration.courseDesired || 'N/A'}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
-                          {registration.gender}
-                        </td>
+                        {!isStudentsRoute && (
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
+                            {registration.gender}
+                          </td>
+                        )}
                         <td className="px-4 py-4 whitespace-nowrap">
                           <EnhancedBadge 
                             variant={getStatusBadgeVariant(registration.isVerified ? 'active' : 'pending')}
@@ -1393,26 +1622,76 @@ export default function AdminRegistrations() {
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-apercu-regular">
                           {registration.matricNumber || 'Not assigned'}
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm font-apercu-medium">
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedRegistration(registration)}
-                              className="text-indigo-600 hover:text-indigo-900"
-                            >
-                              View
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteRegistration(registration)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
+                        {isStudentsRoute ? (
+                          <td className="px-4 py-4 text-sm font-apercu-medium">
+                            <div className="flex flex-wrap gap-2">
+                              {/* Login icon button */}
+                              <Button
+                                size="sm"
+                                onClick={() => handleImpersonateStudent(registration.emailAddress)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                aria-label="Login as student"
+                              >
+                                <LogIn className="h-4 w-4" />
+                              </Button>
+
+                              {/* Ban or Activate icon button with distinctive color */}
+                              {registration.userIsActive === true ? (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleBanRequest(registration)}
+                                  className="text-white"
+                                  aria-label="Ban student"
+                                >
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Ban
+                                </Button>
+                              ) : registration.userIsActive === false ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleToggleStudentActive(registration.emailAddress, false)}
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  aria-label="Unban student"
+                                >
+                                  <UserCheck className="h-4 w-4 mr-2" />
+                                  Unban
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled
+                                  aria-label="Loading status"
+                                >
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Loading
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        ) : (
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-apercu-medium">
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedRegistration(registration)}
+                                className="text-indigo-600 hover:text-indigo-900"
+                              >
+                                View
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteRegistration(registration)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -1426,12 +1705,12 @@ export default function AdminRegistrations() {
               <>
                 <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="font-apercu-bold text-lg text-gray-900 mb-2">
-                  {pagination.total === 0 ? 'No Registrations Yet' : 'No Matching Registrations'}
+                  {pagination.total === 0 ? emptyTitle : isStudentsRoute ? 'No Matching Students' : 'No Matching Registrations'}
                 </h3>
                 <p className="font-apercu-regular text-gray-600 mb-4">
                   {pagination.total === 0
-                    ? 'When youth register for your program, they will appear here.'
-                    : 'Try adjusting your search or filter criteria to find registrations.'
+                    ? noDataIntro
+                    : emptyHint
                   }
                 </p>
                 {pagination.total === 0 && (
@@ -2052,8 +2331,8 @@ export default function AdminRegistrations() {
                         Have you ever accepted Jesus Christ as your Lord and Saviour?
                       </label>
                       <select
-                        value={editFormData.acceptedJesusChrist ? 'Yes' : editFormData.acceptedJesusChrist === false ? 'No' : ''}
-                        onChange={(e) => handleEditFormChange('acceptedJesusChrist', e.target.value === 'Yes' ? true : e.target.value === 'No' ? false : null)}
+                        value={editFormData.acceptedJesusChrist === true ? 'Yes' : editFormData.acceptedJesusChrist === false ? 'No' : ''}
+                        onChange={(e) => handleEditFormChange('acceptedJesusChrist', e.target.value === 'Yes' ? true : false)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg font-apercu-regular focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         disabled={isEditing}
                       >
@@ -2062,7 +2341,7 @@ export default function AdminRegistrations() {
                         <option value="No">No</option>
                       </select>
                     </div>
-                    {(editFormData.acceptedJesusChrist === true || editFormData.acceptedJesusChrist === 'Yes') && (
+                    {editFormData.acceptedJesusChrist === true && (
                       <div>
                         <label className="block font-apercu-medium text-sm text-gray-700 mb-2">
                           When?
@@ -2244,6 +2523,22 @@ export default function AdminRegistrations() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Ban Confirmation Modal */}
+      {showBanConfirm && banTarget && (
+        <BanConfirmModal
+          isOpen={showBanConfirm}
+          onClose={cancelBan}
+          onConfirm={confirmBan}
+          registration={{
+            id: banTarget.id,
+            fullName: banTarget.fullName,
+            emailAddress: banTarget.emailAddress,
+            createdAt: banTarget.createdAt
+          }}
+          loading={isBanning}
+        />
       )}
 
       {/* Error Modal */}

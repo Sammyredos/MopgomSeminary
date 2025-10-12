@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button'
 // import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
-  User,
+  GraduationCap,
   Mail,
   Phone,
-  Calendar,
+  IdCard,
   Eye,
   UserCheck,
   UserX,
@@ -46,6 +46,8 @@ interface UserCardProps {
   showUnverifyButton?: boolean
   showDeleteButton?: boolean
   loading?: boolean
+  extraActions?: React.ReactNode
+  showGender?: boolean
 }
 
 export function UserCard({
@@ -59,7 +61,9 @@ export function UserCard({
   showVerifyButton = false,
   showUnverifyButton = false,
   showDeleteButton = false,
-  loading = false
+  loading = false,
+  extraActions,
+  showGender = true
 }: UserCardProps) {
   const getInitials = (name: string) => {
     return name
@@ -164,9 +168,10 @@ export function UserCard({
         </h3>
         <div className="space-y-1.5 lg:space-y-2">
           <div className="flex items-center text-xs lg:text-sm">
-            <User className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
+            <GraduationCap className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
             <span className="font-apercu-regular text-gray-500">
-              {user.courseDesired ? `Course: ${user.courseDesired}` : 'Course: N/A'} • {user.gender}
+              {user.courseDesired ? `Course: ${user.courseDesired}` : 'Course: N/A'}
+              {showGender && user.gender ? ` • ${user.gender}` : ''}
             </span>
           </div>
           <div className="flex items-center text-xs lg:text-sm">
@@ -182,7 +187,7 @@ export function UserCard({
             </span>
           </div>
           <div className="flex items-center text-xs lg:text-sm">
-            <Calendar className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
+            <IdCard className="h-3 w-3 lg:h-4 lg:w-4 mr-2 text-gray-400 flex-shrink-0" />
             <span className="font-apercu-regular text-gray-500">
               <span className="hidden sm:inline text-gray-500">Matric: </span>{user.matricNumber || 'Not assigned'}
             </span>
@@ -247,6 +252,12 @@ export function UserCard({
           >
             <Trash2 className="h-3 w-3 lg:h-4 lg:w-4" />
           </Button>
+        )}
+
+        {extraActions && (
+          <>
+            {extraActions}
+          </>
         )}
       </div>
     </Card>

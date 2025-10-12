@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const search = searchParams.get('search') || ''
     const skip = (page - 1) * limit
+    const includeStudentStatus = searchParams.get('includeStudentStatus') === 'true'
 
     // Build search conditions
     const searchConditions = search ? {
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // Map registrations to include matricNumber, homeAddress and parsed schoolsAttended for frontend compatibility
-    const registrationsWithMatricNumbers = registrations.map((registration: any) => {
+    let registrationsWithMatricNumbers = registrations.map((registration: any) => {
       let schools: any[] = []
       try {
         schools = registration.schoolsAttended ? JSON.parse(registration.schoolsAttended) : []
@@ -96,6 +97,35 @@ export async function GET(request: NextRequest) {
         schoolsAttended: schools
       }
     })
+
+    // Optionally include student active status by matching registration emails to user records
+    if (includeStudentStatus && registrationsWithMatricNumbers.length > 0) {
+      try {
+        const emails = registrationsWithMatricNumbers
+          .map((r: any) => r.emailAddress)
+          .filter((e: string | null) => !!e) as string[]
+
+        const users = await prisma.user.findMany({
+          where: { email: { in: emails } },
+          select: { email: true, isActive: true }
+        })
+
+        const statusMap = new Map<string, boolean>()
+        users.forEach(u => {
+          if (u.email) statusMap.set(u.email.toLowerCase(), !!u.isActive)
+        })
+
+        registrationsWithMatricNumbers = registrationsWithMatricNumbers.map((r: any) => ({
+          ...r,
+          userIsActive: statusMap.has(r.emailAddress?.toLowerCase())
+            ? statusMap.get(r.emailAddress.toLowerCase())
+            : true // default to active if no matching user record
+        }))
+      } catch (e) {
+        // If status inclusion fails, proceed without it
+        console.warn('Failed to include student status in registrations response:', e)
+      }
+    }
 
     const totalPages = Math.ceil(totalCount / limit)
 
