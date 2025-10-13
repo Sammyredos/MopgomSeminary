@@ -124,6 +124,14 @@ export function StudentLayout({
     }
   }, [])
 
+  // Set document title for student pages using branding and optional page title
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const base = `${branding.systemName} - Student Portal`
+      document.title = title ? `${title} - ${branding.systemName} Student` : base
+    }
+  }, [branding.systemName, title])
+
   return (
     <div className="min-h-screen bg-gray-50" suppressHydrationWarning={true}>
       {/* Session timeout modal */}

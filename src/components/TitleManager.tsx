@@ -33,8 +33,8 @@ export function TitleManager() {
             }
           }
         } else if (currentPath.startsWith('/student')) {
-          // Force a minimal, consistent title for all student pages
-          document.title = 'Pertain to Student'
+          // Consistent title for student area
+          document.title = `${cachedSystemName} - Student Portal`
         } else {
           document.title = `${cachedSystemName} - Registration System`
         }
@@ -76,8 +76,8 @@ export function TitleManager() {
                   }
                 }
               } else if (currentPath.startsWith('/student')) {
-                // Keep title fixed for student area regardless of branding/system name
-                document.title = 'Pertain to Student'
+                // Consistent title for student area regardless of branding/system name
+                document.title = `${freshSystemName} - Student Portal`
               } else {
                 document.title = `${freshSystemName} - Registration System`
               }

@@ -850,24 +850,28 @@ export default function UsersPage() {
                       >
                         <MessageSquare className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="font-apercu-medium text-orange-600 hover:text-orange-700 hover:border-orange-300"
-                        onClick={() => handleChangePassword(user)}
-                        title="Change Password"
-                      >
-                        <Key className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="font-apercu-medium text-red-600 hover:text-red-700 hover:border-red-300"
-                        onClick={() => handleDeleteUser(user)}
-                        title="Delete User"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {currentUser?.role?.name === 'Super Admin' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="font-apercu-medium text-orange-600 hover:text-orange-700 hover:border-orange-300"
+                          onClick={() => handleChangePassword(user)}
+                          title="Change Password"
+                        >
+                          <Key className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {currentUser?.role?.name === 'Super Admin' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="font-apercu-medium text-red-600 hover:text-red-700 hover:border-red-300"
+                          onClick={() => handleDeleteUser(user)}
+                          title="Delete User"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -932,24 +936,28 @@ export default function UsersPage() {
                     >
                       <MessageSquare className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="font-apercu-medium text-orange-600 hover:text-orange-700 hover:border-orange-300"
-                      onClick={() => handleChangePassword(user)}
-                      title="Change Password"
-                    >
-                      <Key className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="font-apercu-medium text-red-600 hover:text-red-700 hover:border-red-300 "
-                      onClick={() => handleDeleteUser(user)}
-                      title="Delete User"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {currentUser?.role?.name === 'Super Admin' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-apercu-medium text-orange-600 hover:text-orange-700 hover:border-orange-300"
+                        onClick={() => handleChangePassword(user)}
+                        title="Change Password"
+                      >
+                        <Key className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {currentUser?.role?.name === 'Super Admin' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-apercu-medium text-red-600 hover:text-red-700 hover:border-red-300 "
+                        onClick={() => handleDeleteUser(user)}
+                        title="Delete User"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -1030,24 +1038,28 @@ export default function UsersPage() {
                     <MessageSquare className="h-3 w-3 mr-1" />
                     Message
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="font-apercu-medium text-xs h-8 text-orange-600 hover:text-orange-700 hover:border-orange-300"
-                    onClick={() => handleChangePassword(user)}
-                  >
-                    <Key className="h-3 w-3 mr-1" />
-                    Password
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="font-apercu-medium text-xs h-8 text-red-600 hover:text-red-700 hover:border-red-300"
-                    onClick={() => handleDeleteUser(user)}
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Delete
-                  </Button>
+                  {currentUser?.role?.name === 'Super Admin' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-apercu-medium text-xs h-8 text-orange-600 hover:text-orange-700 hover:border-orange-300"
+                      onClick={() => handleChangePassword(user)}
+                    >
+                      <Key className="h-3 w-3 mr-1" />
+                      Password
+                    </Button>
+                  )}
+                  {currentUser?.role?.name === 'Super Admin' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-apercu-medium text-xs h-8 text-red-600 hover:text-red-700 hover:border-red-300"
+                      onClick={() => handleDeleteUser(user)}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Delete
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>

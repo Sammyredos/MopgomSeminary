@@ -56,7 +56,14 @@ export function BrandingProvider({ children }: BrandingProviderProps) {
         // Cache system name immediately for instant future loads
         if (typeof window !== 'undefined') {
           localStorage.setItem('system-name', newSystemName)
-          document.title = `${newSystemName} - Admin Panel`
+          const path = window.location.pathname
+          if (path.startsWith('/admin')) {
+            document.title = `${newSystemName} - Admin Panel`
+          } else if (path.startsWith('/student')) {
+            document.title = `${newSystemName} - Student Portal`
+          } else {
+            document.title = `${newSystemName}`
+          }
         }
 
         // Update favicon immediately and globally
@@ -89,7 +96,14 @@ export function BrandingProvider({ children }: BrandingProviderProps) {
     // Cache system name immediately for instant future loads
     if (typeof window !== 'undefined') {
       localStorage.setItem('system-name', name)
-      document.title = `${name} - Admin Panel`
+      const path = window.location.pathname
+      if (path.startsWith('/admin')) {
+        document.title = `${name} - Admin Panel`
+      } else if (path.startsWith('/student')) {
+        document.title = `${name} - Student Portal`
+      } else {
+        document.title = `${name}`
+      }
     }
 
     // Force refresh from server to ensure all components sync
