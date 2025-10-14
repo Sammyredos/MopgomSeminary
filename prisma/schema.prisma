@@ -301,7 +301,44 @@ model Registration {
   createdAt                    DateTime @default(now())
   updatedAt                    DateTime @updatedAt
 
+  // Accommodation relation (one-to-one)
+  roomAllocation               RoomAllocation?
+
   @@map("registrations")
+}
+
+// Rooms for accommodations
+model Room {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  gender      String
+  capacity    Int
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  allocations RoomAllocation[]
+
+  @@map("rooms")
+}
+
+// Allocation of registrations to rooms
+model RoomAllocation {
+  id             String      @id @default(cuid())
+  registrationId String      @unique
+  roomId         String
+  allocatedAt    DateTime    @default(now())
+  allocatedBy    String?
+  metadata       String?
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  room         Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@map("room_allocations")
 }
 
 model ClassSectionAllocation {
