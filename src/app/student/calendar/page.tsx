@@ -215,7 +215,7 @@ function StudentCalendarContent() {
           description="View important dates and events"
         >
           <div className="min-h-screen">
-            <div className="space-y-6 p-4">
+            <div className="space-y-6">
               {/* Calendar Header Skeleton */}
               <Card className="shadow-xl border-2 border-[#efefef] backdrop-blur-sm">
                 <div className="p-4 sm:p-6">

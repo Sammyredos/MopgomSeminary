@@ -21,6 +21,7 @@ import { clearStatisticsCache } from '@/lib/statistics'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { Pagination } from '@/components/ui/pagination'
 import { BanConfirmModal } from '@/components/modals/BanConfirmModal'
+import { UnbanConfirmModal } from '@/components/modals/UnbanConfirmModal'
 
 
 import {
@@ -132,6 +133,10 @@ export default function AdminRegistrations() {
   const [showBanConfirm, setShowBanConfirm] = useState(false)
   const [banTarget, setBanTarget] = useState<Registration | null>(null)
   const [isBanning, setIsBanning] = useState(false)
+  // Unban confirmation modal state
+  const [showUnbanConfirm, setShowUnbanConfirm] = useState(false)
+  const [unbanTarget, setUnbanTarget] = useState<Registration | null>(null)
+  const [isUnbanning, setIsUnbanning] = useState(false)
   const [errorModal, setErrorModal] = useState<{
     isOpen: boolean
     type: 'error' | 'warning' | 'info' | 'success'
@@ -303,6 +308,32 @@ export default function AdminRegistrations() {
   const cancelBan = () => {
     setShowBanConfirm(false)
     setBanTarget(null)
+  }
+
+  // Unban confirmation handlers
+  const handleUnbanRequest = (registration: Registration) => {
+    // Only allow unban when status is known and currently inactive
+    if (registration.userIsActive !== false) return
+    setUnbanTarget(registration)
+    setShowUnbanConfirm(true)
+  }
+
+  const confirmUnban = async () => {
+    if (!unbanTarget) return
+    try {
+      setIsUnbanning(true)
+      // Activate explicitly when confirming unban
+      await handleToggleStudentActive(unbanTarget.emailAddress, false)
+      setShowUnbanConfirm(false)
+      setUnbanTarget(null)
+    } finally {
+      setIsUnbanning(false)
+    }
+  }
+
+  const cancelUnban = () => {
+    setShowUnbanConfirm(false)
+    setUnbanTarget(null)
   }
 
   const getInitials = (name: string): string => {
@@ -1298,7 +1329,7 @@ export default function AdminRegistrations() {
             </Card>
           ) : (
             // Grid View Skeleton
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
               {Array.from({ length: 15 }).map((_, i) => (
                 <Card key={i} className="p-4 lg:p-6 bg-white">
                   <div className="flex items-start justify-between mb-4">
@@ -1489,7 +1520,7 @@ export default function AdminRegistrations() {
       <div className="px-6">
         {filteredRegistrations.length > 0 ? (
           viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 mb-6 lg:mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
               {filteredRegistrations.map((registration) => (
                 <UserCard
                   key={registration.id}
@@ -1537,7 +1568,7 @@ export default function AdminRegistrations() {
                           <Button
                             size="sm"
                             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                            onClick={() => handleToggleStudentActive(registration.emailAddress, false)}
+                            onClick={() => handleUnbanRequest(registration)}
                             aria-label="Unban student"
                           >
                             <UserCheck className="h-4 w-4 mr-2" />
@@ -1650,7 +1681,7 @@ export default function AdminRegistrations() {
                               ) : registration.userIsActive === false ? (
                                 <Button
                                   size="sm"
-                                  onClick={() => handleToggleStudentActive(registration.emailAddress, false)}
+                                  onClick={() => handleUnbanRequest(registration)}
                                   className="bg-green-600 hover:bg-green-700 text-white"
                                   aria-label="Unban student"
                                 >
@@ -2538,6 +2569,22 @@ export default function AdminRegistrations() {
             createdAt: banTarget.createdAt
           }}
           loading={isBanning}
+        />
+      )}
+
+      {/* Unban Confirmation Modal */}
+      {showUnbanConfirm && unbanTarget && (
+        <UnbanConfirmModal
+          isOpen={showUnbanConfirm}
+          onClose={cancelUnban}
+          onConfirm={confirmUnban}
+          registration={{
+            id: unbanTarget.id,
+            fullName: unbanTarget.fullName,
+            emailAddress: unbanTarget.emailAddress,
+            createdAt: unbanTarget.createdAt
+          }}
+          loading={isUnbanning}
         />
       )}
 

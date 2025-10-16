@@ -863,7 +863,7 @@ export default function StudentProfilePage() {
       <ProtectedRoute>
         <StudentLayout title="Profile" description="View your personal information">
           <div className="min-h-screen">
-            <div className="space-y-6 p-4">
+            <div className="space-y-6">
               {/* Profile Header Skeleton */}
               <Card className="shadow-xl border-2 border-[#efefef] backdrop-blur-sm">
               <div className="p-4 sm:p-6">
@@ -944,7 +944,7 @@ export default function StudentProfilePage() {
     <ProtectedRoute>
       <StudentLayout title="Profile" description="View and update your personal information">
         <div className="min-h-screen">
-          <div className="space-y-6 p-4">
+          <div className="space-y-6">
             {/* Profile Header */}
             <Card className="shadow-xl border-2 border-[#efefef] backdrop-blur-sm">
             <div className="p-4 sm:p-6">

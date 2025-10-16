@@ -471,10 +471,10 @@ export default function StudentMessagesPage() {
         <StudentLayout title="Messages" description="View and reply to communications">
           <PageTransition>
             <div className="space-y-6">
-              <div className="px-6">
+              <div className="hidden md:block">
                 <StatsSkeleton />
               </div>
-              <div className="px-6">
+              <div>
                 <ConversationsSkeleton />
               </div>
             </div>
@@ -490,7 +490,7 @@ export default function StudentMessagesPage() {
         <PageTransition>
           <div className="space-y-6">
             {/* Stats Cards */}
-            <div className="px-6">
+            <div className="hidden md:block">
               <StatsGrid columns={4}>
                 <StatsCard
                   title="Conversations"
@@ -528,7 +528,7 @@ export default function StudentMessagesPage() {
             </div>
 
             {/* Chat Interface */}
-            <div className="px-6">
+            <div>
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden h-[calc(100vh-280px)]">
                 <div className="flex h-full">
                   {/* Left Sidebar - Conversations List */}

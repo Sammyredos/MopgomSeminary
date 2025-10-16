@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Seminary Landing Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&amp;family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#003366",
+                        "secondary": "#F5F5DC",
+                        "accent": "#D4AF37",
+                        "text-primary": "#333333",
+                        "background-light": "#EAEAEA",
+                        "background-dark": "#111921",
+                    },
+                    fontFamily: {
+                        "display": ["Lora", "serif"],
+                        "body": ["Open Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-body">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-10 lg:px-20 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-300 dark:border-gray-700 px-6 py-4">
+<div class="flex items-center gap-4 text-text-primary dark:text-white">
+<span class="material-symbols-outlined text-primary text-3xl">school</span>
+<h2 class="text-2xl font-display font-bold">Seminary</h2>
+</div>
+<nav class="hidden md:flex items-center gap-9 font-semibold text-text-primary dark:text-gray-300">
+<a class="hover:text-primary" href="#">Programs</a>
+<a class="hover:text-primary" href="#">Admissions</a>
+<a class="hover:text-primary" href="#">About Us</a>
+<a class="hover:text-primary" href="#">Contact</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex min-w-[100px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
+<span class="truncate">Apply Now</span>
+</button>
+<button class="flex min-w-[100px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 text-text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+<span class="truncate">Log In</span>
+</button>
+</div>
+</header>
+<!-- Hero Section -->
+<div class="relative mt-5">
+<div class="flex min-h-[520px] flex-col items-center justify-center gap-8 rounded-xl bg-cover bg-center p-6 text-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA20SraLEPVhTtxVrAatt6MfJovRT96zJTc-FE9l1hMrmcM_3m8lvFlfUX51E9z1pF1QXoTtXWdp1-Qy0NgMUjbkChB0oKbHQ5jXF9jaEpdXnoxnMzgUHp7edYKs17fcxa2fPXnqW_83PiDzJ-khXNfnAK99qGCjH3BU2lOrMxYc8u6xXTDZ1kc8YyDe320t0mda-RqLsPtoUg19HM6Uz2zgqH2i_QkggwPWcinGkg33T8CYlA2PlhzkFrTmX7-7xpaNCecKlYNlw');">
+<div class="absolute inset-0 bg-black/50 rounded-xl"></div>
+<div class="relative z-10 flex flex-col gap-4">
+<h1 class="text-white text-4xl md:text-6xl font-display font-bold leading-tight tracking-tight">Equipping Leaders for a Lifetime of Ministry</h1>
+<p class="text-gray-200 text-lg md:text-xl font-body max-w-3xl mx-auto">Discover your calling and deepen your faith with our world-class theological education.</p>
+</div>
+<div class="relative z-10 flex flex-wrap gap-4 justify-center">
+<button class="flex min-w-[120px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
+<span class="truncate">Apply Now</span>
+</button>
+<button class="flex min-w-[120px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-white text-text-primary text-base font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
+<span class="truncate">Explore Programs</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Mission Statement Section -->
+<section class="py-16 sm:py-24 text-center bg-secondary dark:bg-background-dark rounded-xl mt-10">
+<div class="max-w-4xl mx-auto px-4">
+<h2 class="text-3xl font-display font-bold text-text-primary dark:text-white mb-4">Our Mission</h2>
+<p class="text-text-primary dark:text-gray-300 text-lg leading-relaxed font-body">
+                                Our commitment is to provide a comprehensive theological education that is academically rigorous, spiritually formative, and practically relevant for ministry in the 21st century. We aim to cultivate a community of learners dedicated to serving the church and the world.
+                            </p>
+</div>
+</section>
+<!-- Program Highlights Section -->
+<section class="py-16 sm:py-24">
+<div class="text-center">
+<h2 class="text-3xl font-display font-bold text-text-primary dark:text-white mb-12">Program Highlights</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
+<img class="w-full h-48 object-cover" data-alt="Students studying in a library" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcx7sTK2PKme6Mep9pEB-zeUbwvPN6WYXT0EwVLH2R74AxgF4Va5nkyjCgHbU3CFC8plDqfMfal1Hfp5x4VS8QrmMhUvHZHQ1XwWlUBWoFTWevpI6-HZgJzzNCCO6lyTP108fiXcQX4sBnCw0HIER4l2_coWMsNXQxwvjRPWV-UYyuTlI-aYT7M8yeQotYB8Ez1TSsBGRR4tAjEC3kylJYlrO7NIrDcJ9vXckESoqPM3YnHrHMx4TLIv23N1ZTVtCpeQtbAkKsbg"/>
+<div class="p-6 flex-grow flex flex-col">
+<h3 class="text-xl font-display font-bold text-text-primary dark:text-white mb-2">Master of Divinity (M.Div.)</h3>
+<p class="text-text-primary dark:text-gray-300 flex-grow mb-4">A comprehensive degree preparing students for ordained ministry and pastoral leadership.</p>
+<a class="text-primary font-semibold hover:underline mt-auto" href="#">Learn More <span aria-hidden="true">→</span></a>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
+<img class="w-full h-48 object-cover" data-alt="A group of diverse students in discussion" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAle250fMYgIbmx5agd39a7OFYaXePC0JyIhIPsXbp3o27EQ1rTGt9qGMD-fMC9-W25ielXivGZUSHkgsbUK7vHHfTU3PyB81ru5uB5Gbi4oZrYyMPZUiS4bfylw-PJ3Yiy9waNuu8vzEXGhsxL1KySNbrn8PrgK1g67tXdSGf5KbO-K3gSFErGJnof9JFryStI7-9tkKDcWTTwLSl-w2Hq99IRRsbeaOgg1XbEDZ17kyviLFUZXMJ_JeVyKVyVMlRcsMGNq5fp-Q"/>
+<div class="p-6 flex-grow flex flex-col">
+<h3 class="text-xl font-display font-bold text-text-primary dark:text-white mb-2">Doctor of Ministry (D.Min.)</h3>
+<p class="text-text-primary dark:text-gray-300 flex-grow mb-4">An advanced professional degree for experienced ministry leaders seeking to enhance their skills.</p>
+<a class="text-primary font-semibold hover:underline mt-auto" href="#">Learn More <span aria-hidden="true">→</span></a>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
+<img class="w-full h-48 object-cover" data-alt="Students collaborating on a project" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARXSAJd0xvjUI0u39Aqhr7HeTKxJ6PCGjRQAWmbPylVDE0plRBJ0jz6Oii4S2oBB1qJlmbVD_fwVruI4xipoY2HozzAiuV--l_UHFenvdPaqd9YfINaFyImtTwtbSRL7DB5Q2Fb64QxBrAcDfXhmwSjwz9Bit2ZxXalOvZbks8RInj-S4J7EqpZmuokTwhC4Xn7unOuWCnjcXUZGslQdVDUIKC7rZdyfPXDPoL5qzhnnaIZoV1_4tyMDnFJ3M4keOx-n2Pf6jLhg"/>
+<div class="p-6 flex-grow flex flex-col">
+<h3 class="text-xl font-display font-bold text-text-primary dark:text-white mb-2">Master of Arts (Theological Studies)</h3>
+<p class="text-text-primary dark:text-gray-300 flex-grow mb-4">A flexible program for those seeking a deeper understanding of theology for various vocations.</p>
+<a class="text-primary font-semibold hover:underline mt-auto" href="#">Learn More <span aria-hidden="true">→</span></a>
+</div>
+</div>
+</div>
+</section>
+<!-- "Why Choose Us?" Section -->
+<section class="py-16 sm:py-24 bg-white dark:bg-gray-800 rounded-xl">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center">
+<h2 class="text-3xl font-display font-bold text-text-primary dark:text-white mb-12">Why Choose Our Seminary?</h2>
+</div>
+<div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-10">
+<div class="text-center">
+<div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary/20 text-primary mx-auto mb-4">
+<span class="material-symbols-outlined text-4xl">groups</span>
+</div>
+<h3 class="text-xl font-display font-bold text-text-primary dark:text-white">World-Class Faculty</h3>
+<p class="mt-2 text-text-primary dark:text-gray-300">Learn from leading scholars and experienced practitioners dedicated to your growth.</p>
+</div>
+<div class="text-center">
+<div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary/20 text-primary mx-auto mb-4">
+<span class="material-symbols-outlined text-4xl">schedule</span>
+</div>
+<h3 class="text-xl font-display font-bold text-text-primary dark:text-white">Flexible Learning</h3>
+<p class="mt-2 text-text-primary dark:text-gray-300">Choose from online, in-person, or hybrid formats to fit your life and ministry.</p>
+</div>
+<div class="text-center">
+<div class="flex items-center justify-center h-16 w-16 rounded-full bg-primary/20 text-primary mx-auto mb-4">
+<span class="material-symbols-outlined text-4xl">diversity_3</span>
+</div>
+<h3 class="text-xl font-display font-bold text-text-primary dark:text-white">Vibrant Community</h3>
+<p class="mt-2 text-text-primary dark:text-gray-300">Join a supportive and diverse community of learners from around the world.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonials Section -->
+<section class="py-16 sm:py-24">
+<div class="max-w-4xl mx-auto text-center">
+<h2 class="text-3xl font-display font-bold text-text-primary dark:text-white mb-12">From Our Community</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="bg-secondary dark:bg-gray-800 p-8 rounded-xl shadow-lg">
+<img class="w-20 h-20 mx-auto rounded-full -mt-16 border-4 border-white dark:border-gray-700" data-alt="Photo of Jane Doe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHeQXQsKCP78z37wVWSqtr2bPfa270Jbov4C0VZBcfgTjIgiRYMZMDs4KPVqHRfiJZwb3hGd45K7mSfIWlZSF6Hyhf1A8J69H_KLM6y12ZtVJMihomMtIvXveJJX8ahrIoiUIKjVKRlXwoPDt54adKLlMOygAdFDSuSFFk0NH_GN39Y7xfFxDna8pP5phm5X-VnKQriqbAedCwCnxE1jdEIx7anrZfc42e_4Pu0nj0gxYGjY8LXFgM0-qOkwDaDnHHzJJgUKfKJw"/>
+<blockquote class="mt-4">
+<p class="text-lg text-text-primary dark:text-gray-300 italic">"The education I received here was not just academic; it was transformative. The faculty truly invested in my spiritual and personal development."</p>
+</blockquote>
+<cite class="mt-4 block font-bold text-text-primary dark:text-white not-italic">Jane Doe, M.Div. '22</cite>
+</div>
+<div class="bg-secondary dark:bg-gray-800 p-8 rounded-xl shadow-lg">
+<img class="w-20 h-20 mx-auto rounded-full -mt-16 border-4 border-white dark:border-gray-700" data-alt="Photo of John Smith" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2hsvjIvb_E6wa_ng0Vwe7eAdMTbnEJ2hFeBgvUUnKyxKVRZ_GB9Wh5b0ZfJiYwBYrQV0ldE6IP59ChUz8mta8RD1CzZX2ayMdD9qK39DPOfWLfGOlRLLAmS0R58PbdkBb-obWylVyPnuMOu1fqfByStCxGYJmO5D1K_KDgZiCx9eGTRfOqjKeW170TJoSuPTDonJgSRVmbMnccRB12s9XFljH9l59p04x7tps4I4u_qb94rGyXiRlsHQITQopuYWLUmLnTg7oDw"/>
+<blockquote class="mt-4">
+<p class="text-lg text-text-primary dark:text-gray-300 italic">"This seminary challenged me to think critically and love more deeply. It has profoundly shaped my ministry and my life."</p>
+</blockquote>
+<cite class="mt-4 block font-bold text-text-primary dark:text-white not-italic">John Smith, D.Min. '21</cite>
+</div>
+</div>
+</div>
+</section>
+<!-- Newsletter Subscription Form -->
+<section class="bg-primary text-white rounded-xl my-10">
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 text-center">
+<h2 class="text-3xl font-display font-extrabold tracking-tight sm:text-4xl">Stay Connected with Our Community</h2>
+<p class="mt-4 text-lg leading-6 text-indigo-100">Get the latest news, events, and stories from our seminary delivered to your inbox.</p>
+<div class="mt-8 sm:flex justify-center">
+<form action="#" class="sm:flex w-full max-w-lg" method="POST">
+<label class="sr-only" for="email-address">Email address</label>
+<input autocomplete="email" class="w-full px-5 py-3 border border-transparent placeholder-gray-500 focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white focus:border-white rounded-md text-text-primary" id="email-address" name="email" placeholder="Enter your email" required="" type="email"/>
+<div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3 sm:flex-shrink-0">
+<button class="w-full flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-indigo-50" type="submit">Subscribe</button>
+</div>
+</form>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-secondary dark:bg-background-dark text-text-primary dark:text-gray-400 py-12 rounded-xl">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8">
+<div>
+<h3 class="text-lg font-display font-bold text-text-primary dark:text-white">Seminary</h3>
+<p class="mt-2 text-sm">Equipping leaders for a lifetime of ministry.</p>
+</div>
+<div>
+<h4 class="font-semibold text-text-primary dark:text-white">Quick Links</h4>
+<ul class="mt-4 space-y-2 text-sm">
+<li><a class="hover:text-primary" href="#">About Us</a></li>
+<li><a class="hover:text-primary" href="#">Admissions</a></li>
+<li><a class="hover:text-primary" href="#">Academics</a></li>
+<li><a class="hover:text-primary" href="#">Contact</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-semibold text-text-primary dark:text-white">Connect</h4>
+<ul class="mt-4 space-y-2 text-sm">
+<li><a class="hover:text-primary" href="#">Facebook</a></li>
+<li><a class="hover:text-primary" href="#">Twitter</a></li>
+<li><a class="hover:text-primary" href="#">Instagram</a></li>
+<li><a class="hover:text-primary" href="#">LinkedIn</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-semibold text-text-primary dark:text-white">Contact Us</h4>
+<p class="mt-4 text-sm">123 Seminary Drive<br/>Faithville, USA 12345</p>
+<p class="mt-2 text-sm">(123) 456-7890</p>
+<p class="mt-2 text-sm"><a class="hover:text-primary" href="mailto:info@seminary.edu">info@seminary.edu</a></p>
+</div>
+</div>
+<div class="mt-8 border-t border-gray-300 dark:border-gray-700 pt-8 text-center text-sm">
+<p>© 2024 Seminary. All rights reserved.</p>
+</div>
+</footer>
+</div>
+</div>
+</div>
+</div>
+</body></html>
