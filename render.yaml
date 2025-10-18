@@ -31,7 +31,7 @@ services:
       echo "👥 Setting up roles and permissions..." &&
       (npx tsx scripts/create-staff-role.ts && echo "✅ Roles and permissions configured" || echo "⚠️ Role setup skipped") &&
       echo "🏗️ Building Next.js application with production optimizations..." &&
-      npm run build:render &&
+      npm run build &&
       echo "🧹 Cleaning up development dependencies..." &&
       npm prune --production &&
       echo "🎉 Mopgomseminary production build completed successfully!" &&

@@ -1,7 +1,11 @@
+const path = require('path')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // External packages for server components
   serverExternalPackages: ['prisma', '@prisma/client'],
+
+  // Ensure correct workspace root for file tracing in monorepo-like setups
+  outputFileTracingRoot: path.join(__dirname),
 
   // Simplified webpack configuration
   webpack: (config, { isServer }) => {

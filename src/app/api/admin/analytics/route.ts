@@ -147,14 +147,8 @@ export async function GET(request: NextRequest) {
     try {
       branchStats = await prisma.registration.groupBy({
         by: ['branch'],
-        _count: {
-          branch: true
-        },
-        orderBy: {
-          _count: {
-            branch: 'desc'
-          }
-        }
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } }
       })
     } catch (error: any) {
       // If branch column doesn't exist, return empty stats
@@ -223,8 +217,8 @@ export async function GET(request: NextRequest) {
         },
         branchDistribution: branchStats.map(branch => ({
           branch: branch.branch || 'Not Specified',
-          count: branch._count.branch,
-          percentage: totalRegistrations > 0 ? Math.round((branch._count.branch / totalRegistrations) * 100) : 0
+          count: branch._count.id,
+          percentage: totalRegistrations > 0 ? Math.round((branch._count.id / totalRegistrations) * 100) : 0
         })),
         dailyTrend: dailyStats
       }
