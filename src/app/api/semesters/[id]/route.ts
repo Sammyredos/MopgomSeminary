@@ -155,7 +155,7 @@ export async function PUT(
 
     // If setting as current, unset other current semesters
     if (validatedData.isCurrent && !existingSemester.isCurrent) {
-      await prisma.semester.updateMany({
+      await db.semester.updateMany({
         where: { 
           isCurrent: true,
           id: { not: params.id },

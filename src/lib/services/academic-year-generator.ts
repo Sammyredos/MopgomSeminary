@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
 
+const db = prisma as any;
 // Unconventional Calendar Configuration
 export interface UnconventionalCalendarConfig {
   // Custom year structure - 13 months with 28 days each + 1 leap day
@@ -167,7 +168,7 @@ export class AcademicYearGenerator {
         const academicYearString = `${year}-${year + 1}`;
         
         // Check if academic year already exists
-        const existingYear = await prisma.academicYear.findFirst({
+        const existingYear = await db.academicYear.findFirst({
           where: { year: academicYearString }
         });
         
@@ -190,7 +191,7 @@ export class AcademicYearGenerator {
         );
         
         // Create academic year
-        const academicYear = await prisma.academicYear.create({
+        const academicYear = await db.academicYear.create({
           data: {
             year: academicYearString,
             startDate: startDate.toStandardDate(),
@@ -244,7 +245,7 @@ export class AcademicYearGenerator {
   async autoGenerateFutureYears(): Promise<void> {
     try {
       // Get the latest academic year
-      const latestYear = await prisma.academicYear.findFirst({
+      const latestYear = await db.academicYear.findFirst({
         orderBy: { year: 'desc' }
       });
       
@@ -276,7 +277,7 @@ export class AcademicYearGenerator {
     const unconventionalNow = UnconventionalDate.fromStandardDate(now);
     const academicYearString = unconventionalNow.getAcademicYearString(this.config);
     
-    return await prisma.academicYear.findFirst({
+    return await db.academicYear.findFirst({
       where: { year: academicYearString },
       include: {
         semesters: {

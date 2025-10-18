@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     // Check if user has permission to view analytics
     const allowedRoles = ['Super Admin', 'Principal', 'Admin', 'Teacher'];
-    if (!allowedRoles.includes(authResult.user.role?.name || '')) {
+    if (!allowedRoles.includes((authResult.user as any)?.role?.name || '')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/db';
 
+const db = prisma as any;
 export async function GET(request: NextRequest) {
   try {
     const authResult = await authenticateRequest(request);
@@ -11,31 +12,31 @@ export async function GET(request: NextRequest) {
 
     // Check permissions
     const allowedRoles = ['Super Admin', 'Principal', 'Admin', 'Department Head', 'Manager', 'Teacher', 'Instructor'];
-    if (!allowedRoles.includes(session.user?.role?.name || '')) {
+    if (!allowedRoles.includes((authResult.user as any)?.role?.name || '')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Get semester analytics
     const [totalSemesters, activeSemesters, currentSemester, totalEnrollments] = await Promise.all([
       // Total semesters
-      prisma.semester.count(),
+      db.semester.count(),
       
       // Active semesters
-      prisma.semester.count({
+      db.semester.count({
         where: { isActive: true },
       }),
       
       // Current semester count (should be 1 or 0)
-      prisma.semester.count({
+      db.semester.count({
         where: { isCurrent: true },
       }),
       
       // Total enrollments across all semesters
-      prisma.studentEnrollment.count(),
+      db.studentEnrollment.count(),
     ]);
 
     // Get semester distribution by academic year
-    const semestersByYear = await prisma.semester.groupBy({
+    const semestersByYear = await db.semester.groupBy({
       by: ['academicYearId'],
       _count: {
         id: true,
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get semester distribution by semester number
-    const semestersByNumber = await prisma.semester.groupBy({
+    const semestersByNumber = await db.semester.groupBy({
       by: ['semesterNumber'],
       _count: {
         id: true,
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get enrollment trends by semester
-    const enrollmentTrends = await prisma.semester.findMany({
+    const enrollmentTrends = await db.semester.findMany({
       select: {
         id: true,
         name: true,
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get current academic year statistics
-    const currentAcademicYear = await prisma.academicYear.findFirst({
+    const currentAcademicYear = await db.academicYear.findFirst({
       where: { isCurrent: true },
       include: {
         semesters: {
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Get recent semester activities
-    const recentActivities = await prisma.semester.findMany({
+    const recentActivities = await db.semester.findMany({
       select: {
         id: true,
         name: true,
