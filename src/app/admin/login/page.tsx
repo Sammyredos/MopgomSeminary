@@ -85,7 +85,7 @@ export default function AdminLogin() {
       } else {
         // Check if this is a lockout error (status 423) or rate limit error (status 429)
         if ((response.status === 423 && data.lockoutTime) || (response.status === 429 && data.rateLimitExceeded)) {
-          let lockoutTime = null
+          let lockoutTime: Date | null = null
           
           if (response.status === 423 && data.lockoutTime) {
             // Account lockout from failed attempts

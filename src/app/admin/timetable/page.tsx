@@ -662,7 +662,7 @@ function TimetablePageContent() {
                             >
                               <div className="font-semibold">{daySession.subject.subjectCode}</div>
                               <div className="truncate">{daySession.teacher.fullName}</div>
-                              <div className="text-xs opacity-75">{daySession.course?.courseCode}</div>
+                              <div className="text-xs opacity-75">{courses.find(c => c.id === daySession.courseId)?.courseCode}</div>
                             </div>
                           )}
                         </div>
@@ -700,7 +700,7 @@ function TimetablePageContent() {
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium">{session.course?.courseCode} - {session.course?.courseName}</span>
+                          <span className="font-medium">{courses.find(c => c.id === session.courseId)?.courseCode} - {courses.find(c => c.id === session.courseId)?.courseName}</span>
                         </div>
                       </div>
                     </div>
@@ -965,7 +965,7 @@ function TimetablePageContent() {
               <div className="space-y-2">
                 <Label>Course</Label>
                 <p className="text-sm text-gray-600">
-                  {selectedSession?.course?.courseCode} - {selectedSession?.course?.courseName}
+                  {courses.find(c => c.id === selectedSession?.courseId)?.courseCode} - {courses.find(c => c.id === selectedSession?.courseId)?.courseName}
                 </p>
               </div>
               

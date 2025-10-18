@@ -662,7 +662,7 @@ export default function AcademicYearsPage() {
           <div className="mt-4 flex justify-end">
             <ViewToggle 
               viewMode={viewMode} 
-              onViewModeChange={setViewMode} 
+              onViewChange={setViewMode} 
             />
           </div>
         </CardContent>

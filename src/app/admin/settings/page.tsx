@@ -59,7 +59,9 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  Info
+  Info,
+  Code,
+  Server
 } from 'lucide-react'
 import '@/styles/settings-responsive.css'
 
@@ -1064,7 +1066,7 @@ export default function SettingsPage() {
           console.warn(`⚠️ Invalid number for ${setting.key}, skipping`)
           return acc
         }
-      } else if (setting.type === 'boolean' || setting.type === 'toggle') {
+      } else if (setting.type === 'boolean') {
         value = Boolean(value)
       } else if (setting.type === 'text' || setting.type === 'email' || setting.type === 'password') {
         value = String(value || '')
@@ -2320,7 +2322,7 @@ export default function SettingsPage() {
             {(currentLogo || branding.logoUrl) ? (
               <div className="h-16 w-16 rounded-lg overflow-hidden border border-gray-200">
                 <img
-                  src={currentLogo || branding.logoUrl}
+                  src={currentLogo ?? branding.logoUrl ?? undefined}
                   alt="Current Logo"
                   className="w-full h-full object-contain"
                 />

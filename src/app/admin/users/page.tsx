@@ -1162,7 +1162,18 @@ export default function UsersPage() {
         isOpen={showEditModal}
         onClose={closeModals}
         onUserUpdated={handleUserUpdated}
-        user={selectedUser}
+        user={selectedUser && selectedUser.role ? {
+          id: selectedUser.id,
+          email: selectedUser.email,
+          name: selectedUser.name,
+          isActive: selectedUser.isActive,
+          role: {
+            id: selectedUser.role.id,
+            name: selectedUser.role.name,
+            description: selectedUser.role.description,
+            isSystem: selectedUser.role.isSystem
+          }
+        } : null}
         roles={roles}
       />
 
@@ -1170,14 +1181,25 @@ export default function UsersPage() {
         isOpen={showDeleteModal}
         onCloseAction={closeModals}
         onUserDeletedAction={handleUserDeleted}
-        user={selectedUser}
+        user={selectedUser ? {
+          id: selectedUser.id,
+          name: selectedUser.name,
+          email: selectedUser.email,
+          isActive: selectedUser.isActive,
+          createdAt: selectedUser.createdAt,
+          lastLoginAt: selectedUser.lastLogin || undefined,
+          role: selectedUser.role ? { name: selectedUser.role.name } : undefined
+        } : null}
       />
 
       <ChangePasswordModal
         isOpen={showChangePasswordModal}
         onClose={closeModals}
-        onPasswordChanged={handlePasswordChanged}
-        user={selectedUser}
+        user={selectedUser ? {
+          id: selectedUser.id,
+          name: selectedUser.name,
+          email: selectedUser.email
+        } : { id: '', name: '', email: '' }}
       />
 
       <SimpleMessaging
@@ -1187,8 +1209,8 @@ export default function UsersPage() {
           id: selectedUser.id,
           name: selectedUser.name,
           email: selectedUser.email,
-          role: selectedUser.role,
-          type: 'admin' as const
+          role: { name: selectedUser.role?.name || 'User' },
+          type: 'user'
         } : null}
         hideSubject={true}
       />

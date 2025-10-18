@@ -100,7 +100,7 @@ function CalendarPageContent() {
         router.push('/admin/login');
         return;
       }
-    } catch (error) {
+    } catch (err) {
       console.error('Auth check failed:', error);
       router.push('/admin/login');
       return;
@@ -138,8 +138,8 @@ function CalendarPageContent() {
       
       const data = await response.json();
       setStats(data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+    } catch (err) {
+      console.error('Error fetching stats:', err);
     }
   };
 
@@ -190,8 +190,8 @@ function CalendarPageContent() {
         activeTerms,
         holidaysThisMonth
       });
-    } catch (error) {
-      console.error('Error fetching events:', error);
+    } catch (err) {
+      console.error('Error fetching events:', err);
       error('Failed to fetch calendar events');
     } finally {
       setDataLoading(false);
@@ -245,8 +245,8 @@ function CalendarPageContent() {
       fetchEvents();
       setIsDeleteModalOpen(false);
       setEventToDelete(null);
-    } catch (error) {
-      console.error('Error deleting event:', error);
+    } catch (err) {
+      console.error('Error deleting event:', err);
       error('Failed to delete calendar event');
     }
   };

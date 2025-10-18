@@ -114,15 +114,21 @@ function AttendancePageContent() {
     }
   } | null>(null)
 
+  // QR view modal state (used for viewing participant QR details)
+  const [showQRViewModal, setShowQRViewModal] = useState(false)
+  const [qrViewTarget, setQRViewTarget] = useState<Registration | null>(null)
+
   // Refs to track current modal states for real-time events (avoids closure issues)
   const showConfirmModalRef = useRef(showConfirmModal)
   const confirmTargetRef = useRef(confirmTarget)
+  const showQRViewModalRef = useRef(showQRViewModal)
 
   // Update refs when state changes
   useEffect(() => {
     showConfirmModalRef.current = showConfirmModal
     confirmTargetRef.current = confirmTarget
-  }, [showConfirmModal, confirmTarget])
+    showQRViewModalRef.current = showQRViewModal
+  }, [showConfirmModal, confirmTarget, showQRViewModal])
 
   // Real-time attendance updates with stable state and cross-device sync
   // Enable for all authenticated users (including Staff)

@@ -28,7 +28,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const academicYear = await prisma.academicYear.findUnique({
+    const academicYear = await (prisma as any).academicYear.findUnique({
       where: { id: params.id },
       include: {
         semesters: {
@@ -90,7 +90,7 @@ export async function PUT(
     }
 
     // Check if academic year exists
-    const existingAcademicYear = await prisma.academicYear.findUnique({
+    const existingAcademicYear = await (prisma as any).academicYear.findUnique({
       where: { id: params.id },
     });
 
@@ -103,7 +103,7 @@ export async function PUT(
 
     // Check if year is being changed and if it conflicts with another academic year
     if (validatedData.year !== existingAcademicYear.year) {
-      const conflictingAcademicYear = await prisma.academicYear.findFirst({
+      const conflictingAcademicYear = await (prisma as any).academicYear.findFirst({
         where: {
           year: validatedData.year,
           id: { not: params.id },
@@ -130,7 +130,7 @@ export async function PUT(
     }
 
     // Update academic year
-    const updatedAcademicYear = await prisma.academicYear.update({
+    const updatedAcademicYear = await (prisma as any).academicYear.update({
       where: { id: params.id },
       data: {
         year: validatedData.year,
@@ -222,7 +222,7 @@ export async function DELETE(
     }
 
     // Check if academic year exists
-    const academicYear = await prisma.academicYear.findUnique({
+    const academicYear = await (prisma as any).academicYear.findUnique({
       where: { id: params.id },
       include: {
         _count: {

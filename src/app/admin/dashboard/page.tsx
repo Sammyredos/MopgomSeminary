@@ -168,7 +168,10 @@ export default function AdminDashboard() {
           previousMonthActivity: statsData?.registrations?.recent?.today || 0,
           totalRooms: statsData?.rooms?.total || 0,
           occupiedRooms: statsData?.summary?.occupiedRooms || 0,
-          availableRooms: statsData?.summary?.availableRooms || 0
+          availableRooms: statsData?.summary?.availableRooms || 0,
+          instructorsCount: 0,
+          coursesCount: 0,
+          messagesCount: 0
         }
 
         console.log('🎯 DASHBOARD: Setting main statistics:', {
@@ -288,7 +291,10 @@ export default function AdminDashboard() {
           previousMonthActivity: 0,
           totalRooms: 0,
           occupiedRooms: 0,
-          availableRooms: 0
+          availableRooms: 0,
+          instructorsCount: 0,
+          coursesCount: 0,
+          messagesCount: 0
         }
       })
     }
