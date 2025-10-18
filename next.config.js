@@ -100,6 +100,13 @@ const nextConfig = {
     ]
   },
 
+  // Rewrites to serve static landing page without .html in URL
+  async rewrites() {
+    return [
+      { source: '/landing', destination: '/landing.html' },
+    ]
+  },
+
   // Redirects
   async redirects() {
     return []

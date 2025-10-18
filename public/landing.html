@@ -3,12 +3,17 @@
 <html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Seminary Landing Page</title>
+<title>Mopgom Seminary</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&amp;family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Preload local Apercu fonts used across the app -->
+<link rel="preload" href="/fonts/ApercuPro-Regular.woff" as="font" type="font/woff" crossorigin="anonymous"/>
+<link rel="preload" href="/fonts/ApercuPro-Medium.woff" as="font" type="font/woff" crossorigin="anonymous"/>
+<link rel="preload" href="/fonts/ApercuPro-Bold.woff" as="font" type="font/woff" crossorigin="anonymous"/>
+<!-- Preload logo for faster header paint -->
+<link rel="preload" href="/uploads/branding/logo-1760529056777.jpg" as="image" />
 <script>
         tailwind.config = {
             darkMode: "class",
@@ -23,8 +28,30 @@
                         "background-dark": "#111921",
                     },
                     fontFamily: {
-                        "display": ["Lora", "serif"],
-                        "body": ["Open Sans", "sans-serif"],
+                        "display": [
+                            "Apercu Pro",
+                            "-apple-system",
+                            "BlinkMacSystemFont",
+                            "Segoe UI",
+                            "Roboto",
+                            "Helvetica Neue",
+                            "Arial",
+                            "Noto Sans",
+                            "Liberation Sans",
+                            "sans-serif"
+                        ],
+                        "body": [
+                            "Apercu Pro",
+                            "-apple-system",
+                            "BlinkMacSystemFont",
+                            "Segoe UI",
+                            "Roboto",
+                            "Helvetica Neue",
+                            "Arial",
+                            "Noto Sans",
+                            "Liberation Sans",
+                            "sans-serif"
+                        ],
                     },
                     borderRadius: {
                         "DEFAULT": "0.25rem",
@@ -45,8 +72,55 @@
             'opsz' 24
         }
     </style>
+<style>
+        /* Logo styling: enlarge and reduce white background effect in light mode */
+        .site-logo { height: 4rem; width: auto; object-fit: contain; }
+        @media (min-width: 768px) { .site-logo { height: 5rem; } }
+        .light .site-logo { mix-blend-mode: multiply; }
+        .dark .site-logo { mix-blend-mode: normal; }
+    </style>
+<style>
+        /* Local Apercu font faces */
+        @font-face {
+            font-family: 'Apercu Pro';
+            src: url('/fonts/ApercuPro-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Apercu Pro';
+            src: url('/fonts/ApercuPro-Medium.woff') format('woff');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Apercu Pro';
+            src: url('/fonts/ApercuPro-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* Apply Apercu globally with robust fallbacks and smoothing */
+        html, body {
+            font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .font-body {
+            font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+        }
+        .font-display {
+            font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+        }
+    </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-body">
+<body class="bg-background-light dark:bg-background-dark font-body antialiased">
 <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
 <div class="layout-container flex h-full grow flex-col">
 <div class="px-4 md:px-10 lg:px-20 flex flex-1 justify-center py-5">
@@ -54,8 +128,8 @@
 <!-- Top Navigation Bar -->
 <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-300 dark:border-gray-700 px-6 py-4">
 <div class="flex items-center gap-4 text-text-primary dark:text-white">
-<span class="material-symbols-outlined text-primary text-3xl">school</span>
-<h2 class="text-2xl font-display font-bold">Seminary</h2>
+<img src="./uploads/branding/logo-1760529056777.jpg" alt="Seminary Logo" class="site-logo" loading="eager" decoding="async" fetchpriority="high" />
+
 </div>
 <nav class="hidden md:flex items-center gap-9 font-semibold text-text-primary dark:text-gray-300">
 <a class="hover:text-primary" href="#">Programs</a>
@@ -64,12 +138,12 @@
 <a class="hover:text-primary" href="#">Contact</a>
 </nav>
 <div class="flex items-center gap-4">
-<button class="flex min-w-[100px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
-<span class="truncate">Apply Now</span>
-</button>
-<button class="flex min-w-[100px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 text-text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
-<span class="truncate">Log In</span>
-</button>
+<a href="/signup" role="button" class="flex min-w-[100px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
+  <span class="truncate">Apply Now</span>
+</a>
+<a href="/login" role="button" class="flex min-w-[100px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 text-text-primary text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 transition-colors dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+  <span class="truncate">Log In</span>
+</a>
 </div>
 </header>
 <!-- Hero Section -->
@@ -81,9 +155,9 @@
 <p class="text-gray-200 text-lg md:text-xl font-body max-w-3xl mx-auto">Discover your calling and deepen your faith with our world-class theological education.</p>
 </div>
 <div class="relative z-10 flex flex-wrap gap-4 justify-center">
-<button class="flex min-w-[120px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
-<span class="truncate">Apply Now</span>
-</button>
+<a href="/signup" role="button" class="flex min-w-[120px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary/90 transition-colors">
+  <span class="truncate">Apply Now</span>
+</a>
 <button class="flex min-w-[120px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-white text-text-primary text-base font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
 <span class="truncate">Explore Programs</span>
 </button>

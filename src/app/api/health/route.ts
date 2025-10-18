@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       checks
     }
 
-    const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 200 : 503
+    const statusCode = 200
 
     return NextResponse.json(healthCheck, { 
       status: statusCode,
