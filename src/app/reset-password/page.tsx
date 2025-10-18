@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,7 +11,7 @@ import { Lock, Eye, EyeOff, CheckCircle, Loader2, ArrowLeft } from 'lucide-react
 import { LoginLogo } from '@/components/ui/UniversalLogo'
 import { useReactiveSystemName } from '@/components/ui/reactive-system-name'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -292,5 +292,13 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#f1f1f1'}}>Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }
