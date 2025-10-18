@@ -128,9 +128,11 @@ export async function GET(request: NextRequest) {
       role: currentUser.role?.name 
     })
 
+    let streamController: ReadableStreamDefaultController | null = null
     // Create readable stream for SSE
     const stream = new ReadableStream({
       start(controller) {
+        streamController = controller
         const now = Date.now()
 
         // Add connection to active connections with metadata
@@ -190,11 +192,17 @@ export async function GET(request: NextRequest) {
         })
       },
 
-      cancel() {
-        connections.delete(controller)
+      cancel(reason?: any) {
+        if (streamController) {
+          connections.delete(streamController)
+          try {
+            streamController.close()
+          } catch {}
+        }
         logger.info('SSE connection cancelled', {
           userId: currentUser.id,
-          remainingConnections: connections.size
+          remainingConnections: connections.size,
+          reason: typeof reason === 'string' ? reason : undefined
         })
       }
     })

@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { smsAuthService } from '@/lib/sms-auth'
 import { Logger } from '@/lib/logger'
 
-const logger = new Logger('SMS-Auth-Send')
+const logger = Logger('SMS-Auth-Send')
 
 const sendCodeSchema = z.object({
   phoneNumber: z.string()

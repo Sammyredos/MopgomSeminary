@@ -12,7 +12,7 @@ import { authenticateRequest } from '@/lib/auth-helpers'
 import { Logger } from '@/lib/logger'
 import { broadcastAttendanceEvent } from '../events/route'
 
-const logger = new Logger('AttendanceUnverification')
+const logger = Logger('AttendanceUnverification')
 
 export async function POST(request: NextRequest) {
   try {
@@ -143,11 +143,6 @@ export async function POST(request: NextRequest) {
           isVerified: false,
           verifiedAt: null,
           verifiedBy: null,
-          attendanceMarked: false,
-          attendanceTime: null,
-          // Add unverification tracking
-          unverifiedAt: new Date(),
-          unverifiedBy: currentUser.email
         }
       })
 
@@ -171,10 +166,9 @@ export async function POST(request: NextRequest) {
         fullName: registration.fullName,
         status: 'absent',
         timestamp: new Date().toISOString(),
-        scannerName: currentUser.fullName || currentUser.email,
+        scannerName: currentUser.email,
         platoonName: registration.platoonAllocation?.platoon?.name,
         roomName: registration.roomAllocation?.room?.name,
-        message: `${registration.fullName} has been unverified`
       }
     })
 

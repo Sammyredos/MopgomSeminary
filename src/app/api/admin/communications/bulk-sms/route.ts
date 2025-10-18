@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db'
 import { Logger } from '@/lib/logger'
 import { verifyToken } from '@/lib/auth'
 
-const logger = new Logger('Bulk-SMS')
+const logger = Logger('Bulk-SMS')
 
 const bulkSmsSchema = z.object({
   recipients: z.array(z.string().min(10, 'Invalid phone number')).min(1, 'At least one recipient required'),

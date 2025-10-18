@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db'
 import { authenticateRequest } from '@/lib/auth-helpers'
 import { Logger } from '@/lib/logger'
 
-const logger = new Logger('AttendanceRegistrations')
+const logger = Logger('AttendanceRegistrations')
 
 export async function GET(request: NextRequest) {
   try {
@@ -90,8 +90,6 @@ export async function GET(request: NextRequest) {
         isVerified: true,
         verifiedAt: true,
         verifiedBy: true,
-        attendanceMarked: true,
-        attendanceTime: true,
         createdAt: true
       },
       orderBy: verified === 'false' ? [

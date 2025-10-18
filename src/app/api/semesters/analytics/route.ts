@@ -39,11 +39,11 @@ export async function GET(request: NextRequest) {
     const semestersByYear = await db.semester.groupBy({
       by: ['academicYearId'],
       _count: {
-        id: true,
+        _all: true,
       },
       orderBy: {
         _count: {
-          id: 'desc',
+          _all: 'desc',
         },
       },
     });

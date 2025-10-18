@@ -10,7 +10,7 @@ import { verifyToken } from '@/lib/auth'
 import { Logger } from '@/lib/logger'
 
 const prisma = new PrismaClient()
-const logger = new Logger('Settings-Import')
+const logger = Logger('Settings-Import')
 
 export async function POST(request: NextRequest) {
   try {

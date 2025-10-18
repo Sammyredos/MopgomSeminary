@@ -11,7 +11,7 @@ import { verifyToken } from '@/lib/auth'
 import { Logger } from '@/lib/logger'
 import nodemailer from 'nodemailer'
 
-const logger = new Logger('Email-Settings')
+const logger = Logger('Email-Settings')
 
 // Create different schemas for development and production
 const createEmailSettingsSchema = (isDevelopment: boolean) => {

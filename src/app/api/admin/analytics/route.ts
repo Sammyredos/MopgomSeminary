@@ -145,10 +145,10 @@ export async function GET(request: NextRequest) {
     // Get branch statistics (handle missing branch column)
     let branchStats: any[] = []
     try {
-      branchStats = await prisma.registration.groupBy({
+      branchStats = await (prisma as any).registration.groupBy({
         by: ['branch'],
-        _count: { id: true },
-        orderBy: { _count: { id: 'desc' } }
+        _count: { _all: true },
+        orderBy: { _count: { branch: 'desc' } }
       })
     } catch (error: any) {
       // If branch column doesn't exist, return empty stats
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Group recent registrations by day
-    const dailyStats = []
+    const dailyStats: { date: string; count: number }[] = []
     for (let i = 6; i >= 0; i--) {
       const date = new Date()
       date.setDate(date.getDate() - i)
@@ -217,8 +217,8 @@ export async function GET(request: NextRequest) {
         },
         branchDistribution: branchStats.map(branch => ({
           branch: branch.branch || 'Not Specified',
-          count: branch._count.id,
-          percentage: totalRegistrations > 0 ? Math.round((branch._count.id / totalRegistrations) * 100) : 0
+          count: branch._count._all,
+          percentage: totalRegistrations > 0 ? Math.round((branch._count._all / totalRegistrations) * 100) : 0
         })),
         dailyTrend: dailyStats
       }

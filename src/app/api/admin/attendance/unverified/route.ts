@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db'
 import { authenticateRequest } from '@/lib/auth-helpers'
 import { Logger } from '@/lib/logger'
 
-const logger = new Logger('UnverifiedRegistrations')
+const logger = Logger('UnverifiedRegistrations')
 
 export async function GET(request: NextRequest) {
   try {

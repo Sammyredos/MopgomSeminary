@@ -12,7 +12,7 @@ import { Logger } from '@/lib/logger'
 import { broadcastAttendanceEvent } from '../events/route'
 import { sendVerificationConfirmationEmail } from '@/lib/email'
 
-const logger = new Logger('AttendanceVerification')
+const logger = Logger('AttendanceVerification')
 
 export async function POST(request: NextRequest) {
   try {

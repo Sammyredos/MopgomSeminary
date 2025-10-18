@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db'
 import { authenticateRequest } from '@/lib/auth-helpers'
 import { Logger } from '@/lib/logger'
 
-const logger = new Logger('AttendanceStats')
+const logger = Logger('AttendanceStats')
 
 export async function GET(request: NextRequest) {
   try {

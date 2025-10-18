@@ -11,7 +11,7 @@ import { PrismaClient } from '@prisma/client'
 import { Logger } from '@/lib/logger'
 
 const prisma = new PrismaClient()
-const logger = new Logger('EmailConfigure')
+const logger = Logger('EmailConfigure')
 
 export async function POST(request: NextRequest) {
   try {
