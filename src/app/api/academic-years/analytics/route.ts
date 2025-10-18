@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { verifyAuth } from '@/lib/auth-helpers';
+import { verifyAuth } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -18,46 +18,72 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    // Get analytics data
-    const [totalAcademicYears, activeAcademicYears, currentAcademicYear, totalStudents, totalSemesters] = await Promise.all([
-      // Total academic years
-      prisma.academicYear.count(),
-      
-      // Active academic years
-      prisma.academicYear.count({
-        where: { isActive: true }
+    // Derive analytics from existing models (Student, CalendarEvent)
+    const [studentYears, activeEventYears, totalStudents] = await Promise.all([
+      prisma.student.groupBy({
+        by: ['academicYear'],
       }),
-      
-      // Current academic year
-      prisma.academicYear.findFirst({
-        where: { isCurrent: true },
-        include: {
-          semesters: true,
-          _count: {
-            select: {
-              students: true,
-              calendarEvents: true
-            }
-          }
-        }
+      prisma.calendarEvent.groupBy({
+        by: ['academicYear'],
+        where: { isActive: true },
       }),
-      
-      // Total students across all academic years
       prisma.student.count(),
-      
-      // Total semesters
-      prisma.semester.count()
-    ]);
+    ])
+
+    const totalAcademicYears = studentYears.length
+    const activeAcademicYears = activeEventYears.length
+
+    // Determine current academic year as the max year present in events or students
+    const allYears = [
+      ...new Set([
+        ...studentYears.map(y => y.academicYear),
+        ...activeEventYears.map(y => y.academicYear),
+      ]),
+    ].filter(Boolean) as string[]
+
+    const numericYears = allYears
+      .map(y => parseInt(String(y).replace(/[^0-9]/g, ''), 10))
+      .filter(n => !isNaN(n))
+
+    const bestYear = numericYears.length > 0
+      ? String(Math.max(...numericYears))
+      : (allYears[0] || null)
+
+    let currentAcademicYear: any = null
+
+    if (bestYear) {
+      const [studentCountForYear, eventCountForYear] = await Promise.all([
+        prisma.student.count({ where: { academicYear: bestYear } }),
+        prisma.calendarEvent.count({ where: { academicYear: bestYear } }),
+      ])
+
+      currentAcademicYear = {
+        id: bestYear,
+        year: bestYear,
+        startDate: null,
+        endDate: null,
+        isActive: true,
+        isCurrent: true,
+        description: null,
+        createdAt: null,
+        updatedAt: null,
+        semesters: [],
+        _count: {
+          students: studentCountForYear,
+          calendarEvents: eventCountForYear,
+        },
+      }
+    }
 
     const analyticsData = {
       totalAcademicYears,
       activeAcademicYears,
       currentAcademicYear,
       totalStudents,
-      totalSemesters
-    };
+      totalSemesters: 0,
+    }
 
-    return NextResponse.json(analyticsData);
+    return NextResponse.json(analyticsData)
   } catch (error) {
     console.error('Error fetching academic years analytics:', error);
     return NextResponse.json(

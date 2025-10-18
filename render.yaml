@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: mopgomyouth-registration-system
+    name: mopgomseminary
     env: node
     plan: free
     region: oregon
@@ -34,8 +34,8 @@ services:
       NODE_ENV=production npm run build &&
       echo "🧹 Cleaning up development dependencies..." &&
       npm prune --production &&
-      echo "🎉 Mopgomyouth production build completed successfully!" &&
-      echo "🔗 Your app will be available at: https://mopgomyouth.onrender.com" &&
+      echo "🎉 Mopgomseminary production build completed successfully!" &&
+      echo "🔗 Your app will be available at: https://mopgomseminary.onrender.com" &&
       echo "📊 Build Summary:" &&
       echo "  ✅ Dependencies installed and optimized" &&
       echo "  ✅ Database schema deployed with PostgreSQL" &&
@@ -71,7 +71,7 @@ services:
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: NEXTAUTH_URL
-        value: https://mopgomyouth.onrender.com
+        value: https://mopgomseminary.onrender.com
       - key: QR_SECRET_KEY
         generateValue: true
       - key: JWT_SECRET
@@ -211,6 +211,20 @@ services:
         value: samuel.obadina93@gmail.com
       - key: EMAIL_FROM_NAME
         value: LINGER NO LONGER 6.0 Registration
+      - key: ADMIN_EMAILS
+        value: s.obadina@mopgomts.com
+      - key: REDIS_URL
+        value: redis://localhost:6379
+      - key: CLOUDINARY_CLOUD_NAME
+        value: change-me
+      - key: CLOUDINARY_API_KEY
+        value: change-me
+      - key: CLOUDINARY_API_SECRET
+        value: change-me
+      - key: BACKUP_ENCRYPTION
+        value: true
+      - key: BACKUP_ENCRYPTION_KEY
+        generateValue: true
 
 databases:
   - name: mopgomyouth-db

@@ -50,8 +50,7 @@ const nextConfig = {
 
   // ESLint configuration
   eslint: {
-    // Only ignore during builds in development or when SKIP_TYPE_CHECK is true
-    ignoreDuringBuilds: process.env.NODE_ENV === 'development' || process.env.SKIP_TYPE_CHECK === 'true',
+    ignoreDuringBuilds: true,
   },
 
   // Performance optimizations

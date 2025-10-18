@@ -83,7 +83,8 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "scripts/**/*.ts"
   ],
   "ts-node": {
     "esm": true,

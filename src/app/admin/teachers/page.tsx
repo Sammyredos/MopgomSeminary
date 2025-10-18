@@ -25,7 +25,7 @@ import {
 import { CreateTeacherModal } from '@/components/admin/CreateTeacherModal';
 import { EditTeacherModal } from '@/components/admin/EditTeacherModal';
 import { ViewTeacherModal } from '@/components/admin/ViewTeacherModal';
-import { DeleteConfirmationModal } from '@/components/admin/DeleteConfirmationModal';
+import DeleteConfirmationModal from '@/components/admin/DeleteConfirmationModal';
 
 interface Teacher {
   id: string;
