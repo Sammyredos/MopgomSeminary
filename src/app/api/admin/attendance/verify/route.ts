@@ -73,8 +73,7 @@ export async function POST(request: NextRequest) {
         isVerified: true,
         verifiedAt: new Date(),
         verifiedBy: currentUser.email,
-        attendanceMarked: true,
-        attendanceTime: new Date()
+        // attendanceMarked and attendanceTime removed: not present in schema
       }
     })
 
@@ -137,9 +136,9 @@ export async function POST(request: NextRequest) {
         fullName: registration.fullName,
         status: 'present',
         timestamp: new Date().toISOString(),
-        scannerName: currentUser.fullName || currentUser.email,
-        platoonName: registration.platoonAllocation?.platoon?.name,
-        roomName: registration.roomAllocation?.room?.name
+        scannerName: currentUser.email,
+        // platoonName removed: Registration has no platoon relation
+        // roomName removed: not included in query and optional
       }
     })
 
@@ -161,8 +160,7 @@ export async function POST(request: NextRequest) {
         isVerified: updatedRegistration.isVerified,
         verifiedAt: updatedRegistration.verifiedAt,
         verifiedBy: updatedRegistration.verifiedBy,
-        attendanceMarked: updatedRegistration.attendanceMarked,
-        attendanceTime: updatedRegistration.attendanceTime
+        // attendanceMarked and attendanceTime removed
       }
     })
 
@@ -212,8 +210,7 @@ export async function GET(request: NextRequest) {
         isVerified: true,
         verifiedAt: true,
         verifiedBy: true,
-        attendanceMarked: true,
-        attendanceTime: true,
+        // attendanceMarked and attendanceTime removed from select
         roomAllocation: {
           include: {
             room: {

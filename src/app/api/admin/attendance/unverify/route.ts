@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
         status: 'absent',
         timestamp: new Date().toISOString(),
         scannerName: currentUser.email,
-        platoonName: registration.platoonAllocation?.platoon?.name,
+        // platoonName removed: Registration has no platoon relation
         roomName: registration.roomAllocation?.room?.name,
       }
     })
@@ -179,8 +179,7 @@ export async function POST(request: NextRequest) {
         id: result.id,
         fullName: result.fullName,
         isVerified: result.isVerified,
-        unverifiedAt: result.unverifiedAt,
-        unverifiedBy: result.unverifiedBy,
+        // unverifiedAt/unverifiedBy removed: not present in schema
         roomRemoved: !!registration.roomAllocation
       }
     })
