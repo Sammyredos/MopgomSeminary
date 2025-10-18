@@ -3,6 +3,8 @@ import { authenticateRequest } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
+const db = prisma as any;
+
 const createSemesterSchema = z.object({
   semesterNumber: z.number().int().min(1).max(3),
   name: z.string().min(1, 'Semester name is required'),
@@ -79,7 +81,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [semesters, total] = await Promise.all([
-      prisma.semester.findMany({
+      db.semester.findMany({
         where,
         include: {
           academicYear: true,
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      prisma.semester.count({ where }),
+      db.semester.count({ where }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -145,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if academic year exists
-    const academicYear = await prisma.academicYear.findUnique({
+    const academicYear = await db.academicYear.findUnique({
       where: { id: validatedData.academicYearId },
     });
 
@@ -165,7 +167,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if semester already exists for this academic year and semester number
-    const existingSemester = await prisma.semester.findFirst({
+    const existingSemester = await db.semester.findFirst({
       where: {
         academicYearId: validatedData.academicYearId,
         semesterNumber: validatedData.semesterNumber,
@@ -181,14 +183,14 @@ export async function POST(request: NextRequest) {
 
     // If setting as current, unset other current semesters
     if (validatedData.isCurrent) {
-      await prisma.semester.updateMany({
+      await db.semester.updateMany({
         where: { isCurrent: true },
         data: { isCurrent: false },
       });
     }
 
     // Create semester
-    const semester = await prisma.semester.create({
+    const semester = await db.semester.create({
       data: {
         semesterNumber: validatedData.semesterNumber,
         name: validatedData.name,

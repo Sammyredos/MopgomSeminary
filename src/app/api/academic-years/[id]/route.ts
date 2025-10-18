@@ -3,6 +3,8 @@ import { authenticateRequest } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
+const db = prisma as any;
+
 const updateAcademicYearSchema = z.object({
   year: z.string().min(1, 'Academic year is required').regex(/^\d{4}(-\d{4})?$/, 'Academic year must be in format YYYY or YYYY-YYYY'),
   startDate: z.string().min(1, 'Start date is required'),
@@ -28,7 +30,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const academicYear = await (prisma as any).academicYear.findUnique({
+    const academicYear = await db.academicYear.findUnique({
       where: { id: params.id },
       include: {
         semesters: {
@@ -90,7 +92,7 @@ export async function PUT(
     }
 
     // Check if academic year exists
-    const existingAcademicYear = await (prisma as any).academicYear.findUnique({
+    const existingAcademicYear = await db.academicYear.findUnique({
       where: { id: params.id },
     });
 
@@ -103,7 +105,7 @@ export async function PUT(
 
     // Check if year is being changed and if it conflicts with another academic year
     if (validatedData.year !== existingAcademicYear.year) {
-      const conflictingAcademicYear = await (prisma as any).academicYear.findFirst({
+      const conflictingAcademicYear = await db.academicYear.findFirst({
         where: {
           year: validatedData.year,
           id: { not: params.id },
@@ -120,7 +122,7 @@ export async function PUT(
 
     // If setting as current, unset other current academic years
     if (validatedData.isCurrent && !existingAcademicYear.isCurrent) {
-      await prisma.academicYear.updateMany({
+      await db.academicYear.updateMany({
         where: { 
           isCurrent: true,
           id: { not: params.id },
@@ -130,7 +132,7 @@ export async function PUT(
     }
 
     // Update academic year
-    const updatedAcademicYear = await (prisma as any).academicYear.update({
+    const updatedAcademicYear = await db.academicYear.update({
       where: { id: params.id },
       data: {
         year: validatedData.year,
@@ -161,7 +163,7 @@ export async function PUT(
       const yearDuration = endDate.getTime() - startDate.getTime();
       const semesterDuration = yearDuration / 3;
 
-      await prisma.semester.updateMany({
+      await db.semester.updateMany({
         where: { academicYearId: params.id, semesterNumber: 1 },
         data: {
           startDate: startDate,
@@ -170,7 +172,7 @@ export async function PUT(
         },
       });
 
-      await prisma.semester.updateMany({
+      await db.semester.updateMany({
         where: { academicYearId: params.id, semesterNumber: 2 },
         data: {
           startDate: new Date(startDate.getTime() + semesterDuration + 1),
@@ -179,7 +181,7 @@ export async function PUT(
         },
       });
 
-      await prisma.semester.updateMany({
+      await db.semester.updateMany({
         where: { academicYearId: params.id, semesterNumber: 3 },
         data: {
           startDate: new Date(startDate.getTime() + (semesterDuration * 2) + 1),
@@ -222,7 +224,7 @@ export async function DELETE(
     }
 
     // Check if academic year exists
-    const academicYear = await (prisma as any).academicYear.findUnique({
+    const academicYear = await db.academicYear.findUnique({
       where: { id: params.id },
       include: {
         _count: {
@@ -258,7 +260,7 @@ export async function DELETE(
     }
 
     // Delete academic year (this will cascade delete semesters)
-    await prisma.academicYear.delete({
+    await db.academicYear.delete({
       where: { id: params.id },
     });
 

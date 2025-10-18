@@ -4,6 +4,8 @@ import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { academicYearGenerator } from '@/lib/services/academic-year-generator';
 
+const db = prisma as any;
+
 // Validation schemas
 const querySchema = z.object({
   page: z.string().default('1'),
@@ -67,13 +69,13 @@ export async function GET(request: NextRequest) {
 
     // Get academic years with pagination
     const [academicYears, total] = await Promise.all([
-      prisma.academicYear.findMany({
+      db.academicYear.findMany({
         where,
         skip: offset,
         take: limit,
         orderBy: { startDate: 'desc' },
       }),
-      prisma.academicYear.count({ where }),
+      db.academicYear.count({ where }),
     ]);
 
     const totalPages = Math.ceil(total / limit);
@@ -121,7 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if academic year already exists
-    const existingAcademicYear = await prisma.academicYear.findFirst({
+    const existingAcademicYear = await db.academicYear.findFirst({
       where: { year: validatedData.year },
     });
 
@@ -134,14 +136,14 @@ export async function POST(request: NextRequest) {
 
     // If setting as current, unset other current academic years
     if (validatedData.isCurrent) {
-      await prisma.academicYear.updateMany({
+      await db.academicYear.updateMany({
         where: { isCurrent: true },
         data: { isCurrent: false },
       });
     }
 
     // Create academic year with three semesters
-    const academicYear = await prisma.academicYear.create({
+    const academicYear = await db.academicYear.create({
       data: {
         year: validatedData.year,
         startDate: new Date(validatedData.startDate),

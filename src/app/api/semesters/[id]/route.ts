@@ -3,6 +3,7 @@ import { authenticateRequest } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 
+const db = prisma as any;
 const updateSemesterSchema = z.object({
   semesterNumber: z.number().int().min(1).max(3),
   name: z.string().min(1, 'Semester name is required'),
@@ -30,7 +31,7 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const semester = await prisma.semester.findUnique({
+    const semester = await db.semester.findUnique({
       where: { id: params.id },
       include: {
         academicYear: true,
@@ -101,7 +102,7 @@ export async function PUT(
     }
 
     // Check if semester exists
-    const existingSemester = await prisma.semester.findUnique({
+    const existingSemester = await db.semester.findUnique({
       where: { id: params.id },
       include: { academicYear: true },
     });
@@ -114,7 +115,7 @@ export async function PUT(
     }
 
     // Check if academic year exists
-    const academicYear = await prisma.academicYear.findUnique({
+    const academicYear = await db.academicYear.findUnique({
       where: { id: validatedData.academicYearId },
     });
 
@@ -136,7 +137,7 @@ export async function PUT(
     // Check if semester number is being changed and if it conflicts
     if (validatedData.semesterNumber !== existingSemester.semesterNumber ||
         validatedData.academicYearId !== existingSemester.academicYearId) {
-      const conflictingSemester = await prisma.semester.findFirst({
+      const conflictingSemester = await db.semester.findFirst({
         where: {
           academicYearId: validatedData.academicYearId,
           semesterNumber: validatedData.semesterNumber,
@@ -164,7 +165,7 @@ export async function PUT(
     }
 
     // Update semester
-    const updatedSemester = await prisma.semester.update({
+    const updatedSemester = await db.semester.update({
       where: { id: params.id },
       data: {
         semesterNumber: validatedData.semesterNumber,
@@ -221,7 +222,7 @@ export async function DELETE(
     }
 
     // Check if semester exists
-    const semester = await prisma.semester.findUnique({
+    const semester = await db.semester.findUnique({
       where: { id: params.id },
       include: {
         _count: {
@@ -271,7 +272,7 @@ export async function DELETE(
     }
 
     // Delete semester
-    await prisma.semester.delete({
+    await db.semester.delete({
       where: { id: params.id },
     });
 
