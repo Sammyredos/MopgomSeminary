@@ -75,9 +75,9 @@ export function useRealTimeStats(options: UseRealTimeStatsOptions = {}) {
             data.totalRegistrations = stats.registrations?.total || 0
             data.verifiedRegistrations = stats.registrations?.verified || 0
             data.unverifiedRegistrations = stats.registrations?.unverified || 0
-            data.totalRooms = 0
-    data.occupiedRooms = 0
-    data.availableRooms = 0
+            data.totalRooms = stats.rooms?.total || 0
+            data.occupiedRooms = stats.summary?.occupiedRooms || 0
+            data.availableRooms = stats.summary?.availableRooms || 0
           }
           
           if (endpoint.includes('/users')) {

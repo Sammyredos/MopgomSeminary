@@ -12,7 +12,6 @@ import {
   MapPin, 
   Users, 
   AlertTriangle,
-  ArrowRight,
   CheckCircle
 } from 'lucide-react'
 
@@ -40,12 +39,7 @@ export function AllocationBlockModal({
   participantEmail,
   allocationInfo
 }: AllocationBlockModalProps) {
-  const handleGoToAccommodations = () => {
-    // Open accommodations page in new tab
-    window.open('/admin/accommodations', '_blank')
-    onCloseAction()
-  }
-
+  // Removed direct navigation to accommodations
   return (
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
       <DialogContent className="max-w-md mx-auto p-0 overflow-hidden">
@@ -128,7 +122,7 @@ export function AllocationBlockModal({
                 </div>
                 <div className="flex-1">
                   <p className="font-apercu-regular text-gray-700 text-sm">
-                    Go to <strong>Accommodations</strong> page
+                    Remove <strong>{participantName}</strong> from <strong>{allocationInfo.roomName}</strong>.
                   </p>
                 </div>
               </div>
@@ -139,18 +133,7 @@ export function AllocationBlockModal({
                 </div>
                 <div className="flex-1">
                   <p className="font-apercu-regular text-gray-700 text-sm">
-                    Find <strong>{allocationInfo.roomName}</strong> and remove <strong>{participantName}</strong>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-3">
-                <div className="h-6 w-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-blue-600 text-xs font-apercu-bold">3</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-apercu-regular text-gray-700 text-sm">
-                    Return here to unverify the participant
+                    Return here to unverify the participant.
                   </p>
                 </div>
               </div>
@@ -159,15 +142,6 @@ export function AllocationBlockModal({
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Button
-              onClick={handleGoToAccommodations}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-apercu-medium"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              Go to Accommodations
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-
             <Button
               variant="outline"
               onClick={onCloseAction}

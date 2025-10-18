@@ -44,7 +44,6 @@ interface UnverificationWarningModalProps {
   isOpen: boolean
   onCloseAction: () => void
   onConfirmAction: (forceUnverify?: boolean) => void
-  onGoToAccommodationsAction: () => void
   loading: boolean
   hasRoomAllocation: boolean
   roomAllocation?: RoomAllocation
@@ -56,7 +55,6 @@ export function UnverificationWarningModal({
   isOpen,
   onCloseAction,
   onConfirmAction,
-  onGoToAccommodationsAction,
   loading,
   hasRoomAllocation,
   roomAllocation,
@@ -132,14 +130,6 @@ export function UnverificationWarningModal({
                     This attendee is allocated to <span className="font-apercu-medium">{roomAllocation.roomName}</span>.
                     Remove them from the room first.
                   </p>
-                  <Button
-                    onClick={onGoToAccommodationsAction}
-                    size="sm"
-                    className="mt-3 bg-red-600 hover:bg-red-700 font-apercu-medium"
-                  >
-                    <Home className="h-4 w-4 mr-2" />
-                    Go to Accommodations
-                  </Button>
                 </div>
               </div>
             </div>

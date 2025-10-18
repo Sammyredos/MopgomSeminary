@@ -496,10 +496,7 @@ function AttendancePageContent() {
     }
   }
 
-  const handleGoToAccommodations = () => {
-    // Navigate to accommodations page
-    window.open('/admin/accommodations', '_blank')
-  }
+  // Accommodations navigation removed
 
   // Handle external scanner input
   const handleScannerInput = async (scannedData: string) => {

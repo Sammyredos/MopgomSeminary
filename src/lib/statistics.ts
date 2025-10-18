@@ -52,95 +52,57 @@ export interface SystemStatistics {
  */
 export async function fetchSystemStatistics(): Promise<SystemStatistics> {
   try {
-    // Fetch data from multiple endpoints to get complete picture
-    const [registrationsResponse, accommodationsResponse, analyticsResponse] = await Promise.all([
-      fetch('/api/registrations?limit=1'), // Just get pagination info (only need total count)
-      fetch('/api/admin/accommodations'),
-      fetch('/api/admin/analytics').catch(() => null) // Optional analytics
-    ])
+    const res = await fetch('/api/admin/statistics')
+    if (!res.ok) throw new Error('Failed to fetch admin statistics')
+    const payload = await res.json()
+    const stats = payload.statistics || payload
 
-    let registrationsData = null
-    let accommodationsData = null
-    let analyticsData = null
-
-    if (registrationsResponse.ok) {
-      registrationsData = await registrationsResponse.json()
-    }
-
-    if (accommodationsResponse.ok) {
-      accommodationsData = await accommodationsResponse.json()
-    }
-
-    if (analyticsResponse?.ok) {
-      analyticsData = await analyticsResponse.json()
-    }
-
-    // Use accommodations API as primary source since it has the most complete stats
-    const stats = accommodationsData?.stats || {}
-    
-    // Build comprehensive statistics object
     const systemStats: SystemStatistics = {
       registrations: {
-        total: stats.totalRegistrations || registrationsData?.pagination?.total || 0,
-        allocated: stats.allocatedRegistrations || 0,
-        unallocated: stats.unallocatedRegistrations || 0,
-        allocationRate: stats.allocationRate || 0,
+        total: stats?.registrations?.total || 0,
+        allocated: stats?.registrations?.allocated || 0,
+        unallocated: stats?.registrations?.unallocated ?? Math.max((stats?.registrations?.total || 0) - (stats?.registrations?.allocated || 0), 0),
+        allocationRate: stats?.registrations?.allocationRate ?? (stats?.registrations?.total ? Math.round(((stats?.registrations?.allocated || 0) / stats?.registrations?.total) * 100) : 0),
         byGender: {
-          male: 0, // Will be calculated from detailed data if available
-          female: 0
+          male: stats?.registrations?.byGender?.male || 0,
+          female: stats?.registrations?.byGender?.female || 0
         },
         recent: {
-          today: analyticsData?.registrationsToday || 0,
-          thisWeek: analyticsData?.registrationsThisWeek || 0,
-          thisMonth: analyticsData?.registrationsThisMonth || 0
+          today: stats?.registrations?.recent?.today || 0,
+          thisWeek: stats?.registrations?.recent?.thisWeek || 0,
+          thisMonth: stats?.registrations?.recent?.thisMonth || 0
         },
         permissions: {
-          granted: 0, // Will be calculated if needed
-          pending: 0
+          granted: stats?.registrations?.permissions?.granted || 0,
+          pending: stats?.registrations?.permissions?.pending || 0
         }
       },
       rooms: {
-        total: stats.totalRooms || 0,
-        active: stats.activeRooms || stats.totalRooms || 0,
+        total: stats?.rooms?.total || 0,
+        active: (stats?.rooms?.active ?? stats?.rooms?.total ?? 0),
         byGender: {
-          male: 0, // Will be calculated from detailed data if available
-          female: 0
+          male: stats?.rooms?.byGender?.male || 0,
+          female: stats?.rooms?.byGender?.female || 0
         },
         capacity: {
-          total: stats.totalCapacity || 0,
-          occupied: stats.occupiedSpaces || 0,
-          available: stats.availableSpaces || 0,
-          utilizationRate: stats.totalCapacity > 0 ? Math.round((stats.occupiedSpaces / stats.totalCapacity) * 100) : 0
+          total: stats?.rooms?.capacity?.total || 0,
+          occupied: stats?.rooms?.capacity?.occupied || 0,
+          available: stats?.rooms?.capacity?.available || 0,
+          utilizationRate: stats?.rooms?.capacity?.utilizationRate ?? 0
         }
       },
       allocations: {
-        total: stats.occupiedSpaces || 0,
+        total: (stats?.allocations?.total ?? stats?.rooms?.capacity?.occupied ?? 0),
         byGender: {
-          male: 0,
-          female: 0
+          male: stats?.allocations?.byGender?.male || 0,
+          female: stats?.allocations?.byGender?.female || 0
         }
       }
     }
 
-    // Add gender-specific data if available from accommodations response
-    if (accommodationsData?.roomsByGender) {
-      const roomsByGender = accommodationsData.roomsByGender
-      systemStats.rooms.byGender.male = roomsByGender.Male?.length || 0
-      systemStats.rooms.byGender.female = roomsByGender.Female?.length || 0
-    }
-
-    if (accommodationsData?.unallocatedByGender) {
-      const unallocatedByGender = accommodationsData.unallocatedByGender
-      systemStats.registrations.byGender.male = unallocatedByGender.Male?.length || 0
-      systemStats.registrations.byGender.female = unallocatedByGender.Female?.length || 0
-    }
-
     return systemStats
-
   } catch (error) {
     console.error('Error fetching system statistics:', error)
-    
-    // Return default statistics in case of error
     return {
       registrations: {
         total: 0,
