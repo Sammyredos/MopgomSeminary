@@ -31,7 +31,7 @@ services:
       echo "👥 Setting up roles and permissions..." &&
       (npx tsx scripts/create-staff-role.ts && echo "✅ Roles and permissions configured" || echo "⚠️ Role setup skipped") &&
       echo "🏗️ Building Next.js application with production optimizations..." &&
-      NODE_ENV=production npm run build &&
+      npm run build:render &&
       echo "🧹 Cleaning up development dependencies..." &&
       npm prune --production &&
       echo "🎉 Mopgomseminary production build completed successfully!" &&
@@ -62,9 +62,13 @@ services:
           property: connectionString
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 18.18.0
       - key: NEXT_TELEMETRY_DISABLED
         value: 1
       - key: PRISMA_GENERATE_SKIP_AUTOINSTALL
+        value: true
+      - key: SKIP_TYPE_CHECK
         value: true
       - key: SKIP_ENV_VALIDATION
         value: false

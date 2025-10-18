@@ -230,6 +230,25 @@ export async function PUT(
       console.warn('Registration completion check failed:', e)
     }
 
+    // Synchronize matriculationNumber with corresponding student record (by email/phone)
+    try {
+      if (updatedRegistration.matriculationNumber !== undefined) {
+        await prisma.student.updateMany({
+          where: {
+            OR: [
+              { emailAddress: updatedRegistration.emailAddress },
+              { phoneNumber: updatedRegistration.phoneNumber }
+            ]
+          },
+          data: {
+            matriculationNumber: updatedRegistration.matriculationNumber || null
+          }
+        })
+      }
+    } catch (syncErr) {
+      console.warn('Student matriculation sync failed:', syncErr)
+    }
+
     console.log('Registration updated successfully:', updatedRegistration.id)
 
     // Create response with real-time update headers
@@ -334,22 +353,6 @@ export async function DELETE(
   }
 }
 
-    // Synchronize matriculationNumber with corresponding student record (by email/phone)
-    try {
-      if (updatedRegistration.matriculationNumber !== undefined) {
-        await prisma.student.updateMany({
-          where: {
-            OR: [
-              { emailAddress: updatedRegistration.emailAddress },
-              { phoneNumber: updatedRegistration.phoneNumber }
-            ]
-          },
-          data: {
-            matriculationNumber: updatedRegistration.matriculationNumber || null
-          }
-        })
-      }
-    } catch (syncErr) {
-      console.warn('Student matriculation sync failed:', syncErr)
-    }
+
+// Stray global sync block removed.
 
