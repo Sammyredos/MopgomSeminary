@@ -115,10 +115,10 @@ export class LogoManager {
         // Force reload of all logo images
         const logoImages = document.querySelectorAll('img[src*="logo"], img[src*="branding"]')
         logoImages.forEach((img: any) => {
-          if (img.src && img.src.includes(globalLogoUrl.split('/').pop() || '')) {
-            const originalSrc = img.src.split('?')[0] // Remove existing cache-busting params
-            img.src = `${originalSrc}?v=${Date.now()}`
-          }
+          if (img.src && img.src.includes((globalLogoUrl?.split('/').pop() || ''))) {
+             const originalSrc = img.src.split('?')[0] // Remove existing cache-busting params
+             img.src = `${originalSrc}?v=${Date.now()}`
+           }
         })
 
         // Force reload of favicon only if it's using our logo

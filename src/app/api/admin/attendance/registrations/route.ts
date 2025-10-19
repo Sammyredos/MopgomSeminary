@@ -59,14 +59,12 @@ export async function GET(request: NextRequest) {
       where.OR = [
         {
           fullName: {
-            contains: search,
-            ...(process.env.DATABASE_URL?.includes('postgresql') && { mode: 'insensitive' })
+            contains: search
           }
         },
         {
           emailAddress: {
-            contains: search,
-            ...(process.env.DATABASE_URL?.includes('postgresql') && { mode: 'insensitive' })
+            contains: search
           }
         },
         { phoneNumber: { contains: search } }

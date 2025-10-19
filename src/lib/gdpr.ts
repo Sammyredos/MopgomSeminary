@@ -61,7 +61,7 @@ export class GDPRCompliance {
       return exportRequest
 
     } catch (error) {
-      logger.error('Failed to request data export', error, { userId, email })
+      logger.error('Failed to request data export', { error, userId, email })
       throw error
     }
   }
@@ -104,7 +104,7 @@ export class GDPRCompliance {
       })
 
     } catch (error) {
-      logger.error('Failed to process data export', error, { userId: request.userId })
+      logger.error('Failed to process data export', { error, userId: request.userId })
       await this.updateExportRequestStatus(request.userId, 'failed')
     }
   }
@@ -139,7 +139,7 @@ export class GDPRCompliance {
       return deletionRequest
 
     } catch (error) {
-      logger.error('Failed to request data deletion', error, { userId, email })
+      logger.error('Failed to request data deletion', { error, userId, email })
       throw error
     }
   }
@@ -173,7 +173,7 @@ export class GDPRCompliance {
       logger.info('Data deletion completed', { userId: request.userId })
 
     } catch (error) {
-      logger.error('Failed to execute data deletion', error, { userId: request.userId })
+      logger.error('Failed to execute data deletion', { error, userId: request.userId })
       await this.updateDeletionRequestStatus(request.userId, 'failed')
     }
   }
@@ -191,7 +191,7 @@ export class GDPRCompliance {
       await this.storeConsentRecord(consent)
 
     } catch (error) {
-      logger.error('Failed to record consent', error, consent)
+      logger.error('Failed to record consent', { error, consent })
       throw error
     }
   }
@@ -200,7 +200,7 @@ export class GDPRCompliance {
     try {
       return await this.getStoredConsents(userId)
     } catch (error) {
-      logger.error('Failed to get consent history', error, { userId })
+      logger.error('Failed to get consent history', { error, userId })
       return []
     }
   }
@@ -220,8 +220,8 @@ export class GDPRCompliance {
         emergencyContactPhone: 'ANONYMIZED',
         medicalInfo: 'ANONYMIZED',
         // Keep non-personal data for analytics
-        dateOfBirth: null, // Remove exact birth date
-        gender: null, // Remove gender
+        dateOfBirth: new Date(0), // Replace with generic epoch date
+        gender: 'Unspecified', // Replace with non-identifying value
         createdAt: undefined, // Keep creation date for analytics
         updatedAt: new Date()
       }
@@ -235,7 +235,7 @@ export class GDPRCompliance {
       logger.info('User data anonymized', { userId, email })
 
     } catch (error) {
-      logger.error('Failed to anonymize user data', error, { userId, email })
+      logger.error('Failed to anonymize user data', { error, userId, email })
       throw error
     }
   }
@@ -243,7 +243,7 @@ export class GDPRCompliance {
   // Helper methods (implement based on your database schema)
   private async findUser(userId: string, email: string) {
     // Try to find in registrations first
-    let user = await prisma.registration.findFirst({
+    let user: any | null = await prisma.registration.findFirst({
       where: { 
         OR: [
           { id: userId },

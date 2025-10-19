@@ -3,7 +3,7 @@
  */
 
 // Trigger registration update event
-export function triggerRegistrationUpdate(action = 'new', registration = null) {
+export function triggerRegistrationUpdate(action = 'new', registration: { fullName?: string; [key: string]: any } | null = null) {
   // Trigger custom event for same-tab updates
   const event = new CustomEvent('registrationUpdated', {
     detail: {
@@ -58,7 +58,7 @@ export function checkAndTriggerRegistrationUpdate(response: Response) {
     const action = response.headers.get('X-Registration-Action') || 'new'
 
     // Get registration data from headers
-    let registrationData = null
+    let registrationData: { fullName?: string; [key: string]: any } | null = null
     if (action === 'edit') {
       const editData = response.headers.get('X-Updated-Registration-Data')
       if (editData) {

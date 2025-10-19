@@ -29,14 +29,14 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { teacherId: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
+        { fullName: { contains: search } },
+        { teacherId: { contains: search } },
+        { email: { contains: search } },
       ]
     }
 
     if (department) {
-      where.subject = { contains: department, mode: 'insensitive' }
+      where.subject = { contains: department }
     }
 
     if (isActive !== null && isActive !== undefined) {

@@ -9,11 +9,10 @@ let redis: Redis | null = null
 if (process.env.NODE_ENV === 'production' && process.env.REDIS_URL && !process.env.NEXT_PHASE) {
   try {
     redis = new Redis(process.env.REDIS_URL, {
-      retryDelayOnFailover: 100,
       maxRetriesPerRequest: 1,
       lazyConnect: true,
       connectTimeout: 5000,
-      commandTimeout: 5000
+      retryStrategy: (times) => Math.min(times * 50, 2000)
     })
 
     // Handle connection errors gracefully

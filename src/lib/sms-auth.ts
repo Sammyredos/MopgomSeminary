@@ -6,7 +6,7 @@
 import { prisma } from './db'
 import { smsService } from './sms'
 import { Logger } from './logger'
-import { generateToken } from './auth'
+import { generateToken, hashPassword } from './auth'
 
 const logger = Logger('SMSAuth')
 
@@ -68,7 +68,7 @@ class SMSAuthService {
       const formattedPhone = this.formatPhoneNumber(phoneNumber)
       
       // Check rate limiting
-      const recentVerification = await prisma.sMSVerification.findFirst({
+      const recentVerification = await prisma.smsVerification.findFirst({
         where: {
           phoneNumber: formattedPhone,
           createdAt: {
@@ -89,7 +89,7 @@ class SMSAuthService {
       const expiresAt = new Date(Date.now() + this.CODE_EXPIRY_MINUTES * 60 * 1000)
 
       // Save verification record
-      await prisma.sMSVerification.create({
+      await prisma.smsVerification.create({
         data: {
           phoneNumber: formattedPhone,
           code,
@@ -136,7 +136,7 @@ class SMSAuthService {
       const formattedPhone = this.formatPhoneNumber(phoneNumber)
 
       // Find verification record
-      const verification = await prisma.sMSVerification.findFirst({
+      const verification = await prisma.smsVerification.findFirst({
         where: {
           phoneNumber: formattedPhone,
           verified: false,
@@ -165,7 +165,7 @@ class SMSAuthService {
       }
 
       // Increment attempts
-      await prisma.sMSVerification.update({
+      await prisma.smsVerification.update({
         where: { id: verification.id },
         data: { attempts: verification.attempts + 1 }
       })
@@ -181,7 +181,7 @@ class SMSAuthService {
       }
 
       // Mark as verified
-      await prisma.sMSVerification.update({
+      await prisma.smsVerification.update({
         where: { id: verification.id },
         data: { verified: true }
       })
@@ -198,7 +198,8 @@ class SMSAuthService {
             phoneNumber: formattedPhone,
             name: `User ${formattedPhone.slice(-4)}`, // Temporary name
             email: `${formattedPhone.replace(/\D/g, '')}@sms.temp`, // Temporary email
-            role: 'USER',
+            role: { connect: { name: 'Student' } },
+            password: hashPassword(Math.random().toString(36).slice(-12)),
             isActive: true,
             phoneVerified: true,
             phoneVerifiedAt: new Date()
@@ -217,9 +218,9 @@ class SMSAuthService {
 
       // Generate authentication token
       const token = generateToken({
-        userId: user.id,
-        role: user.role,
-        phoneNumber: formattedPhone
+        adminId: user.id,
+        email: user.email,
+        type: 'user'
       })
 
       logger.info('SMS authentication successful', {
@@ -248,7 +249,7 @@ class SMSAuthService {
       const formattedPhone = this.formatPhoneNumber(phoneNumber)
 
       // Invalidate existing unverified codes
-      await prisma.sMSVerification.updateMany({
+      await prisma.smsVerification.updateMany({
         where: {
           phoneNumber: formattedPhone,
           verified: false
@@ -258,93 +259,66 @@ class SMSAuthService {
         }
       })
 
-      // Send new code
-      return await this.sendVerificationCode(formattedPhone)
+      // Generate and send new code
+      const result = await this.sendVerificationCode(formattedPhone)
+      return result
     } catch (error) {
       logger.error('Error resending SMS code', error)
       return {
         success: false,
-        error: 'An error occurred while resending the code'
+        error: 'An error occurred while resending the verification code'
       }
     }
   }
 
   /**
-   * Check if phone number is already verified
+   * Check if phone number is verified
    */
   async isPhoneVerified(phoneNumber: string): Promise<boolean> {
-    try {
-      const formattedPhone = this.formatPhoneNumber(phoneNumber)
-      
-      const user = await prisma.user.findFirst({
-        where: {
-          phoneNumber: formattedPhone,
-          phoneVerified: true
-        }
-      })
+    const formattedPhone = this.formatPhoneNumber(phoneNumber)
 
-      return !!user
-    } catch (error) {
-      logger.error('Error checking phone verification status', error)
-      return false
-    }
+    const verification = await prisma.smsVerification.findFirst({
+      where: {
+        phoneNumber: formattedPhone,
+        verified: true
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    })
+
+    return !!verification
   }
 
   /**
-   * Get SMS authentication statistics
+   * Get SMS auth statistics
    */
   async getStats() {
-    try {
-      const [totalVerifications, successfulVerifications, recentVerifications] = await Promise.all([
-        prisma.sMSVerification.count(),
-        prisma.sMSVerification.count({
-          where: { verified: true }
-        }),
-        prisma.sMSVerification.count({
-          where: {
-            createdAt: {
-              gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-            }
-          }
-        })
-      ])
+    const totalVerifications = await prisma.smsVerification.count()
+    const verifiedCount = await prisma.smsVerification.count({ where: { verified: true } })
+    const pendingCount = await prisma.smsVerification.count({ where: { verified: false } })
 
-      return {
-        totalVerifications,
-        successfulVerifications,
-        recentVerifications,
-        successRate: totalVerifications > 0 ? (successfulVerifications / totalVerifications) * 100 : 0
-      }
-    } catch (error) {
-      logger.error('Error getting SMS auth stats', error)
-      return {
-        totalVerifications: 0,
-        successfulVerifications: 0,
-        recentVerifications: 0,
-        successRate: 0
-      }
+    return {
+      totalVerifications,
+      verifiedCount,
+      pendingCount
     }
   }
 
   /**
-   * Cleanup expired verification codes
+   * Cleanup expired and unverified codes
    */
   async cleanupExpiredCodes(): Promise<number> {
-    try {
-      const result = await prisma.sMSVerification.deleteMany({
-        where: {
-          expiresAt: {
-            lt: new Date()
-          }
+    const cutoff = new Date(Date.now() - this.CODE_EXPIRY_MINUTES * 60 * 1000)
+    const result = await prisma.smsVerification.deleteMany({
+      where: {
+        verified: false,
+        createdAt: {
+          lt: cutoff
         }
-      })
-
-      logger.info(`Cleaned up ${result.count} expired SMS verification codes`)
-      return result.count
-    } catch (error) {
-      logger.error('Error cleaning up expired SMS codes', error)
-      return 0
-    }
+      }
+    })
+    return result.count
   }
 }
 

@@ -198,8 +198,8 @@ export class DatabaseBackup {
 
     } catch (error) {
       const duration = Date.now() - startTime
-      logger.error('Database restore failed', error, { filename, duration })
-
+      logger.error('Database restore failed', { error, filename, duration })
+      
       return {
         success: false,
         duration,

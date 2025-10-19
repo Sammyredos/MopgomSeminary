@@ -73,7 +73,7 @@ export const DEFAULT_UNCONVENTIONAL_CALENDAR: UnconventionalCalendarConfig = {
       startMonth: 3,
       startDay: 1,
       endMonth: 5,
-      startDay: 28,
+      endDay: 28,
       description: 'Intensive academic focus period with extended class hours'
     },
     {
@@ -198,141 +198,139 @@ export class AcademicYearGenerator {
             endDate: endDate.toStandardDate(),
             isActive: true,
             isCurrent: i === 0, // First generated year is current
-            description: `Academic year ${academicYearString} - Generated using Unconventional Calendar System`,
           }
         });
         
-        // Generate semesters for this academic year
+        // Generate semesters
         await this.generateSemesters(academicYear.id, startDate);
-        
-        logger.info(`Created academic year: ${academicYearString}`);
       }
       
+      logger.info('Academic years generation completed successfully');
     } catch (error) {
       logger.error('Error generating academic years:', error);
       throw error;
     }
   }
   
-  // Generate semesters for an academic year
   private async generateSemesters(academicYearId: string, startDate: UnconventionalDate): Promise<void> {
-    let currentDate = startDate;
+    const { semesterStructure } = this.config;
     
-    for (let i = 0; i < this.config.semesterStructure.count; i++) {
-      const semesterName = this.config.semesterStructure.names[i];
-      const duration = this.config.semesterStructure.durationInDays[i];
-      const breakDuration = this.config.semesterStructure.breaksBetween[i] || 0;
+    let currentStart = startDate;
+    
+    for (let i = 0; i < semesterStructure.count; i++) {
+      const name = semesterStructure.names[i] || `Semester ${i + 1}`;
+      const duration = semesterStructure.durationInDays[i] || 112;
+      const breakDays = semesterStructure.breaksBetween[i] || 14;
       
-      const semesterEndDate = currentDate.addDays(duration - 1);
+      const semesterEnd = currentStart.addDays(duration - 1);
       
-      await prisma.semester.create({
+      // Create semester
+      const semester = await db.semester.create({
         data: {
-          name: semesterName,
-          semesterNumber: i + 1,
-          startDate: currentDate.toStandardDate(),
-          endDate: semesterEndDate.toStandardDate(),
-          isActive: true,
-          academicYearId: academicYearId,
+          academicYearId,
+          name,
+          order: i + 1,
+          startDate: currentStart.toStandardDate(),
+          endDate: semesterEnd.toStandardDate(),
         }
       });
       
-      // Move to next semester start (including break)
-      currentDate = semesterEndDate.addDays(breakDuration + 1);
+      // Move to next start after break
+      currentStart = semesterEnd.addDays(breakDays + 1);
     }
   }
   
-  // Auto-generate future academic years
   async autoGenerateFutureYears(): Promise<void> {
     try {
-      // Get the latest academic year
-      const latestYear = await db.academicYear.findFirst({
-        orderBy: { year: 'desc' }
+      const currentYear = new Date().getFullYear();
+      await this.generateAcademicYears(currentYear, 3);
+    } catch (error) {
+      logger.error('Failed to auto-generate future years:', error);
+    }
+  }
+  
+  async getCurrentAcademicYear(): Promise<any> {
+    try {
+      const now = new Date();
+      const yearString = `${now.getFullYear()}-${now.getFullYear() + 1}`;
+      const academicYear = await db.academicYear.findFirst({
+        where: { year: yearString }
       });
       
-      let startYear: number;
-      if (latestYear) {
-        // Extract year from format "YYYY-YYYY"
-        const yearMatch = latestYear.year.match(/^(\d{4})-(\d{4})$/);
-        if (yearMatch) {
-          startYear = parseInt(yearMatch[2]); // Use the end year
-        } else {
-          startYear = new Date().getFullYear();
-        }
-      } else {
-        startYear = new Date().getFullYear();
+      if (!academicYear) {
+        await this.generateAcademicYears(now.getFullYear(), 1);
+        return await db.academicYear.findFirst({
+          where: { year: yearString }
+        });
       }
       
-      // Generate next 3 years
-      await this.generateAcademicYears(startYear, 3);
-      
+      return academicYear;
     } catch (error) {
-      logger.error('Error auto-generating future years:', error);
+      logger.error('Failed to get current academic year:', error);
       throw error;
     }
   }
   
-  // Get current academic year based on unconventional calendar
-  async getCurrentAcademicYear(): Promise<any> {
-    const now = new Date();
-    const unconventionalNow = UnconventionalDate.fromStandardDate(now);
-    const academicYearString = unconventionalNow.getAcademicYearString(this.config);
-    
-    return await db.academicYear.findFirst({
-      where: { year: academicYearString },
-      include: {
-        semesters: {
-          orderBy: { semesterNumber: 'asc' }
-        }
-      }
-    });
-  }
-  
-  // Get calendar events for unconventional calendar
   getUnconventionalCalendarEvents(year: number): Array<{
     date: UnconventionalDate;
     name: string;
     type: 'holiday' | 'seasonal' | 'academic';
     description?: string;
   }> {
-    const events: Array<{
-      date: UnconventionalDate;
-      name: string;
-      type: 'holiday' | 'seasonal' | 'academic';
-      description?: string;
-    }> = [];
+    const events: Array<{ date: UnconventionalDate; name: string; type: 'holiday' | 'seasonal' | 'academic'; description?: string }> = [];
     
-    // Add fixed holidays
-    this.config.fixedHolidays.forEach(holiday => {
+    // Holidays
+    for (const holiday of this.config.fixedHolidays) {
       events.push({
         date: new UnconventionalDate(year, holiday.month, holiday.day),
         name: holiday.name,
         type: 'holiday'
       });
-    });
+    }
     
-    // Add seasonal adjustments
-    this.config.seasonalAdjustments.forEach(season => {
+    // Seasonal adjustments
+    for (const season of this.config.seasonalAdjustments) {
+      const start = new UnconventionalDate(year, season.startMonth, season.startDay);
+      const end = new UnconventionalDate(year, season.endMonth, season.endDay);
       events.push({
-        date: new UnconventionalDate(year, season.startMonth, season.startDay),
-        name: `${season.name} Begins`,
+        date: start,
+        name: season.name + ' (Start)',
         type: 'seasonal',
         description: season.description
       });
-      
       events.push({
-        date: new UnconventionalDate(year, season.endMonth, season.endDay),
-        name: `${season.name} Ends`,
+        date: end,
+        name: season.name + ' (End)',
         type: 'seasonal',
         description: season.description
       });
+    }
+    
+    // Academic events
+    const startDate = new UnconventionalDate(
+      year,
+      this.config.academicYearStartMonth,
+      this.config.academicYearStartDay
+    );
+    events.push({
+      date: startDate,
+      name: 'Academic Year Start',
+      type: 'academic'
     });
     
-    return events.sort((a, b) => {
-      if (a.date.month !== b.date.month) return a.date.month - b.date.month;
-      return a.date.day - b.date.day;
+    const endDate = new UnconventionalDate(
+      year + 1,
+      this.config.academicYearStartMonth - 1 || 13,
+      28
+    );
+    events.push({
+      date: endDate,
+      name: 'Academic Year End',
+      type: 'academic'
     });
+    
+    return events;
   }
 }
 
-// Export singleton instance
 export const academicYearGenerator = new AcademicYearGenerator();

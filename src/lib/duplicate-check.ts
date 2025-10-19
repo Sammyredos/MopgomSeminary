@@ -104,8 +104,7 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
       const userNameDuplicate = await prisma.user.findFirst({
         where: {
           name: {
-            equals: fullName,
-            mode: 'insensitive'
+            equals: fullName
           },
           ...(excludeId && { id: { not: excludeId } })
         },
@@ -122,8 +121,7 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
         const registrationNameDuplicate = await prisma.registration.findFirst({
           where: {
             fullName: {
-              equals: fullName,
-              mode: 'insensitive'
+              equals: fullName
             },
             ...(excludeId && { id: { not: excludeId } })
           },
@@ -146,14 +144,12 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
           AND: [
             {
               name: {
-                contains: normalizedFirstname,
-                mode: 'insensitive'
+                contains: normalizedFirstname
               }
             },
             {
               name: {
-                contains: normalizedLastname,
-                mode: 'insensitive'
+                contains: normalizedLastname
               }
             }
           ],
@@ -167,14 +163,12 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
           AND: [
             {
               fullName: {
-                contains: normalizedFirstname,
-                mode: 'insensitive'
+                contains: normalizedFirstname
               }
             },
             {
               fullName: {
-                contains: normalizedLastname,
-                mode: 'insensitive'
+                contains: normalizedLastname
               }
             }
           ],

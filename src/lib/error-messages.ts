@@ -144,11 +144,10 @@ export const ERROR_MESSAGES = {
 }
 
 export function getErrorMessage(errorKey: keyof typeof ERROR_MESSAGES, customAction?: ErrorMessage['action']): ErrorMessage {
-  const baseMessage = ERROR_MESSAGES[errorKey]
-  return {
-    ...baseMessage,
-    action: customAction || baseMessage.action
-  }
+  const baseMessage = ERROR_MESSAGES[errorKey] as ErrorMessage
+  return customAction
+    ? { ...baseMessage, action: customAction }
+    : { ...baseMessage }
 }
 
 export function parseApiError(error: any): ErrorMessage {

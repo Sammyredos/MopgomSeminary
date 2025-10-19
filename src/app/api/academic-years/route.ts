@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
 
     if (query.search) {
       where.OR = [
-        { year: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
+        { year: { contains: query.search } },
+        { description: { contains: query.search } },
       ];
     }
 

@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
           search
             ? {
                 OR: [
-                  { courseName: { contains: search, mode: 'insensitive' } },
-                  { courseCode: { contains: search, mode: 'insensitive' } },
-                  { subjectArea: { contains: search, mode: 'insensitive' } },
+                  { courseName: { contains: search } },
+                  { courseCode: { contains: search } },
+                  { subjectArea: { contains: search } },
                 ],
               }
             : {},

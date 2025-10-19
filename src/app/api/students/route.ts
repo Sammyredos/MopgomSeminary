@@ -54,9 +54,9 @@ export async function GET(request: NextRequest) {
 
     if (query.search) {
       where.OR = [
-        { fullName: { contains: query.search, mode: 'insensitive' } },
-        { studentId: { contains: query.search, mode: 'insensitive' } },
-        { emailAddress: { contains: query.search, mode: 'insensitive' } },
+        { fullName: { contains: query.search } },
+        { studentId: { contains: query.search } },
+        { emailAddress: { contains: query.search } },
       ];
     }
 

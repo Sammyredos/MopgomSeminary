@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
     // Build search conditions
     const searchConditions: Prisma.RegistrationWhereInput = search ? {
       OR: [
-        { fullName: { contains: search, mode: 'insensitive' } },
-        { emailAddress: { contains: search, mode: 'insensitive' } },
+        { fullName: { contains: search } },
+        { emailAddress: { contains: search } },
         { phoneNumber: { contains: search } }
       ]
     } : {}

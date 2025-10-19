@@ -92,9 +92,12 @@ const envSchema = z.object({
 const productionSchema = envSchema.extend({
   REDIS_URL: z.string().url('REDIS_URL is required in production for rate limiting'),
   SENTRY_DSN: z.string().url('SENTRY_DSN is recommended in production for error tracking'),
-  BACKUP_ENCRYPTION: z.literal('true', { 
-    errorMap: () => ({ message: 'Backup encryption must be enabled in production' })
-  }),
+  BACKUP_ENCRYPTION: z
+    .string()
+    .transform(val => val === 'true')
+    .pipe(z.literal(true, {
+      errorMap: () => ({ message: 'Backup encryption must be enabled in production' })
+    })),
   BACKUP_ENCRYPTION_KEY: z.string().min(32, 'BACKUP_ENCRYPTION_KEY must be at least 32 characters in production'),
 })
 
