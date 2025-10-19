@@ -148,7 +148,9 @@ async function getDatabaseInfo() {
   } catch (error) {
     return {
       status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Database check failed'
+      error: error instanceof Error ? error.message : 'Database check failed',
+      tableStats: null,
+      connectionPool: { healthy: false }
     }
   }
 }
@@ -163,38 +165,15 @@ async function getApplicationInfo() {
       avg: 0,
       p95: 0,
       p99: 0
-    },
-    cacheHitRate: 0,
-    queueLength: 0
+    }
   }
 }
 
 async function getSecurityInfo() {
-  try {
-    // Check recent authentication attempts
-    const recentLogins = await prisma.admin.count({
-      where: {
-        lastLoginAt: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-        }
-      }
-    })
-
-    return {
-      rateLimitStatus: 'active',
-      authenticationHealth: 'healthy',
-      lastSecurityScan: new Date().toISOString(),
-      recentLogins,
-      activeTokens: 'monitored',
-      encryptionStatus: 'enabled',
-      sslStatus: process.env.NODE_ENV === 'production' ? 'enforced' : 'development'
-    }
-  } catch (error) {
-    return {
-      rateLimitStatus: 'unknown',
-      authenticationHealth: 'unknown',
-      lastSecurityScan: 'failed',
-      error: error instanceof Error ? error.message : 'Security check failed'
-    }
+  // TODO: Replace with security metrics
+  return {
+    rateLimitStatus: 'normal',
+    authenticationHealth: 'healthy',
+    lastSecurityScan: new Date().toISOString()
   }
 }

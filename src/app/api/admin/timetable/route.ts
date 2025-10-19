@@ -105,9 +105,10 @@ export async function GET(request: NextRequest) {
               id: true,
               teacherId: true,
               fullName: true,
-              emailAddress: true,
-              department: true,
-              position: true
+              email: true,
+              phone: true,
+              subject: true,
+              hireDate: true
             }
           },
           course: {
@@ -115,10 +116,10 @@ export async function GET(request: NextRequest) {
               id: true,
               courseCode: true,
               courseName: true,
-              capacity: true,
-              courseType: true,
-              building: true,
-              floor: true
+              maxStudents: true,
+              currentEnrollment: true,
+              platform: true,
+              meetingUrl: true
             }
           }
         }
@@ -135,7 +136,7 @@ export async function GET(request: NextRequest) {
       Friday: [],
       Saturday: [],
       Sunday: []
-    };
+    } as Record<string, any[]>;
 
     courseSessions.forEach(session => {
       timetableData[session.dayOfWeek as keyof typeof timetableData].push(session);
@@ -268,8 +269,10 @@ export async function POST(request: NextRequest) {
             id: true,
             teacherId: true,
             fullName: true,
-            emailAddress: true,
-            department: true
+            email: true,
+            phone: true,
+            subject: true,
+            hireDate: true
           }
         },
         course: {
@@ -277,8 +280,10 @@ export async function POST(request: NextRequest) {
             id: true,
             courseCode: true,
             courseName: true,
-            capacity: true,
-            courseType: true
+            maxStudents: true,
+            currentEnrollment: true,
+            platform: true,
+            meetingUrl: true
           }
         }
       }
@@ -371,8 +376,10 @@ export async function PUT(request: NextRequest) {
             id: true,
             teacherId: true,
             fullName: true,
-            emailAddress: true,
-            department: true
+            email: true,
+            phone: true,
+            subject: true,
+            hireDate: true
           }
         },
         course: {
@@ -380,8 +387,10 @@ export async function PUT(request: NextRequest) {
             id: true,
             courseCode: true,
             courseName: true,
-            capacity: true,
-            courseType: true
+            maxStudents: true,
+            currentEnrollment: true,
+            platform: true,
+            meetingUrl: true
           }
         }
       }

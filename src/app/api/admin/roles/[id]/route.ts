@@ -67,12 +67,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
       include: {
         permissions: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            resource: true,
-            action: true
+          include: {
+            permission: {
+              select: {
+                id: true,
+                name: true,
+                resource: true,
+                action: true
+              }
+            }
           }
         }
       }

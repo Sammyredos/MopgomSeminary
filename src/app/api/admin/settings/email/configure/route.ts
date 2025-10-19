@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
 
     let updatedCount = 0
     let createdCount = 0
-    const results = []
+    const results: { action: string; key: string; name: string; error?: string }[] = []
 
     for (const setting of emailSettings) {
       try {

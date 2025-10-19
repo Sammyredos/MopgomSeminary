@@ -273,8 +273,7 @@ export async function PUT(request: NextRequest) {
 
       const errorDetails = validation.error.errors.map(err => ({
         field: err.path.join('.'),
-        message: err.message,
-        received: err.input
+        message: err.message
       }))
 
       return NextResponse.json(
@@ -446,12 +445,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify authentication
-    const authResult = await verifyToken(request)
-    if (!authResult.success || !authResult.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const token = request.cookies?.get('auth-token')?.value
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const payload = verifyToken(token)
+    if (!payload || typeof payload !== 'object' || !payload.adminId) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
+    const userType = payload.type || 'admin'
+    let currentUser
+    if (userType === 'admin') {
+      currentUser = await prisma.admin.findUnique({
+        where: { id: payload.adminId },
+        include: { role: true }
+      })
+    } else {
+      currentUser = await prisma.user.findUnique({
+        where: { id: payload.adminId },
+        include: { role: true }
+      })
+    }
+    if (!currentUser || !currentUser.isActive) {
+      return NextResponse.json({ error: 'User not found or inactive' }, { status: 401 })
+    }
+    if (currentUser.role?.name !== 'Super Admin') {
+      return NextResponse.json({ error: 'Only Super Admin can test email configuration' }, { status: 403 })
     }
 
     // Get current email settings
@@ -464,7 +483,7 @@ export async function POST(request: NextRequest) {
     })
 
     const settings = emailSettings.reduce((acc, setting) => {
-      let value = setting.value
+      let value: any = setting.value
       if (setting.key === 'smtpPort') {
         value = parseInt(value) || 587
       } else if (setting.key === 'smtpSecure') {
@@ -489,7 +508,7 @@ export async function POST(request: NextRequest) {
     await testEmailConfiguration(finalSettings)
 
     // Send test email
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: finalSettings.smtpHost,
       port: finalSettings.smtpPort,
       secure: finalSettings.smtpSecure,
@@ -507,7 +526,7 @@ export async function POST(request: NextRequest) {
       })
     })
 
-    const testEmailAddress = testEmail || authResult.user.email
+    const testEmailAddress = testEmail || currentUser.email
 
     await transporter.sendMail({
       from: `"${finalSettings.emailFromName}" <${finalSettings.smtpUser}>`,

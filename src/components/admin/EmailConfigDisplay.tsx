@@ -314,7 +314,7 @@ export function EmailConfigDisplay() {
                   {emailConfig.smtpPort}
                 </span>
                 {emailConfig.isSecure && (
-                  <Shield className="h-3 w-3 text-green-600 flex-shrink-0" title="Secure Connection" />
+                  <Shield className="h-3 w-3 text-green-600 flex-shrink-0" aria-label="Secure Connection" />
                 )}
               </div>
             </div>

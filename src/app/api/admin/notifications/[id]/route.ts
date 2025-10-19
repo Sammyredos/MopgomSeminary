@@ -16,10 +16,10 @@ export async function GET(
       return NextResponse.json({ error: authResult.error }, { status: authResult.status || 401 })
     }
 
-    const { user } = authResult
+    const currentUser = authResult.user!
 
     // Check permissions
-    if (!hasPermission(user, 'notifications:delete')) {
+    if (!hasPermission(currentUser, 'notifications:read')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
@@ -30,7 +30,7 @@ export async function GET(
       where: {
         id: notificationId,
         OR: [
-          { recipientId: user?.id },
+          { recipientId: currentUser.id },
           { recipientId: null }
         ]
       }

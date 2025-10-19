@@ -90,7 +90,7 @@ export function FaviconManager() {
           '/api/system/branding'
         ]
 
-        let logoUrl = null
+        let logoUrl: string | null = null
 
         for (const endpoint of endpoints) {
           try {
@@ -108,9 +108,9 @@ export function FaviconManager() {
               console.log(`📄 FAVICON: Response from ${endpoint}:`, data)
 
               // Try different ways to extract logo URL
-              logoUrl = data.logoUrl ||
-                       data.settings?.find(s => s.key === 'logoUrl')?.value ||
-                       (data.settings && data.settings.branding && data.settings.branding.logoUrl)
+              logoUrl = (data.logoUrl as string) ||
+                       (data.settings?.find((s: any) => s.key === 'logoUrl')?.value as string) ||
+                       ((data.settings && data.settings.branding && data.settings.branding.logoUrl) as string)
 
               if (logoUrl) {
                 // Handle JSON-encoded strings

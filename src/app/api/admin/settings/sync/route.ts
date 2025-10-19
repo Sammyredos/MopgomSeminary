@@ -26,16 +26,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user has permission to sync settings (Super Admin only)
+    // Lookup user and check Super Admin permission
+    const payload = authResult.user
+    const userType = payload.type || 'admin'
+
+    let currentUser
+    if (userType === 'admin') {
+      currentUser = await prisma.admin.findUnique({
+        where: { id: payload.adminId },
+        include: { role: true }
+      })
+    } else {
+      currentUser = await prisma.user.findUnique({
+        where: { id: payload.adminId },
+        include: { role: true }
+      })
+    }
+
     const allowedRoles = ['Super Admin']
-    if (!allowedRoles.includes(authResult.user.role)) {
+    if (!currentUser || !allowedRoles.includes(currentUser.role?.name || '')) {
       return NextResponse.json(
         { error: 'Only Super Admin can sync settings' },
         { status: 403 }
       )
     }
 
-    logger.info('Settings sync requested', { userId: authResult.user.id })
+    logger.info('Settings sync requested', { userId: currentUser.id })
 
     // Get current settings from database
     const currentSettings = await prisma.setting.findMany()
@@ -162,7 +178,7 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info('Settings sync completed', {
-      userId: authResult.user.id,
+      userId: currentUser?.id,
       results: syncResults,
       serviceStatus
     })
@@ -223,7 +239,7 @@ async function testEmailConfiguration() {
  */
 async function testSMSConfiguration() {
   try {
-    const smsStatus = getSMSStatus()
+    const smsStatus = await getSMSStatus()
     
     return {
       configured: smsStatus.configured,

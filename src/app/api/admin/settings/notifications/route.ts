@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     // Convert to object format
     const settings: Record<string, any> = {}
     notificationSettings.forEach(setting => {
-      let value = setting.value
+      let value: any = setting.value
 
       // Convert string booleans to actual booleans FIRST (before number conversion)
       if (value === 'true') {

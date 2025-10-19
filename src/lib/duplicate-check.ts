@@ -7,6 +7,7 @@ export interface DuplicateCheckResult {
     email?: any
     phone?: any
     name?: any
+    similar_name?: any
   }
   hasSimilarNames?: boolean
   similarRegistrations?: any[]

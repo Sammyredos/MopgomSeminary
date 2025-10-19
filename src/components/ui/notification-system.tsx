@@ -38,6 +38,7 @@ function NotificationItem({ id, type, title, message, duration = 5000, action, o
       }, duration)
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [duration])
 
   const handleRemove = () => {

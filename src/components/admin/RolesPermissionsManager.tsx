@@ -647,7 +647,7 @@ export function RolesPermissionsManager() {
       </Dialog>
 
       {/* View Role Modal */}
-      <Dialog open={editingRole && !showEditRole} onOpenChange={(open) => !open && setEditingRole(null)}>
+      <Dialog open={!!editingRole && !showEditRole} onOpenChange={(open) => !open && setEditingRole(null)}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <div className="flex items-center justify-between">

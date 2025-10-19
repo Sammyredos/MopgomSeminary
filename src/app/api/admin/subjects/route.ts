@@ -58,8 +58,8 @@ export async function GET(request: NextRequest) {
           updatedAt: true,
           _count: {
             select: {
-              teachers: true,
-              classSessions: true,
+              teacherSubjects: true,
+              courseSessions: true,
               grades: true
             }
           }

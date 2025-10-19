@@ -159,10 +159,6 @@ export async function PUT(
         parentGuardianName: parentGuardianName ?? existingRegistration.parentGuardianName,
         parentGuardianPhone: parentGuardianPhone ?? existingRegistration.parentGuardianPhone,
         parentGuardianEmail: parentGuardianEmail ?? existingRegistration.parentGuardianEmail,
-        medications: medications ?? existingRegistration.medications,
-        allergies: allergies ?? existingRegistration.allergies,
-        specialNeeds: specialNeeds ?? existingRegistration.specialNeeds,
-        dietaryRestrictions: dietaryRestrictions ?? existingRegistration.dietaryRestrictions,
         parentalPermissionGranted: typeof parentalPermissionGranted === 'boolean'
           ? parentalPermissionGranted
           : existingRegistration.parentalPermissionGranted,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { authenticateRequest } from '@/lib/auth-helpers'
+import { sendEmail } from '@/lib/email'
 // import { messageQueue } from '@/lib/message-queue' // Commented out as unused
 
 const prisma = new PrismaClient()

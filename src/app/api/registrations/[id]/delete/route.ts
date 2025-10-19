@@ -46,7 +46,7 @@ export async function DELETE(
       })
 
       // If there's a corresponding user record, try to delete it
-      let deletedUser = null
+      let deletedUser: { id: string; email: string; name: string } | null = null
       if (correspondingUser) {
         try {
           // Check if user has any dependencies that would prevent deletion
@@ -59,9 +59,10 @@ export async function DELETE(
           const hasBlockingDependencies = userDependencies.some(dep => dep !== null)
 
           if (!hasBlockingDependencies) {
-            deletedUser = await tx.user.delete({
+            const deleted = await tx.user.delete({
               where: { id: correspondingUser.id }
             })
+            deletedUser = { id: deleted.id, email: deleted.email, name: deleted.name }
           } else {
             console.log(`User ${correspondingUser.email} has dependencies, skipping deletion`)
           }

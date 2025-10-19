@@ -38,8 +38,11 @@ interface Registration {
   dateOfBirth: string
   gender: string
   address: string
+  officePostalAddress?: string
+  branch: string
   phoneNumber: string
-    matriculationNumber?: string
+  emailAddress: string
+  matriculationNumber?: string
   emergencyContactName: string
   emergencyContactRelationship: string
   emergencyContactPhone: string
@@ -266,20 +269,20 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
 
                   
                   <div>
-                    <label className=\"font-apercu-medium text-sm text-gray-600\">Matric Number</label>
-                    <div className=\"flex items-center space-x-2\">
-                      <p className=\"font-apercu-regular text-sm text-gray-900 flex-1 break-all\">{registration.matriculationNumber || 'Not assigned'}</p>
+                    <label className="font-apercu-medium text-sm text-gray-600">Matric Number</label>
+                    <div className="flex items-center space-x-2">
+                      <p className="font-apercu-regular text-sm text-gray-900 flex-1 break-all">{registration.matriculationNumber || 'Not assigned'}</p>
                       {registration.matriculationNumber && (
                         <Button
-                          variant=\"ghost\"
-                          size=\"sm\"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => copyToClipboard(registration.matriculationNumber!, 'matric')}
-                          className=\"p-1 flex-shrink-0\"
+                          className="p-1 flex-shrink-0"
                         >
                           {copied === 'matric' ? (
-                            <CheckCircle className=\"h-4 w-4 text-green-600\" />
+                            <CheckCircle className="h-4 w-4 text-green-600" />
                           ) : (
-                            <Copy className=\"h-4 w-4 text-gray-400\" />
+                            <Copy className="h-4 w-4 text-gray-400" />
                           )}
                         </Button>
                       )}

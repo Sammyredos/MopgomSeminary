@@ -31,12 +31,18 @@ export async function POST(request: NextRequest) {
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
 
-    // Save reset token to database
-    await prisma.user.update({
-      where: { email },
-      data: {
-        resetToken,
-        resetTokenExpiry
+    // Store reset token in SystemConfig keyed by token
+    const configKey = `password_reset_token:${resetToken}`;
+    await prisma.systemConfig.upsert({
+      where: { key: configKey },
+      update: {
+        value: JSON.stringify({ userId: user.id, expiresAt: resetTokenExpiry.toISOString() }),
+        description: 'Password reset token'
+      },
+      create: {
+        key: configKey,
+        value: JSON.stringify({ userId: user.id, expiresAt: resetTokenExpiry.toISOString() }),
+        description: 'Password reset token'
       }
     });
 

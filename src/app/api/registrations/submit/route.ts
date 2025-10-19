@@ -108,11 +108,6 @@ export async function POST(request: NextRequest) {
         parentGuardianName: data.parentGuardianName,
         parentGuardianPhone: data.parentGuardianPhone,
         parentGuardianEmail: data.parentGuardianEmail,
-        roommateRequestConfirmationNumber: null, // Field removed from form
-        medications: null,
-        allergies: null,
-        specialNeeds: null,
-        dietaryRestrictions: null,
         parentalPermissionGranted: true, // Always mark as completed/approved
         parentalPermissionDate: new Date() // Set current date as completion date
       }

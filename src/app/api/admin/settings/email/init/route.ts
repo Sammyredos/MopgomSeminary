@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     let createdCount = 0
     let updatedCount = 0
     let skippedCount = 0
-    const results = []
+    const results: { action: string; key: string; name: string; reason?: string; error?: string }[] = []
 
     for (const settingDef of requiredEmailSettings) {
       try {

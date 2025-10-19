@@ -53,6 +53,7 @@ interface StudentData {
   courseDesired?: string
   profilePicture?: string | null
   status?: string
+  matriculationNumber?: string | null
 }
 
 // Format any stored date string to YYYY-MM-DD for date inputs

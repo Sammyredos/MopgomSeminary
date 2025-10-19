@@ -14,6 +14,7 @@ interface AccommodationUpdate {
     totalAllocated?: number
     totalUnallocated?: number
     roomOccupancy?: { [roomId: string]: number }
+    message?: string
   }
   timestamp: number
 }

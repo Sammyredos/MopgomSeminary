@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get registration data for personalization if needed
-    let registrationData = []
+    let registrationData: { id: string; emailAddress: string; fullName: string; dateOfBirth: Date; gender: string; phoneNumber: string; createdAt: Date }[] = []
     if (includeNames) {
       registrationData = await prisma.registration.findMany({
         where: {
@@ -112,10 +112,10 @@ export async function POST(request: NextRequest) {
       try {
         let personalizedMessage = message
         let personalizedSubject = subject
-        let currentRegistration = null
+        let currentRegistration: { id: string; emailAddress: string; fullName: string; dateOfBirth: Date; gender: string; phoneNumber: string; createdAt: Date } | null = null
 
         if (includeNames) {
-          currentRegistration = registrationData.find(r => r.emailAddress === email)
+          currentRegistration = registrationData.find(r => r.emailAddress === email) ?? null
           if (currentRegistration) {
             // Handle registration information template
             if (message.includes('[Registration ID]') || message.includes('[Date of Birth]') || message.includes('[Gender]') || message.includes('[Phone Number]') || message.includes('[Email Address]') || message.includes('[Registration Date]')) {
@@ -209,8 +209,8 @@ export async function POST(request: NextRequest) {
     console.log(`📧 All batches completed: ${results.length} emails processed`)
 
     // Process results
-    const successfulResults = []
-    const errors = []
+    const successfulResults: { email: string; success: boolean; messageId: string | null }[] = []
+    const errors: { email: string; error: string }[] = []
 
     results.forEach((result, index) => {
       if (result.status === 'fulfilled') {
@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
       console.log(`❌ Failed emails (${errors.length}):`)
 
       // Group errors by type for better analysis
-      const errorTypes = {}
+      const errorTypes: Record<string, string[]> = {}
       errors.forEach(error => {
         const errorType = error.error.includes('timeout') ? 'Timeout' :
                          error.error.includes('connection') ? 'Connection' :

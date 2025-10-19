@@ -191,7 +191,7 @@ async function checkExternalServices(): Promise<HealthCheckResult> {
   const startTime = Date.now()
   
   try {
-    const checks: Array<{ service: string; status: string; error?: string }> = []
+    const checks: Array<{ service: string; status: string; error?: string; responseTime?: number }> = []
     
     // Check Cloudinary if configured
     if (process.env.CLOUDINARY_CLOUD_NAME) {

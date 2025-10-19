@@ -64,18 +64,22 @@ export function UserProvider({ children }: UserProviderProps) {
         console.log('❌ UserContext: Error response:', errorText)
         setCurrentUser(null)
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ UserContext: Failed to fetch current user:', error)
-      console.error('❌ UserContext: Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      })
+      if (error instanceof Error) {
+        console.error('❌ UserContext: Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        })
 
-      // Check if this is a network error (development server not running)
-      if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
-        console.warn('⚠️ UserContext: Network error detected. Development server may not be running.')
-        console.warn('⚠️ UserContext: Please ensure the development server is running on localhost:3000')
+        // Check if this is a network error (development server not running)
+        if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+          console.warn('⚠️ UserContext: Network error detected. Development server may not be running.')
+          console.warn('⚠️ UserContext: Please ensure the development server is running on localhost:3000')
+        }
+      } else {
+        console.error('❌ UserContext: Unknown error type encountered')
       }
 
       setCurrentUser(null)

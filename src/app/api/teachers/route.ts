@@ -5,15 +5,9 @@ import { z } from 'zod';
 const createTeacherSchema = z.object({
   teacherId: z.string().min(1, 'Teacher ID is required'),
   fullName: z.string().min(1, 'Full name is required'),
-  emailAddress: z.string().email('Invalid email address'),
-  phoneNumber: z.string().min(1, 'Phone number is required'),
-  dateOfBirth: z.string().optional().nullable(),
-  address: z.string().optional(),
-  qualification: z.string().optional(),
-  experience: z.number().optional().nullable(),
-  department: z.string().optional(),
-  position: z.string().optional(),
-  salary: z.number().optional().nullable(),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(1, 'Phone number is required'),
+  subject: z.string().min(1, 'Subject is required'),
   hireDate: z.string(),
 });
 
@@ -54,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // Check if email already exists
     const existingEmail = await prisma.teacher.findUnique({
-      where: { emailAddress: validatedData.emailAddress },
+      where: { email: validatedData.email },
     });
 
     if (existingEmail) {
@@ -64,9 +58,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if phone number already exists
-    const existingPhone = await prisma.teacher.findUnique({
-      where: { phoneNumber: validatedData.phoneNumber },
+    // Check if phone number already exists (not unique in schema, use findFirst)
+    const existingPhone = await prisma.teacher.findFirst({
+      where: { phone: validatedData.phone },
     });
 
     if (existingPhone) {
@@ -78,8 +72,11 @@ export async function POST(request: NextRequest) {
 
     const teacher = await prisma.teacher.create({
       data: {
-        ...validatedData,
-        dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : null,
+        teacherId: validatedData.teacherId,
+        fullName: validatedData.fullName,
+        email: validatedData.email,
+        phone: validatedData.phone,
+        subject: validatedData.subject,
         hireDate: new Date(validatedData.hireDate),
       },
     });

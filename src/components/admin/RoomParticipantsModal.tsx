@@ -121,7 +121,7 @@ export function RoomParticipantsModal({
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline" className="bg-white/80 border-blue-200 text-blue-700">
-                    {room.type}
+                    {room.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                   <Badge variant="outline" className={`bg-white/80 border-blue-200 ${
                     room.gender === 'Male' ? 'text-blue-700' : 'text-pink-700'

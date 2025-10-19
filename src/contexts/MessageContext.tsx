@@ -81,6 +81,7 @@ export function MessageProvider({ children }: MessageProviderProps) {
 
       return () => clearInterval(interval)
     }
+    return undefined
   }, [currentUser])
 
   const value: MessageContextType = {

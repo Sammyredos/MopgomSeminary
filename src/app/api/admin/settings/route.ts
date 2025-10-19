@@ -54,12 +54,8 @@ export async function GET(request: NextRequest) {
             email: true 
           }
         })
-      } else if (userType === 'parent') {
-        currentUser = await prisma.parent.findUnique({
-          where: { id: payload.adminId },
-          select: { id: true, email: true }
-        })
-        // Parents don't have access to admin settings
+      } else {
+        // Non-admin users don't have access to admin settings
         return NextResponse.json({ error: 'Access denied' }, { status: 403 })
       }
 
@@ -156,7 +152,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    if (!currentUser || !['Super Admin', 'Admin'].includes(currentUser.role?.name)) {
+    if (!currentUser || !['Super Admin', 'Admin'].includes(currentUser.role?.name || '')) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 

@@ -255,7 +255,16 @@ export async function GET(request: NextRequest) {
     const canUnverify = registration.isVerified
     const hasRoomAllocation = !!registration.roomAllocation
     
-    let roomDetails = null
+    let roomDetails: {
+      roomId: string
+      roomName: string
+      roomGender: string
+      roomCapacity: number
+      currentOccupancy: number
+      roommates: string[]
+      allocationDate: Date
+      allocatedBy: string | null
+    } | null = null
     if (hasRoomAllocation && registration.roomAllocation) {
       const roomInfo = registration.roomAllocation.room
       roomDetails = {

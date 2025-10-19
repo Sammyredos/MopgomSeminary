@@ -82,6 +82,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
       return () => clearInterval(interval)
     }
+    return undefined
   }, [currentUser])
 
   const value: NotificationContextType = {

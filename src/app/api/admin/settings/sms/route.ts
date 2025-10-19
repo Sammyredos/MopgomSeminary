@@ -126,6 +126,7 @@ export async function GET(request: NextRequest) {
     }, {} as Record<string, any>)
 
     // Merge with environment variables (env vars as fallback)
+    const smsStatus = await getSMSStatus()
     const smsConfig = {
       smsEnabled: settings.smsEnabled !== undefined ? settings.smsEnabled : (process.env.SMS_ENABLED === 'true'),
       smsProvider: settings.smsProvider || process.env.SMS_PROVIDER || 'twilio',
@@ -134,13 +135,13 @@ export async function GET(request: NextRequest) {
       smsRegion: settings.smsRegion || process.env.SMS_REGION || 'us-east-1',
       smsGatewayUrl: settings.smsGatewayUrl || process.env.SMS_GATEWAY_URL || '',
       smsUsername: settings.smsUsername || process.env.SMS_USERNAME || '',
-      isConfigured: getSMSStatus().configured
+      isConfigured: smsStatus.configured
     }
 
     return NextResponse.json({
       success: true,
       settings: smsConfig,
-      status: getSMSStatus()
+      status: smsStatus
     })
 
   } catch (error) {
@@ -236,8 +237,7 @@ export async function PUT(request: NextRequest) {
 
       const errorDetails = validation.error.errors.map(err => ({
         field: err.path.join('.'),
-        message: err.message,
-        received: err.input
+        message: err.message
       }))
 
       return NextResponse.json(
@@ -316,7 +316,7 @@ export async function PUT(request: NextRequest) {
     await Promise.all(updatePromises)
 
     // Test SMS configuration if enabled
-    let testResult = null
+    let testResult: { success: boolean; message: string } | null = null
     if (settings.smsEnabled) {
       try {
         testResult = await testSMSConfiguration(settings)
@@ -428,8 +428,7 @@ async function testSMSConfiguration(settings: any) {
       // Could test local gateway connection here
       try {
         const response = await fetch(settings.smsGatewayUrl, {
-          method: 'GET',
-          timeout: 5000
+          method: 'GET'
         })
         return {
           success: response.ok,

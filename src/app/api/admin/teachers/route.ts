@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { fullName: { contains: search, mode: 'insensitive' } },
         { teacherId: { contains: search, mode: 'insensitive' } },
-        { emailAddress: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
       ]
     }
 
     if (department) {
-      where.department = { contains: department, mode: 'insensitive' }
+      where.subject = { contains: department, mode: 'insensitive' }
     }
 
     if (isActive !== null && isActive !== undefined) {
@@ -56,12 +56,10 @@ export async function GET(request: NextRequest) {
           id: true,
           teacherId: true,
           fullName: true,
-          emailAddress: true,
-          phoneNumber: true,
-          department: true,
-          position: true,
-          qualification: true,
-          experience: true,
+          email: true,
+          phone: true,
+          subject: true,
+          hireDate: true,
           isActive: true,
           createdAt: true,
           updatedAt: true

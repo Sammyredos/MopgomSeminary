@@ -211,7 +211,7 @@ export function withAPMMiddleware(handler: any) {
     const endpoint = `${req.method} ${req.url}`
     
     // Start APM transaction
-    let transaction = null
+    let transaction: any | null = null
     if (apm) {
       transaction = apm.startTransaction(endpoint, 'request')
       apm.setUserContext({
@@ -275,7 +275,7 @@ export function monitorDatabaseQuery<T>(
 ): Promise<T> {
   return new Promise(async (resolve, reject) => {
     const startTime = Date.now()
-    let span = null
+    let span: any | null = null
     
     if (apm) {
       span = apm.startSpan(`db.${queryName}`, 'db.postgresql.query')

@@ -5,15 +5,9 @@ import { z } from 'zod';
 const updateTeacherSchema = z.object({
   teacherId: z.string().min(1, 'Teacher ID is required').optional(),
   fullName: z.string().min(1, 'Full name is required').optional(),
-  emailAddress: z.string().email('Invalid email address').optional(),
-  phoneNumber: z.string().min(1, 'Phone number is required').optional(),
-  dateOfBirth: z.string().optional().nullable(),
-  address: z.string().optional(),
-  qualification: z.string().optional(),
-  experience: z.number().optional().nullable(),
-  department: z.string().optional(),
-  position: z.string().optional(),
-  salary: z.number().optional().nullable(),
+  email: z.string().email('Invalid email address').optional(),
+  phone: z.string().min(1, 'Phone number is required').optional(),
+  subject: z.string().optional(),
   hireDate: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -26,12 +20,12 @@ export async function GET(
     const teacher = await prisma.teacher.findUnique({
       where: { id: params.id },
       include: {
-        subjects: {
+        teacherSubjects: {
           include: {
             subject: true,
           },
         },
-        classSessions: {
+        courseSessions: {
           include: {
             subject: true,
             course: true,
@@ -90,9 +84,9 @@ export async function PUT(
       }
     }
 
-    if (validatedData.emailAddress && validatedData.emailAddress !== existingTeacher.emailAddress) {
+    if (validatedData.email && validatedData.email !== existingTeacher.email) {
       const emailExists = await prisma.teacher.findUnique({
-        where: { emailAddress: validatedData.emailAddress },
+        where: { email: validatedData.email },
       });
       if (emailExists) {
         return NextResponse.json(
@@ -102,9 +96,10 @@ export async function PUT(
       }
     }
 
-    if (validatedData.phoneNumber && validatedData.phoneNumber !== existingTeacher.phoneNumber) {
-      const phoneExists = await prisma.teacher.findUnique({
-        where: { phoneNumber: validatedData.phoneNumber },
+    // Phone may not be unique in the schema, but we can still check duplicates
+    if (validatedData.phone && validatedData.phone !== existingTeacher.phone) {
+      const phoneExists = await prisma.teacher.findFirst({
+        where: { phone: validatedData.phone },
       });
       if (phoneExists) {
         return NextResponse.json(
@@ -117,9 +112,13 @@ export async function PUT(
     const updatedTeacher = await prisma.teacher.update({
       where: { id: params.id },
       data: {
-        ...validatedData,
-        dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : undefined,
+        teacherId: validatedData.teacherId ?? undefined,
+        fullName: validatedData.fullName ?? undefined,
+        email: validatedData.email ?? undefined,
+        phone: validatedData.phone ?? undefined,
+        subject: validatedData.subject ?? undefined,
         hireDate: validatedData.hireDate ? new Date(validatedData.hireDate) : undefined,
+        isActive: validatedData.isActive ?? undefined,
       },
     });
 
@@ -157,8 +156,8 @@ export async function DELETE(
       );
     }
 
-    // Check if teacher has any active class sessions or grades
-    const activeClassSessions = await prisma.classSession.count({
+    // Check if teacher has any active course sessions or grades
+    const activeCourseSessions = await prisma.courseSession.count({
       where: {
         teacherId: params.id,
         isActive: true,
@@ -171,7 +170,7 @@ export async function DELETE(
       },
     });
 
-    if (activeClassSessions > 0 || grades > 0) {
+    if (activeCourseSessions > 0 || grades > 0) {
       // Instead of deleting, deactivate the teacher
       const deactivatedTeacher = await prisma.teacher.update({
         where: { id: params.id },

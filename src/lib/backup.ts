@@ -95,7 +95,7 @@ export class DatabaseBackup {
 
     } catch (error) {
       const duration = Date.now() - startTime
-      logger.error('Database backup failed', error, { duration })
+      logger.error('Database backup failed', { error, duration })
 
       return {
         success: false,

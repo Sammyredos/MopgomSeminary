@@ -20,17 +20,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user with valid reset token
-    const user = await prisma.user.findFirst({
-      where: {
-        resetToken: token,
-        resetTokenExpiry: {
-          gt: new Date() // Token must not be expired
-        }
-      }
+    // Lookup reset token in SystemConfig
+    const configKey = `password_reset_token:${token}`;
+    const tokenEntry = await prisma.systemConfig.findUnique({
+      where: { key: configKey }
+    });
+
+    if (!tokenEntry) {
+      return NextResponse.json(
+        { error: 'Invalid or expired reset token' },
+        { status: 400 }
+      );
+    }
+
+    let tokenData: { userId: string; expiresAt: string };
+    try {
+      tokenData = JSON.parse(tokenEntry.value);
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid reset token data' },
+        { status: 400 }
+      );
+    }
+
+    // Validate expiry
+    if (new Date(tokenData.expiresAt) <= new Date()) {
+      // Clean up expired entry
+      await prisma.systemConfig.delete({ where: { key: configKey } }).catch(() => {});
+      return NextResponse.json(
+        { error: 'Invalid or expired reset token' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch user
+    const user = await prisma.user.findUnique({
+      where: { id: tokenData.userId }
     });
 
     if (!user) {
+      // Clean up invalid entry
+      await prisma.systemConfig.delete({ where: { key: configKey } }).catch(() => {});
       return NextResponse.json(
         { error: 'Invalid or expired reset token' },
         { status: 400 }
@@ -40,15 +70,16 @@ export async function POST(request: NextRequest) {
     // Hash new password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Update user password and clear reset token
+    // Update user password
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        password: hashedPassword,
-        resetToken: null,
-        resetTokenExpiry: null
+        password: hashedPassword
       }
     });
+
+    // Invalidate reset token
+    await prisma.systemConfig.delete({ where: { key: configKey } }).catch(() => {});
 
     return NextResponse.json({
       success: true,

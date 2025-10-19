@@ -5,15 +5,16 @@
 export function usePerformanceOptimization(options?: any) {
   // Simple no-op hook for better performance
   const reportMetrics = () => {
+    const perf: any = typeof performance !== 'undefined' ? (performance as any) : {}
     return {
       timestamp: Date.now(),
-      memory: performance.memory ? {
-        used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
-        total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024)
+      memory: perf && perf.memory ? {
+        used: Math.round(perf.memory.usedJSHeapSize / 1024 / 1024),
+        total: Math.round(perf.memory.totalJSHeapSize / 1024 / 1024)
       } : null,
-      timing: performance.timing ? {
-        loadTime: performance.timing.loadEventEnd - performance.timing.navigationStart,
-        domReady: performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart
+      timing: perf && perf.timing ? {
+        loadTime: perf.timing.loadEventEnd - perf.timing.navigationStart,
+        domReady: perf.timing.domContentLoadedEventEnd - perf.timing.navigationStart
       } : null
     }
   }

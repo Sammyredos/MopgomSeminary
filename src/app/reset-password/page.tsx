@@ -79,7 +79,7 @@ function ResetPasswordContent() {
         }, 1000)
         
         // Cleanup timer if component unmounts
-        return () => clearInterval(timer)
+        // Note: Cleanup handled by interval clear when countdown finishes
       } else {
         setError(data.error || 'Failed to reset password')
       }

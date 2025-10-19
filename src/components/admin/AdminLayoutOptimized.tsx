@@ -203,10 +203,11 @@ export function OptimizedLink({
   const linkRef = useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
+    let cleanup: (() => void) | undefined
     if (prefetch && linkRef.current && href.startsWith('/admin/')) {
-      const cleanup = setupHoverPrefetch(linkRef.current, href, 100)
-      return cleanup
+      cleanup = setupHoverPrefetch(linkRef.current, href, 100)
     }
+    return cleanup
   }, [href, prefetch, setupHoverPrefetch])
 
   const handleClick = (e: React.MouseEvent) => {
@@ -241,6 +242,7 @@ export function PerformanceMonitor() {
     }
 
     // Monitor page load performance
+    let cleanup: (() => void) | undefined
     if ('performance' in window && 'getEntriesByType' in performance) {
       const observer = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
@@ -257,8 +259,9 @@ export function PerformanceMonitor() {
       
       observer.observe({ entryTypes: ['navigation'] })
       
-      return () => observer.disconnect()
+      cleanup = () => observer.disconnect()
     }
+    return cleanup
   }, [])
 
   return null

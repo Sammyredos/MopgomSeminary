@@ -26,16 +26,32 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check if user has permission to view settings status
+    // Lookup user and check role permissions
+    const payload = authResult.user
+    const userType = payload.type || 'admin'
+
+    let currentUser
+    if (userType === 'admin') {
+      currentUser = await prisma.admin.findUnique({
+        where: { id: payload.adminId },
+        include: { role: true }
+      })
+    } else {
+      currentUser = await prisma.user.findUnique({
+        where: { id: payload.adminId },
+        include: { role: true }
+      })
+    }
+
     const allowedRoles = ['Super Admin', 'Admin']
-    if (!allowedRoles.includes(authResult.user.role)) {
+    if (!currentUser || !allowedRoles.includes(currentUser.role?.name || '')) {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }
       )
     }
 
-    logger.info('Settings status requested', { userId: authResult.user.id })
+    logger.info('Settings status requested', { userId: currentUser.id })
 
     // Get all settings from database
     const settings = await prisma.setting.findMany({
@@ -142,7 +158,7 @@ async function getEmailStatus(emailSettings: any) {
  */
 async function getSMSConfigStatus(smsSettings: any) {
   try {
-    const smsStatus = getSMSStatus()
+    const smsStatus = await getSMSStatus()
     const isEnabled = smsSettings.smsEnabled?.value || process.env.SMS_ENABLED === 'true'
     const provider = smsSettings.smsProvider?.value || process.env.SMS_PROVIDER || 'mock'
 

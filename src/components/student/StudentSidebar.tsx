@@ -123,7 +123,7 @@ const getNavigation = (t: (key: string) => string): NavigationItem[] => [
 export function StudentSidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const { branding, isLoading } = useBranding()
-  const { currentUser, isLoading: isLoadingUser } = useUser()
+  const { currentUser, loading: isLoadingUser } = useUser()
   const { t } = useSafeTranslation()
   const { stats: messageStats } = useMessages()
   const { startProgress } = useProgress()

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the request
-    logger.securityEvent('GDPR data deletion requested', { 
+    logger.info('GDPR data deletion requested', {
       email: email ? 'provided' : 'not provided',
       userId: userId ? 'provided' : 'not provided',
       reason: reason || 'not provided',

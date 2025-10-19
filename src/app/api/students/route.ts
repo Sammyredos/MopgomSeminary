@@ -208,6 +208,7 @@ export async function POST(request: NextRequest) {
     const student = await prisma.student.create({
       data: {
         ...validatedData,
+        address: validatedData.address ?? '',
         matriculationNumber,
         parentGuardianEmail: validatedData.parentGuardianEmail || null,
         isActive: true,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { authenticateRequest } from '@/lib/auth-helpers'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
     const includeStudentStatus = searchParams.get('includeStudentStatus') === 'true'
 
     // Build search conditions
-    const searchConditions = search ? {
+    const searchConditions: Prisma.RegistrationWhereInput = search ? {
       OR: [
         { fullName: { contains: search, mode: 'insensitive' } },
         { emailAddress: { contains: search, mode: 'insensitive' } },
