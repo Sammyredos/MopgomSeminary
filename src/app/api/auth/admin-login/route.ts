@@ -83,6 +83,19 @@ async function isAccountLocked(email: string, ip: string): Promise<{ locked: boo
       return { locked: false }
     }
 
+    // If lockout period has expired, reset attempts by deleting the record
+    if (loginAttempt.lockedUntil && loginAttempt.lockedUntil <= new Date()) {
+      await prisma.loginAttempt.delete({
+        where: {
+          email_ip: {
+            email,
+            ipAddress: ip
+          }
+        }
+      })
+      return { locked: false }
+    }
+
     // Check if currently locked
     if (loginAttempt.lockedUntil && loginAttempt.lockedUntil > new Date()) {
       const remainingTimeSeconds = Math.ceil((loginAttempt.lockedUntil.getTime() - Date.now()) / 1000)
@@ -92,7 +105,6 @@ async function isAccountLocked(email: string, ip: string): Promise<{ locked: boo
     // Check if should be locked due to too many attempts
     if (loginAttempt.attempts >= maxAttempts) {
       const lockUntil = new Date(Date.now() + lockoutDuration * 60 * 1000)
-      
       // Update the lockout time
       await prisma.loginAttempt.update({
         where: {

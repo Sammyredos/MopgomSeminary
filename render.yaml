@@ -38,6 +38,10 @@ services:
         generateValue: true
       - key: JWT_SECRET
         generateValue: true
+      - key: SUPER_ADMIN_PASSWORD
+        generateValue: true
+      - key: RATE_LIMIT_ENABLED
+        value: true
       - key: LOG_LEVEL
         value: info
       # Monitoring
