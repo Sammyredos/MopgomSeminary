@@ -124,7 +124,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Admin Login API called')
     const { email, password } = await request.json()
-    console.log('Admin login attempt for email:', email)
+    const normalizedEmail = String(email || '').toLowerCase().trim()
+    console.log('Admin login attempt for email:', normalizedEmail)
 
     const clientIP = getClientIP(request)
 
@@ -141,9 +142,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if account is locked
-    const lockStatus = await isAccountLocked(email, clientIP)
+    const lockStatus = await isAccountLocked(normalizedEmail, clientIP)
     if (lockStatus.locked) {
-      await trackLoginAttempt(email, clientIP, false)
+      await trackLoginAttempt(normalizedEmail, clientIP, false)
       return NextResponse.json(
         { 
           error: `Account temporarily locked due to too many failed attempts. Try again in ${lockStatus.remainingTime} seconds.`,
@@ -157,8 +158,8 @@ export async function POST(request: NextRequest) {
     const allowedAdminRoles = ['Super Admin', 'Admin', 'Lecturer']
 
     // Try to find admin by email
-    const admin = await prisma.admin.findUnique({
-      where: { email },
+    const admin = await prisma.admin.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,
@@ -187,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     // Check if admin exists and password matches
     if (!admin || !verifyPassword(password, admin.password)) {
-      await trackLoginAttempt(email, clientIP, false)
+      await trackLoginAttempt(normalizedEmail, clientIP, false)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -195,7 +196,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!admin.isActive) {
-      await trackLoginAttempt(email, clientIP, false)
+      await trackLoginAttempt(normalizedEmail, clientIP, false)
       return NextResponse.json(
         { error: 'Account is Inactive' },
         { status: 401 }

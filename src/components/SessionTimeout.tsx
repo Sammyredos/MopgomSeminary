@@ -9,24 +9,18 @@ interface SessionTimeoutProps {
 }
 
 export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(0)
   const [showModal, setShowModal] = useState(false)
-  const [isExtending, setIsExtending] = useState(false)
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState(0)
   const [sessionExpired, setSessionExpired] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isExtending, setIsExtending] = useState(false)
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Always warn only at final 1 minute before expiry
-  // This ensures the modal does not appear early.
   const sessionTimeoutMs = sessionTimeoutHours * 60 * 60 * 1000
   const warningTimeMs = 1 * 60 * 1000
-
-  console.log('SessionTimeout Debug:')
-  console.log('- sessionTimeoutHours:', sessionTimeoutHours)
-  console.log('- sessionTimeoutMs:', sessionTimeoutMs)
-  console.log('- warningTimeMs:', warningTimeMs)
-  console.log('- warningTimeMs (seconds):', warningTimeMs / 1000)
 
   // FORCE LOGOUT - No mercy, no delays
   const forceLogout = useCallback(async () => {
@@ -48,241 +42,154 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
     try {
       // Call logout API (don't wait for response)
       fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-
-      // Clear all local storage and cookies immediately
+      
+      // Clear all storage
       localStorage.clear()
       sessionStorage.clear()
-
-      // Force redirect based on current path
-      const currentPath = window.location.pathname
-      if (currentPath.startsWith('/admin')) {
-        window.location.href = '/admin/login?logout=true'
-      } else {
-        window.location.href = '/login?logout=true'
-      }
+      
+      // Force redirect immediately
+      window.location.href = '/login'
     } catch (error) {
-      console.error('Force logout error:', error)
-      // Even if API fails, force redirect based on current path
-      const currentPath = window.location.pathname
-      if (currentPath.startsWith('/admin')) {
-        window.location.href = '/admin/login?logout=true'
-      } else {
-        window.location.href = '/login?logout=true'
-      }
+      // Force redirect even if logout fails
+      window.location.href = '/login'
     }
   }, [isLoggingOut])
 
-  // SESSION MONITORING - The real deal
+  // Start session monitoring
   const startSessionMonitoring = useCallback(() => {
     // Clear any existing timers
     if (intervalRef.current) clearInterval(intervalRef.current)
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
 
-    // Calculate session start time and expiry based on configured timeout
     const sessionStartTime = Date.now()
     const sessionExpiryTime = sessionStartTime + sessionTimeoutMs
-    
-    console.log('Starting session monitoring:')
-    console.log('- Session timeout:', sessionTimeoutHours, 'hours')
-    console.log('- Session timeout (ms):', sessionTimeoutMs)
-    console.log('- Warning threshold (ms):', warningTimeMs)
-    console.log('- Session will expire at:', new Date(sessionExpiryTime).toLocaleTimeString())
 
-    const checkSession = async () => {
-      try {
-        // First verify the token is still valid
-        const tokenResponse = await fetch('/api/auth/token-info')
-        if (!tokenResponse.ok) {
-          console.error('Token info failed:', tokenResponse.status)
-          forceLogout()
-          return
-        }
+    // Check session status every 5 seconds
+    intervalRef.current = setInterval(() => {
+      const now = Date.now()
+      const remaining = sessionExpiryTime - now
 
-        // Calculate remaining time based on our configured timeout
-        const now = Date.now()
-        const remaining = sessionExpiryTime - now
-
-        console.log('Session check - remaining time:', Math.floor(remaining / 1000), 'seconds')
-        console.log('Warning threshold:', Math.floor(warningTimeMs / 1000), 'seconds')
-        console.log('Should show modal?', remaining <= warningTimeMs, 'showModal:', showModal)
-
-        if (remaining <= 0) {
-          // SESSION EXPIRED - FORCE LOGOUT IMMEDIATELY
-          console.log('Session expired - forcing logout')
-          forceLogout()
-          return
-        }
-
-        setTimeLeft(remaining)
-
-        // Show modal when warning threshold is reached
-        if (remaining <= warningTimeMs && !showModal) {
-          console.log('Session expiring soon - showing modal. Remaining:', Math.floor(remaining / 1000), 'seconds')
-          setShowModal(true)
-        }
-
-        // Auto-logout when time hits zero
-        if (remaining <= 1000 && !sessionExpired) {
-          console.log('Session time reached zero - auto logout')
-          forceLogout()
-          return
-        }
-
-      } catch (error) {
-        console.error('Session check error:', error)
+      if (remaining <= 0) {
         forceLogout()
+        return
       }
-    }
 
-    // Check immediately
-    checkSession()
+      // Show modal when warning time is reached
+      if (remaining <= warningTimeMs && !showModal) {
+        setShowModal(true)
+        setTimeRemaining(Math.max(0, Math.floor(remaining / 1000)))
+        
+        // Auto-logout when time reaches zero
+        timeoutRef.current = setTimeout(() => {
+          forceLogout()
+        }, remaining)
+      }
 
-    // Check every 2 seconds for more responsive UI (especially important for short sessions)
-    intervalRef.current = setInterval(checkSession, 2000)
-  }, [warningTimeMs, showModal, sessionExpired, forceLogout, sessionTimeoutHours, sessionTimeoutMs])
+      // Update countdown if modal is showing
+      if (showModal) {
+        setTimeRemaining(Math.max(0, Math.floor(remaining / 1000)))
+      }
+    }, 5000)
+  }, [sessionTimeoutMs, warningTimeMs, showModal, forceLogout])
 
-  // EXTEND SESSION - Actually refresh the token
+  // Extend session
   const extendSession = useCallback(async () => {
     if (isExtending || sessionExpired) return
 
     setIsExtending(true)
-
     try {
-      // Call refresh endpoint to get new token
-      const response = await fetch('/api/auth/refresh', {
+      const response = await fetch('/api/auth/extend-session', {
         method: 'POST',
-        credentials: 'include'
+        headers: { 'Content-Type': 'application/json' }
       })
 
       if (response.ok) {
-        await response.json() // Consume response
-
-        // Hide modal and restart monitoring
         setShowModal(false)
-        setIsExtending(false)
-
-        // Restart session monitoring with new expiry
-        setTimeout(() => {
-          startSessionMonitoring()
-        }, 100) // Small delay to ensure state is updated
-
-        console.log('Session extended successfully')
+        setTimeRemaining(0)
+        startSessionMonitoring() // Restart monitoring with new session
       } else {
-        console.error('Session extension failed:', response.status)
         forceLogout()
       }
     } catch (error) {
-      console.error('Session extend error:', error)
       forceLogout()
+    } finally {
+      setIsExtending(false)
     }
-  }, [isExtending, sessionExpired, forceLogout, startSessionMonitoring])
+  }, [isExtending, sessionExpired, startSessionMonitoring, forceLogout])
 
-  // Format time display
-  const formatTime = (ms: number): string => {
-    const totalSeconds = Math.floor(ms / 1000)
-    const minutes = Math.floor(totalSeconds / 60)
-    const seconds = totalSeconds % 60
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
-  }
-
-  // Start monitoring on mount
+  // Initialize session monitoring
   useEffect(() => {
-    console.log('SessionTimeout component mounted with timeout:', sessionTimeoutHours, 'hours')
-    console.log('Warning threshold:', warningTimeMs / 1000, 'seconds')
     startSessionMonitoring()
 
+    // Cleanup on unmount
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [startSessionMonitoring, sessionTimeoutHours, warningTimeMs])
+  }, [startSessionMonitoring])
 
-  // Don't render if no modal needed
-  if (!showModal || sessionExpired) {
+  // Don't render anything if session has expired
+  if (sessionExpired) {
     return null
   }
 
-  // LOCKED MODAL - No escape, no flicker, no mercy
+  // Don't render modal if not showing
+  if (!showModal) {
+    return null
+  }
+
+  const minutes = Math.floor(timeRemaining / 60)
+  const seconds = timeRemaining % 60
+
   return (
-    <>
-      {/* FULL SCREEN OVERLAY - BLOCKS EVERYTHING */}
-      <div className="fixed inset-0 bg-black bg-opacity-75 z-[9999] flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 border-2 border-red-500">
-          {/* HEADER - Critical Warning */}
-          <div className="bg-red-600 text-white p-4 rounded-t-lg">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="h-6 w-6 text-white" />
-              <h2 className="font-bold text-white text-lg">🚨 SESSION EXPIRING</h2>
-            </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-amber-100 rounded-full">
+            <AlertTriangle className="h-6 w-6 text-amber-600" />
           </div>
-
-          {/* CONTENT */}
-          <div className="p-6">
-            <p className="text-gray-700 mb-4">
-              Your session will expire in <strong>{formatTime(timeLeft)}</strong>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Session Expiring Soon
+            </h3>
+            <p className="text-sm text-gray-600">
+              Your session will expire automatically
             </p>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center space-x-2">
-                <Clock className="h-5 w-5 text-yellow-600" />
-                <span className="font-bold text-2xl text-yellow-800">
-                  {formatTime(timeLeft)}
-                </span>
-              </div>
-              <p className="text-sm text-yellow-700 mt-2">
-                You will be automatically logged out when this timer reaches zero.
-              </p>
-            </div>
-
-            {/* ACTION BUTTONS */}
-            <div className="flex space-x-3">
-              <Button
-                onClick={extendSession}
-                disabled={isExtending || sessionExpired}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
-              >
-                {isExtending ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Extending...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Extend Session
-                  </>
-                )}
-              </Button>
-
-              <Button
-                onClick={forceLogout}
-                disabled={isLoggingOut}
-                variant="destructive"
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
-              >
-                {isLoggingOut ? (
-                  <>
-                    <LogOut className="h-4 w-4 mr-2 animate-pulse" />
-                    Logging Out...
-                  </>
-                ) : (
-                  <>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout Now
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* WARNING TEXT */}
-            <div className="mt-4 text-center">
-              <p className="text-xs text-gray-500">
-                This display cannot be closed. You must choose an action.
-              </p>
-            </div>
           </div>
         </div>
+
+        <div className="mb-6">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Clock className="h-5 w-5 text-red-500" />
+            <span className="text-2xl font-mono font-bold text-red-600">
+              {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+            </span>
+          </div>
+          <p className="text-center text-sm text-gray-600">
+            Click "Stay Logged In" to continue your session, or you'll be automatically logged out.
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={forceLogout}
+            variant="outline"
+            className="flex-1"
+            disabled={isLoggingOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {isLoggingOut ? 'Logging Out...' : 'Logout Now'}
+          </Button>
+          <Button
+            onClick={extendSession}
+            className="flex-1"
+            disabled={isExtending || isLoggingOut}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isExtending ? 'animate-spin' : ''}`} />
+            {isExtending ? 'Extending...' : 'Stay Logged In'}
+          </Button>
+        </div>
       </div>
-    </>
+    </div>
   )
 }

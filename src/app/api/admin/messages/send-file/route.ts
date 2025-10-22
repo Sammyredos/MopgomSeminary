@@ -90,15 +90,7 @@ export async function POST(request: NextRequest) {
         senderType: currentUser.type,
         recipientType,
         status: 'sent',
-        sentAt: new Date(),
-        // Store file info in a JSON field if your schema supports it
-        // fileAttachment: {
-        //   originalName,
-        //   filename,
-        //   size: file.size,
-        //   type: file.type,
-        //   url: `/uploads/messages/${filename}`
-        // }
+        sentAt: new Date()
       }
     })
 

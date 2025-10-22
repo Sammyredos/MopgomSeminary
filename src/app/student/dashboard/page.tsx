@@ -671,16 +671,14 @@ export default function StudentDashboard() {
                     <div className="p-4 sm:p-6 space-y-3">
                       <div className="flex items-center space-x-2">
                         <GraduationCap className="h-4 w-4 text-gray-400" />
-                        {registrationStatus && !registrationStatus.isComplete ? (
-                          <span className="text-sm" aria-disabled="true">
-                            <span className="font-semibold">Matric Number:</span>
+                        <span className="text-sm">
+                          <span className="font-semibold">Matric Number:</span>{' '}
+                          {studentData.matriculationNumber ? (
+                            <span className="capitalize">{studentData.matriculationNumber}</span>
+                          ) : (
                             <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-300">Unavailable! Complete Profile</Badge>
-                          </span>
-                        ) : (
-                          <span className="text-sm">
-                            <span className="font-semibold">Matric Number:</span> <span className="capitalize">{studentData.matriculationNumber || 'Not assigned'}</span>
-                          </span>
-                        )}
+                          )}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Mail className="h-4 w-4 text-gray-400" />

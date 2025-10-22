@@ -153,7 +153,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Login API called')
     const { email, password } = await request.json()
-    console.log('Login attempt for email:', email)
+    const normalizedEmail = String(email || '').toLowerCase().trim()
+    console.log('Login attempt for email:', normalizedEmail)
 
     const clientIP = getClientIP(request)
 
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if account is locked
-    const lockStatus = await isAccountLocked(email, clientIP)
+    const lockStatus = await isAccountLocked(normalizedEmail, clientIP)
     if (lockStatus.locked) {
       await trackLoginAttempt(email, clientIP, false)
       return NextResponse.json(
@@ -183,8 +184,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Optimized: Try to find admin by email with minimal data first
-    const admin = await prisma.admin.findUnique({
-      where: { email },
+    const admin = await prisma.admin.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,
@@ -214,7 +215,7 @@ export async function POST(request: NextRequest) {
     // If admin found and password matches
     if (admin && verifyPassword(password, admin.password)) {
       if (!admin.isActive) {
-        await trackLoginAttempt(email, clientIP, false)
+        await trackLoginAttempt(normalizedEmail, clientIP, false)
         return NextResponse.json(
           { error: 'Account is Inactive' },
           { status: 401 }
@@ -224,7 +225,7 @@ export async function POST(request: NextRequest) {
       // Check if admin role should not login via /login endpoint
       const adminRoleNames = ['Super Admin', 'Admin', 'Manager', 'Staff', 'Principal', 'Department Head', 'Instructor', 'Librarian']
       if (admin.role && adminRoleNames.includes(admin.role.name)) {
-        await trackLoginAttempt(email, clientIP, false)
+        await trackLoginAttempt(normalizedEmail, clientIP, false)
         return NextResponse.json(
           { 
             error: 'Admin accounts must use the admin login page',
@@ -274,8 +275,8 @@ export async function POST(request: NextRequest) {
     }
 
     // If admin not found or password doesn't match, try user table with optimized query
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
       select: {
         id: true,
         email: true,
@@ -303,7 +304,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user || !verifyPassword(password, user.password)) {
-      await trackLoginAttempt(email, clientIP, false)
+      await trackLoginAttempt(normalizedEmail, clientIP, false)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -311,7 +312,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user.isActive) {
-      await trackLoginAttempt(email, clientIP, false)
+      await trackLoginAttempt(normalizedEmail, clientIP, false)
       return NextResponse.json(
         { error: 'Account is Inactive' },
         { status: 401 }
@@ -319,7 +320,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Successful login - reset login attempts
-    await trackLoginAttempt(email, clientIP, true)
+    await trackLoginAttempt(normalizedEmail, clientIP, true)
 
     // Generate JWT token for user with custom session timeout
     const token = signToken({
