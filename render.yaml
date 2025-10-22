@@ -29,6 +29,7 @@ services:
       echo "🎨 Updating branding and settings..." &&
       (npx tsx scripts/update-branding.ts && echo "✅ Branding updated successfully" || echo "⚠️ Branding update skipped") &&
       echo "👥 Setting up roles and permissions..." &&
+      (npx tsx scripts/update-permissions.ts && echo "✅ Permissions and roles updated" || echo "⚠️ Permission update skipped") &&
       (npx tsx scripts/create-staff-role.ts && echo "✅ Roles and permissions configured" || echo "⚠️ Role setup skipped") &&
       echo "🏗️ Building Next.js application with production optimizations..." &&
       npm run build &&
