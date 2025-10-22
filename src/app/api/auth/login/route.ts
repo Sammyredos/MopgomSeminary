@@ -173,7 +173,6 @@ export async function POST(request: NextRequest) {
     // Check if account is locked
     const lockStatus = await isAccountLocked(normalizedEmail, clientIP)
     if (lockStatus.locked) {
-      await trackLoginAttempt(email, clientIP, false)
       return NextResponse.json(
         { 
           error: `Account temporarily locked due to too many failed attempts. Try again in ${lockStatus.remainingTime} seconds.`,
