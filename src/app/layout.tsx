@@ -10,7 +10,7 @@ import { UserProvider } from "@/contexts/UserContext";
 
 export const metadata: Metadata = {
   title: "Loading...", // Will be immediately replaced by TitleManager
-  description: "Mopgom TS accommodation registration and management system",
+  description: "Mopgom Theological Seminary - Comprehensive seminary management system for student registration, courses, grades, and academic administration",
 };
 
 export default function RootLayout({

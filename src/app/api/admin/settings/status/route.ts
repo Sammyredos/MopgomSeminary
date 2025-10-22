@@ -231,7 +231,7 @@ async function getSystemStatus(systemSettings: any) {
   try {
     const isMaintenanceMode = systemSettings.maintenanceMode?.value || false
     const isDebugMode = systemSettings.debugMode?.value || false
-    const systemName = systemSettings.systemName?.value || 'AccoReg'
+    const systemName = systemSettings.systemName?.value || 'Mopgom Seminary'
 
     return {
       operational: !isMaintenanceMode,

@@ -77,7 +77,7 @@ export const DEFAULT_EMAIL_SETTINGS: SettingDefinition[] = [
     name: 'From Name',
     description: 'Display name for outgoing emails',
     type: 'text',
-    value: 'AccoReg System',
+    value: 'Mopgom Seminary System',
     category: 'email',
     required: true
   },
@@ -152,7 +152,7 @@ export const DEFAULT_SMS_SETTINGS: SettingDefinition[] = [
     name: 'From Number/Name',
     description: 'Sender ID or phone number for outgoing SMS',
     type: 'text',
-    value: 'AccoReg',
+    value: 'Mopgom Seminary',
     category: 'sms'
   },
   {

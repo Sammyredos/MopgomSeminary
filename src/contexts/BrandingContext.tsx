@@ -24,7 +24,7 @@ interface BrandingProviderProps {
 
 export function BrandingProvider({ children }: BrandingProviderProps) {
   const [branding, setBranding] = useState<BrandingState>({
-    systemName: 'Mopgom TS',
+    systemName: 'Mopgom Theological Seminary',
     logoUrl: null
   })
   const [isLoading, setIsLoading] = useState(true) // Start with true to show skeleton until branding loads
@@ -43,7 +43,7 @@ export function BrandingProvider({ children }: BrandingProviderProps) {
       if (response.ok) {
         const data = await response.json()
 
-        const newSystemName = data.systemName || 'Mopgom TS'
+        const newSystemName = data.systemName || 'Mopgom Theological Seminary'
         const newLogoUrl = data.logoUrl || null
 
         // Update both values at once

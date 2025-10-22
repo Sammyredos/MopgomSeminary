@@ -120,13 +120,14 @@ export async function POST(request: NextRequest) {
       role: authResult.user.role?.name
     })
 
-    // Check if user is Super Admin
-    if (authResult.user.role?.name !== 'Super Admin') {
-      console.log('❌ Permission denied - user is not Super Admin')
-      return NextResponse.json({ 
-        error: 'Only Super Admin can modify security settings' 
-      }, { status: 403 })
-    }
+    // Check if user has permission (Super Admin or Admin)
+const allowedRoles = ['Super Admin', 'Admin']
+if (!allowedRoles.includes(authResult.user.role?.name || '')) {
+  console.log('❌ Permission denied - insufficient role for security settings')
+  return NextResponse.json({
+    error: 'Only Super Admin or Admin can modify security settings'
+  }, { status: 403 })
+}
 
     const body = await request.json()
     console.log('📥 Request body received:', body)

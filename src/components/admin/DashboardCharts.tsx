@@ -223,50 +223,6 @@ export function DashboardCharts({ analytics }: DashboardChartsProps) {
 
       {/* Accommodation & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Accommodation Status */}
-        <Card className="border-0 shadow-sm bg-white backdrop-blur-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-                <Home className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900">Room Allocation</h3>
-                <p className="text-xs text-gray-500">Accommodation status</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={accommodationData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {accommodationData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<MinimalTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {accommodationData.map((item, index) => (
-                <div key={index} className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-xs text-gray-600">{item.name}: {item.value}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Activity Trends */}
         <Card className="shadow-sm bg-white border-b border-gray-100 backdrop-blur-sm">

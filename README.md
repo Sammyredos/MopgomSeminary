@@ -1,6 +1,6 @@
-# AccoReg - Theological Seminary Registration System
+# Mopgom Theological Seminary Management System
 
-A comprehensive theological seminary registration and accommodation management system built with Next.js, TypeScript, and Prisma.
+A comprehensive theological seminary management system for student registration, courses, grades, and academic administration built with Next.js, TypeScript, and Prisma.
 
 ## 🚀 Quick Start for New Developers
 
@@ -18,7 +18,7 @@ Before you begin, ensure you have the following installed:
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/your-repo-name.git
-cd AccoReg
+cd mopgom-seminary
 
 # Run the automated setup script
 npm run setup
@@ -40,7 +40,7 @@ If you prefer manual setup or the automated script fails:
 
 ```bash
 git clone https://github.com/yourusername/your-repo-name.git
-cd AccoReg
+cd mopgom-seminary
 ```
 
 #### 2. Install Dependencies
@@ -79,7 +79,7 @@ SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-password
 SMTP_SECURE=false
-EMAIL_FROM_NAME=AccoReg
+EMAIL_FROM_NAME=Mopgom Seminary
 EMAIL_REPLY_TO=noreply@yourdomain.com
 ADMIN_EMAILS=admin@yourdomain.com
 
@@ -157,7 +157,7 @@ The application will be available at:
 ## 📁 Project Structure
 
 ```
-AccoReg/
+mopgom-seminary/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── admin/             # Admin dashboard pages

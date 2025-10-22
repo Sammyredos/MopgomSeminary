@@ -28,7 +28,7 @@ const envSchema = z.object({
   SMTP_USER: z.string().email('SMTP_USER must be a valid email address'),
   SMTP_PASS: z.string().min(1, 'SMTP_PASS is required'),
   SMTP_SECURE: z.string().transform(val => val === 'true').default('false'),
-  EMAIL_FROM_NAME: z.string().min(1).default('AccoReg'),
+  EMAIL_FROM_NAME: z.string().min(1).default('Mopgom Seminary'),
   EMAIL_REPLY_TO: z.string().email().optional(),
   ADMIN_EMAILS: z.string().min(1, 'At least one admin email is required'),
   
@@ -165,7 +165,7 @@ NODE_ENV=production
 PORT=3000
 
 # Database
-DATABASE_URL=postgresql://username:password@localhost:5432/accoreg
+DATABASE_URL=postgresql://username:password@localhost:5432/mopgom-seminary
 
 # JWT
 JWT_SECRET=your-super-secure-jwt-secret-at-least-32-characters
@@ -179,7 +179,7 @@ SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-password
 SMTP_SECURE=false
-EMAIL_FROM_NAME=AccoReg
+EMAIL_FROM_NAME=Mopgom Seminary
 EMAIL_REPLY_TO=noreply@yourdomain.com
 ADMIN_EMAILS=admin@yourdomain.com,manager@yourdomain.com
 
@@ -194,7 +194,7 @@ CSP_ENABLED=true
 HSTS_ENABLED=true
 
 # Backup Configuration
-BACKUP_DIR=/var/backups/accoreg
+BACKUP_DIR=/var/backups/mopgom-seminary
 BACKUP_RETENTION_DAYS=30
 BACKUP_COMPRESSION=true
 BACKUP_ENCRYPTION=true
@@ -207,7 +207,7 @@ CONSENT_VERSION=1.0
 
 # Logging
 LOG_LEVEL=info
-LOG_DIR=/var/log/accoreg
+LOG_DIR=/var/log/mopgom-seminary
 
 # Monitoring
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id

@@ -1079,7 +1079,7 @@ export default function AdminRegistrations() {
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="title">AccoReg Registration Certificate</h1>
+            <h1 class="title">Mopgom Theological Seminary Registration Certificate</h1>
             <p class="subtitle">Official Registration Document</p>
             <p class="subtitle">Participant: ${registration.fullName}</p>
             <p class="subtitle">Generated on ${new Date().toLocaleDateString('en-US', {

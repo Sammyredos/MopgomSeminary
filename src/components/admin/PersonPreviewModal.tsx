@@ -73,7 +73,7 @@ interface PersonPreviewModalProps {
   canRemoveAllocations?: boolean
 }
 
-export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRemoveAllocationAction, canRemoveAllocations = true }: PersonPreviewModalProps) {
+export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRemoveAllocationAction, canRemoveAllocations = false }: PersonPreviewModalProps) {
   const [registration, setRegistration] = useState<Registration | null>(null)
   const [allocation, setAllocation] = useState<RoomAllocation | null>(null)
   const [loading, setLoading] = useState(false)
@@ -111,12 +111,8 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
       const regData = await regResponse.json()
       setRegistration(regData.registration)
 
-      // Fetch allocation details
-      const allocResponse = await fetch(`/api/admin/accommodations/allocation/${registrationId}`)
-      if (allocResponse.ok) {
-        const allocData = await allocResponse.json()
-        setAllocation(allocData.allocation)
-      }
+      // Room allocation UI disabled
+      setAllocation(null)
     } catch (error) {
       console.error('Error fetching registration details:', error)
       const errorMessage = parseApiError(error)
@@ -208,7 +204,7 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
                 {loading ? 'Loading...' : registration?.fullName || 'Person Details'}
               </DialogTitle>
               <DialogDescription className="font-apercu-regular text-sm">
-                Complete registration and accommodation information
+                Complete registration information
               </DialogDescription>
             </div>
           </div>

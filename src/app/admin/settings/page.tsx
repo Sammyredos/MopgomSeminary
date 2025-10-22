@@ -153,20 +153,10 @@ export default function SettingsPage() {
       return true
     }
 
-    // Admin has specific access rules
+    // Admin has full write access (aligned with backend)
     if (currentUser.role.name === 'Admin') {
-      // Admin now has read-only access to authentication & access settings
-      if (tabId === 'security-auth' || tabId === 'security') {
-        console.log('❌ Admin - denying write access to security-auth/security (read-only)')
-        return false // Read-only for authentication settings
-      }
-      // Restrict access to other security sections and notifications
-      if (tabId.startsWith('security-') || tabId.startsWith('notifications')) {
-        console.log('❌ Admin - denying write access to other security sections')
-        return false // Read-only for other security sections
-      }
-      console.log('🔑 Admin - granting write access to other tabs')
-      return true // Write access to other tabs
+      console.log('🔑 Admin - granting write access to all tabs including security')
+      return true
     }
 
     console.log('❌ No matching role found, denying write access')

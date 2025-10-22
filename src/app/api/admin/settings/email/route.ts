@@ -166,7 +166,7 @@ export async function GET(request: NextRequest) {
       smtpUser: settings.smtpUser || process.env.SMTP_USER || '',
       smtpPass: settings.smtpPass || process.env.SMTP_PASS || '', // Include password in config
       smtpSecure: settings.smtpSecure !== undefined ? settings.smtpSecure : (process.env.SMTP_SECURE === 'true'),
-      emailFromName: settings.emailFromName || process.env.EMAIL_FROM_NAME || 'AccoReg',
+      emailFromName: settings.emailFromName || process.env.EMAIL_FROM_NAME || 'Mopgom Seminary',
       emailReplyTo: settings.emailReplyTo || process.env.EMAIL_REPLY_TO || '',
       adminEmails: settings.adminEmails || process.env.ADMIN_EMAILS || '',
       // Fix: Include SMTP password in configuration check
@@ -501,7 +501,7 @@ export async function POST(request: NextRequest) {
       smtpUser: settings.smtpUser || (isDevelopment ? 'test@localhost' : ''),
       smtpPass: settings.smtpPass || '',
       smtpSecure: settings.smtpSecure || false,
-      emailFromName: settings.emailFromName || 'AccoReg System'
+      emailFromName: settings.emailFromName || 'Mopgom Seminary System'
     }
 
     // Test email configuration
@@ -531,11 +531,11 @@ export async function POST(request: NextRequest) {
     await transporter.sendMail({
       from: `"${finalSettings.emailFromName}" <${finalSettings.smtpUser}>`,
       to: testEmailAddress,
-      subject: 'AccoReg Email Test - Configuration Working!',
+      subject: 'Mopgom Seminary Email Test - Configuration Working!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #4F46E5;">Email Configuration Test Successful!</h2>
-          <p>This is a test email from your AccoReg system to confirm that email sending is working correctly.</p>
+          <p>This is a test email from your Mopgom Seminary system to confirm that email sending is working correctly.</p>
 
           <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #374151;">Configuration Details:</h3>

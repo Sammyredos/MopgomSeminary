@@ -13,7 +13,6 @@
 <link rel="preload" href="/fonts/ApercuPro-Medium.woff" as="font" type="font/woff" crossorigin="anonymous"/>
 <link rel="preload" href="/fonts/ApercuPro-Bold.woff" as="font" type="font/woff" crossorigin="anonymous"/>
 <!-- Preload logo for faster header paint -->
-<link rel="preload" href="/uploads/branding/logo-1760529056777.jpg" as="image" />
 <script>
         tailwind.config = {
             darkMode: "class",
@@ -128,7 +127,7 @@
 <!-- Top Navigation Bar -->
 <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-300 dark:border-gray-700 px-6 py-4">
 <div class="flex items-center gap-4 text-text-primary dark:text-white">
-<img src="./uploads/branding/logo-1760529056777.jpg" alt="Seminary Logo" class="site-logo" loading="eager" decoding="async" fetchpriority="high" />
+<img id="site-logo" alt="Seminary Logo" class="site-logo" loading="eager" decoding="async" fetchpriority="high" style="display:none" />
 
 </div>
 <nav class="hidden md:flex items-center gap-9 font-semibold text-text-primary dark:text-gray-300">
@@ -314,4 +313,25 @@
 </div>
 </div>
 </div>
-</body></html>
+<script>
+(async () => {
+  try {
+    const res = await fetch('/api/system/branding', { cache: 'no-store' });
+    const data = await res.json();
+    if (data?.systemName) {
+      document.title = data.systemName;
+    }
+    const logoEl = document.getElementById('site-logo');
+    if (logoEl && data?.logoUrl) {
+      logoEl.src = data.logoUrl;
+      logoEl.style.display = '';
+      logoEl.setAttribute('aria-hidden', 'false');
+    } else if (logoEl) {
+      logoEl.style.display = 'none';
+      logoEl.setAttribute('aria-hidden', 'true');
+    }
+  } catch (e) {
+    console.warn('Branding fetch failed:', e);
+  }
+})();
+</script></body></html>

@@ -122,6 +122,97 @@ export default function StudentDashboard() {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null)
   const [selectedCalendarEvents, setSelectedCalendarEvents] = useState<typeof calendarEvents>([])
 
+  // Centralized student data fetch with cache-busting and no-store
+  const fetchStudentData = async () => {
+    try {
+      const ts = Date.now()
+      let response = await fetch(`/api/student/profile?_t=${ts}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
+      let userData: any
+
+      if (response.ok) {
+        const data = await response.json()
+        userData = data.user || data
+      } else {
+        response = await fetch(`/api/auth/me?_t=${ts}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          userData = data.user || data
+        }
+      }
+
+      if (userData) {
+        const studentDataObj = {
+          id: userData.id,
+          studentId: userData.studentId || userData.id,
+          matriculationNumber: userData.matriculationNumber,
+          fullName: userData.fullName || userData.name || 'Student',
+          emailAddress: userData.email,
+          phoneNumber: userData.phoneNumber || userData.phone || '',
+          grade: userData.grade || 'N/A',
+          academicYear: userData.academicYear || new Date().getFullYear().toString(),
+          enrollmentDate: userData.enrollmentDate || new Date().toISOString(),
+          currentClass: userData.currentClass,
+          courseDesired: userData.courseDesired,
+          profileImage: userData.profileImage,
+          gpa: userData.gpa,
+          totalCredits: userData.totalCredits,
+          completedCredits: userData.completedCredits
+        }
+        setStudentData(studentDataObj)
+
+        const completionStatus = checkRegistrationCompletion({
+          name: userData.fullName || userData.name,
+          email: userData.email,
+          phone: userData.phoneNumber || userData.phone,
+          dateOfBirth: userData.dateOfBirth,
+          gender: userData.gender,
+          homeAddress: userData.homeAddress,
+          officePostalAddress: userData.officePostalAddress,
+          maritalStatus: userData.maritalStatus,
+          spouseName: userData.spouseName,
+          placeOfBirth: userData.placeOfBirth,
+          origin: userData.origin,
+          presentOccupation: userData.presentOccupation,
+          placeOfWork: userData.placeOfWork,
+          positionHeldInOffice: userData.positionHeldInOffice,
+          acceptedJesusChrist: userData.acceptedJesusChrist,
+          whenAcceptedJesus: userData.whenAcceptedJesus,
+          churchAffiliation: userData.churchAffiliation,
+          schoolsAttended: userData.schoolsAttended,
+          courseDesired: userData.courseDesired
+        })
+        setRegistrationStatus(completionStatus)
+      }
+
+      const academicInfo: AcademicInfo = {
+        currentSemester: 'Not available',
+        upcomingDeadlines: [],
+        recentGrades: [],
+        courseSchedule: []
+      }
+      const notifications: Notification[] = []
+      setAcademicInfo(academicInfo)
+      setNotifications(notifications)
+    } catch (error) {
+      console.error('Error fetching student data:', error)
+      toast.error('Failed to load dashboard data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -132,92 +223,6 @@ export default function StudentDashboard() {
 
   // Fetch student data
   useEffect(() => {
-    const fetchStudentData = async () => {
-      try {
-        // First try to get student profile data which includes matriculation number
-        let response = await fetch('/api/student/profile')
-        let userData
-        
-        if (response.ok) {
-          const data = await response.json()
-          userData = data.user || data
-        } else {
-          // Fallback to /api/auth/me if profile endpoint fails
-          response = await fetch('/api/auth/me')
-          if (response.ok) {
-            const data = await response.json()
-            userData = data.user || data
-          }
-        }
-        
-        if (userData) {
-          const studentDataObj = {
-            id: userData.id,
-            studentId: userData.studentId || userData.id,
-            matriculationNumber: userData.matriculationNumber,
-            fullName: userData.fullName || userData.name || 'Student',
-            emailAddress: userData.email,
-            phoneNumber: userData.phoneNumber || userData.phone || '',
-            grade: userData.grade || 'N/A',
-            academicYear: userData.academicYear || new Date().getFullYear().toString(),
-            enrollmentDate: userData.enrollmentDate || new Date().toISOString(),
-            currentClass: userData.currentClass,
-            courseDesired: userData.courseDesired,
-            profileImage: userData.profileImage,
-            gpa: userData.gpa,
-            totalCredits: userData.totalCredits,
-            completedCredits: userData.completedCredits
-          }
-          
-          setStudentData(studentDataObj)
-          
-          // Check registration completion status
-          const completionStatus = checkRegistrationCompletion({
-            name: userData.fullName || userData.name,
-            email: userData.email,
-            phone: userData.phoneNumber || userData.phone,
-            dateOfBirth: userData.dateOfBirth,
-            gender: userData.gender,
-            homeAddress: userData.homeAddress,
-            officePostalAddress: userData.officePostalAddress,
-            maritalStatus: userData.maritalStatus,
-            spouseName: userData.spouseName,
-            placeOfBirth: userData.placeOfBirth,
-            origin: userData.origin,
-            presentOccupation: userData.presentOccupation,
-            placeOfWork: userData.placeOfWork,
-            positionHeldInOffice: userData.positionHeldInOffice,
-            acceptedJesusChrist: userData.acceptedJesusChrist,
-            whenAcceptedJesus: userData.whenAcceptedJesus,
-            churchAffiliation: userData.churchAffiliation,
-            schoolsAttended: userData.schoolsAttended,
-            courseDesired: userData.courseDesired
-          })
-          
-          setRegistrationStatus(completionStatus)
-        }
-        
-        // Initialize empty academic info - to be populated by actual API calls
-        const academicInfo: AcademicInfo = {
-          currentSemester: 'Not available',
-          upcomingDeadlines: [],
-          recentGrades: [],
-          courseSchedule: []
-        }
-
-        const notifications: Notification[] = []
-
-        setAcademicInfo(academicInfo)
-        setNotifications(notifications)
-      } catch (error) {
-        console.error('Error fetching student data:', error)
-        toast.error('Failed to load dashboard data')
-      } finally {
-        // Always set loading to false, regardless of success or error
-        setLoading(false)
-      }
-    }
-
     fetchStudentData()
   }, [])
 
