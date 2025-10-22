@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Successful login - reset login attempts
-      await trackLoginAttempt(email, clientIP, true)
+      await trackLoginAttempt(normalizedEmail, clientIP, true)
 
       // Generate JWT token for admin with custom session timeout
       const token = signToken({

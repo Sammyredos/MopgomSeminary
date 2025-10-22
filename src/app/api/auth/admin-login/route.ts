@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
 
     // Check if the admin has an allowed role
     if (!admin.role || !allowedAdminRoles.includes(admin.role.name)) {
-      await trackLoginAttempt(email, clientIP, false)
+      await trackLoginAttempt(normalizedEmail, clientIP, false)
       return NextResponse.json(
         { 
           error: 'Access denied. Only Super Admin, Admin, and Lecturer roles can access the admin panel.',
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Successful login - reset login attempts
-    await trackLoginAttempt(email, clientIP, true)
+    await trackLoginAttempt(normalizedEmail, clientIP, true)
 
     // Generate JWT token for admin with custom session timeout
     const token = signToken({
