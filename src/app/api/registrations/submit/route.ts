@@ -90,6 +90,30 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Using branch value:', branchValue)
 
+    // Pre-check for duplicates across users and registrations before insert
+    try {
+      const { checkForDuplicates } = await import('@/lib/duplicate-check')
+      const dupResult = await checkForDuplicates({
+        email: data.emailAddress,
+        phone: data.phoneNumber,
+        fullName: data.fullName
+      })
+      if (dupResult.isDuplicate) {
+        return NextResponse.json(
+          {
+            error: 'Duplicate registration',
+            message: 'A registration with this email, phone, or name already exists.',
+            duplicateFields: dupResult.duplicateFields,
+            duplicateDetails: dupResult.duplicateDetails
+          },
+          { status: 400 }
+        )
+      }
+    } catch (dupError) {
+      console.error('Duplicate pre-check failed, proceeding to rely on DB constraints:', dupError)
+      // Do not block submission solely due to duplicate check errors
+    }
+
     // Create registration
     const registration = await prisma.registration.create({
       data: {
@@ -99,15 +123,15 @@ export async function POST(request: NextRequest) {
         gender: data.gender,
         address: data.address,
         branch: branchValue,
-        phoneNumber: data.phoneNumber,
-        emailAddress: data.emailAddress,
+        phoneNumber: String(data.phoneNumber || '').replace(/\D/g, ''),
+        emailAddress: String(data.emailAddress || '').toLowerCase().trim(),
         // Use emergency contact info (either manually entered or copied from parent)
         emergencyContactName: data.emergencyContactName || data.parentGuardianName,
         emergencyContactRelationship: data.emergencyContactRelationship || 'Parent/Guardian',
-        emergencyContactPhone: data.emergencyContactPhone || data.parentGuardianPhone,
+        emergencyContactPhone: String(data.emergencyContactPhone || data.parentGuardianPhone || '' ).replace(/\D/g, ''),
         parentGuardianName: data.parentGuardianName,
-        parentGuardianPhone: data.parentGuardianPhone,
-        parentGuardianEmail: data.parentGuardianEmail,
+        parentGuardianPhone: String(data.parentGuardianPhone || '').replace(/\D/g, ''),
+        parentGuardianEmail: data.parentGuardianEmail?.toLowerCase().trim(),
         parentalPermissionGranted: true, // Always mark as completed/approved
         parentalPermissionDate: new Date() // Set current date as completion date
       }

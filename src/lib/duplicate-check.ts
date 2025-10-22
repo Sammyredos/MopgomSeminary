@@ -19,6 +19,7 @@ export interface DuplicateCheckParams {
   surname?: string
   firstname?: string
   lastname?: string
+  fullName?: string
   excludeId?: string // Exclude a specific record ID from the check (useful for updates)
 }
 
@@ -27,7 +28,7 @@ export interface DuplicateCheckParams {
  * This prevents conflicts between the two tables and ensures consistent validation
  */
 export async function checkForDuplicates(params: DuplicateCheckParams): Promise<DuplicateCheckResult> {
-  const { email, phone, surname, firstname, lastname, excludeId } = params
+  const { email, phone, surname, firstname, lastname, fullName: rawFullName, excludeId } = params
   
   const duplicateFields: string[] = []
   const duplicateDetails: any = {}
@@ -38,9 +39,10 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
   const normalizedSurname = surname?.toLowerCase().trim()
   const normalizedFirstname = firstname?.toLowerCase().trim()
   const normalizedLastname = lastname?.toLowerCase().trim()
+  const normalizedFullNameInput = rawFullName?.toLowerCase().trim()
   
-  // Construct full name for comparison
-  const fullName = [normalizedSurname, normalizedFirstname, normalizedLastname]
+  // Construct full name for comparison (prefer explicitly provided fullName)
+  const fullName = normalizedFullNameInput || [normalizedSurname, normalizedFirstname, normalizedLastname]
     .filter(Boolean)
     .join(' ')
 
@@ -104,7 +106,8 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
       const userNameDuplicate = await prisma.user.findFirst({
         where: {
           name: {
-            equals: fullName
+            equals: fullName,
+            mode: 'insensitive'
           },
           ...(excludeId && { id: { not: excludeId } })
         },
@@ -121,7 +124,8 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
         const registrationNameDuplicate = await prisma.registration.findFirst({
           where: {
             fullName: {
-              equals: fullName
+              equals: fullName,
+              mode: 'insensitive'
             },
             ...(excludeId && { id: { not: excludeId } })
           },
@@ -137,19 +141,32 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
 
     // Check for similar names (fuzzy matching)
     const similarRegistrations: any[] = []
-    if (normalizedFirstname && normalizedLastname) {
+    let fuzzyFirst = normalizedFirstname
+    let fuzzyLast = normalizedLastname
+    
+    if ((!fuzzyFirst || !fuzzyLast) && normalizedFullNameInput) {
+      const parts = normalizedFullNameInput.split(/\s+/).filter(Boolean)
+      if (parts.length >= 2) {
+        fuzzyFirst = parts[0]
+        fuzzyLast = parts[parts.length - 1]
+      }
+    }
+
+    if (fuzzyFirst && fuzzyLast) {
       // Check for similar name combinations in both tables
       const similarInUsers = await prisma.user.findMany({
         where: {
           AND: [
             {
               name: {
-                contains: normalizedFirstname
+                contains: fuzzyFirst,
+                mode: 'insensitive'
               }
             },
             {
               name: {
-                contains: normalizedLastname
+                contains: fuzzyLast,
+                mode: 'insensitive'
               }
             }
           ],
@@ -163,12 +180,14 @@ export async function checkForDuplicates(params: DuplicateCheckParams): Promise<
           AND: [
             {
               fullName: {
-                contains: normalizedFirstname
+                contains: fuzzyFirst,
+                mode: 'insensitive'
               }
             },
             {
               fullName: {
-                contains: normalizedLastname
+                contains: fuzzyLast,
+                mode: 'insensitive'
               }
             }
           ],

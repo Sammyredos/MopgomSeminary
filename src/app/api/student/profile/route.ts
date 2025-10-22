@@ -204,36 +204,23 @@ export async function PUT(request: NextRequest) {
     const churchAffiliation = body.churchAffiliation ?? null
     const schoolsAttended = Array.isArray(body.schoolsAttended) ? JSON.stringify(body.schoolsAttended) : null
 
-    // Update additional fields using raw SQL to avoid client generation issues
-    await prisma.$executeRawUnsafe(
-      `UPDATE registrations SET 
-        officePostalAddress = ?,
-        maritalStatus = ?,
-        spouseName = ?,
-        placeOfBirth = ?,
-        origin = ?,
-        presentOccupation = ?,
-        placeOfWork = ?,
-        positionHeldInOffice = ?,
-        acceptedJesusChrist = ?,
-        whenAcceptedJesus = ?,
-        churchAffiliation = ?,
-        schoolsAttended = ?
-      WHERE id = ?`,
-      officePostalAddress,
-      maritalStatus,
-      spouseName,
-      placeOfBirth,
-      origin,
-      presentOccupation,
-      placeOfWork,
-      positionHeldInOffice,
-      acceptedJesusChrist,
-      whenAcceptedJesus,
-      churchAffiliation,
-      schoolsAttended,
-      registration.id
-    )
+    // Update additional fields using parameterized SQL compatible with PostgreSQL
+    await prisma.$executeRaw`
+      UPDATE registrations SET 
+        officePostalAddress = ${officePostalAddress},
+        maritalStatus = ${maritalStatus},
+        spouseName = ${spouseName},
+        placeOfBirth = ${placeOfBirth},
+        origin = ${origin},
+        presentOccupation = ${presentOccupation},
+        placeOfWork = ${placeOfWork},
+        positionHeldInOffice = ${positionHeldInOffice},
+        acceptedJesusChrist = ${acceptedJesusChrist},
+        whenAcceptedJesus = ${whenAcceptedJesus},
+        churchAffiliation = ${churchAffiliation},
+        schoolsAttended = ${schoolsAttended}
+      WHERE id = ${registration.id}
+    `
 
     return NextResponse.json({ success: true })
   } catch (error) {
