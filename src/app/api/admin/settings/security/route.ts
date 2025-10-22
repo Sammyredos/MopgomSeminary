@@ -139,20 +139,40 @@ if (!allowedRoles.includes(authResult.user.role?.name || '')) {
     console.log('✅ Settings validation passed:', validatedSettings)
 
     // Save each setting to database
-    const updatePromises = Object.entries(validatedSettings).map(([key, value]) =>
-      prisma.systemConfig.upsert({
+    const updatePromises = Object.entries(validatedSettings).map(async ([key, value]) => {
+      // Find latest existing record for this key (works without unique constraints)
+      const latest = await prisma.systemConfig.findFirst({
         where: { key },
-        update: { 
-          value: String(value),
-          updatedAt: new Date()
-        },
-        create: {
-          key,
-          value: String(value),
-          description: getSettingDescription(key)
-        }
+        orderBy: { updatedAt: 'desc' }
       })
-    )
+
+      if (latest) {
+        // Clean duplicates if any, keeping the latest
+        await prisma.systemConfig.deleteMany({
+          where: {
+            key,
+            id: { not: latest.id }
+          }
+        })
+
+        return prisma.systemConfig.update({
+          where: { id: latest.id },
+          data: {
+            value: String(value),
+            updatedAt: new Date()
+          }
+        })
+      } else {
+        // Create new entry when key not found
+        return prisma.systemConfig.create({
+          data: {
+            key,
+            value: String(value),
+            description: getSettingDescription(key)
+          }
+        })
+      }
+    })
 
     await Promise.all(updatePromises)
 
