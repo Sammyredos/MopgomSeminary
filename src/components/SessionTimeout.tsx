@@ -14,6 +14,7 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
   const [sessionExpired, setSessionExpired] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isExtending, setIsExtending] = useState(false)
+  const [extendError, setExtendError] = useState<string | null>(null)
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -77,6 +78,7 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
       // Show modal only when warning time is reached
       if (remaining <= warningTimeMs && !showModal) {
         setShowModal(true)
+        setExtendError(null)
         setTimeRemaining(Math.max(0, Math.floor(remaining / 1000)))
 
         // Switch to 1-second countdown updates for accuracy
@@ -103,30 +105,36 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
     }, 5000)
   }, [sessionTimeoutMs, warningTimeMs, showModal, forceLogout])
 
-  // Extend session
+  // Extend session (use refresh endpoint; never auto-logout on failure)
   const extendSession = useCallback(async () => {
     if (isExtending || sessionExpired) return
 
     setIsExtending(true)
+    setExtendError(null)
     try {
-      const response = await fetch('/api/auth/extend-session', {
+      const response = await fetch('/api/auth/refresh', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
       })
 
       if (response.ok) {
+        // Hide modal and restart monitoring with fresh cookie expiry
         setShowModal(false)
         setTimeRemaining(0)
-        startSessionMonitoring() // Restart monitoring with new session
+        startSessionMonitoring()
       } else {
-        forceLogout()
+        // Keep user in session; show error and allow retry
+        const data = await response.json().catch(() => ({}))
+        setExtendError(data?.error || 'Could not extend session. Please try again.')
       }
     } catch (error) {
-      forceLogout()
+      // Network or other error — keep session and let user retry
+      setExtendError('Network error while extending session. Please try again.')
     } finally {
       setIsExtending(false)
     }
-  }, [isExtending, sessionExpired, startSessionMonitoring, forceLogout])
+  }, [isExtending, sessionExpired, startSessionMonitoring])
 
   // Initialize session monitoring
   useEffect(() => {
@@ -169,13 +177,18 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
           </div>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Clock className="h-5 w-5 text-red-500" />
             <span className="text-2xl font-mono font-bold text-red-600">
               {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </span>
           </div>
+          {extendError && (
+            <p className="text-center text-sm text-red-600 mb-2">
+              {extendError}
+            </p>
+          )}
           <p className="text-center text-sm text-gray-600">
             Click "Stay Logged In" to continue your session, or you'll be automatically logged out.
           </p>
