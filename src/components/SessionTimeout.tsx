@@ -64,7 +64,7 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
     const sessionStartTime = Date.now()
     const sessionExpiryTime = sessionStartTime + sessionTimeoutMs
 
-    // Check session status every 5 seconds
+    // Background check every 5 seconds until we hit the warning threshold
     intervalRef.current = setInterval(() => {
       const now = Date.now()
       const remaining = sessionExpiryTime - now
@@ -74,20 +74,31 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
         return
       }
 
-      // Show modal when warning time is reached
+      // Show modal only when warning time is reached
       if (remaining <= warningTimeMs && !showModal) {
         setShowModal(true)
         setTimeRemaining(Math.max(0, Math.floor(remaining / 1000)))
-        
-        // Auto-logout when time reaches zero
+
+        // Switch to 1-second countdown updates for accuracy
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+        }
+        intervalRef.current = setInterval(() => {
+          const nowTick = Date.now()
+          const remainingTick = sessionExpiryTime - nowTick
+
+          if (remainingTick <= 0) {
+            forceLogout()
+            return
+          }
+
+          setTimeRemaining(Math.max(0, Math.floor(remainingTick / 1000)))
+        }, 1000)
+
+        // Auto-logout when time reaches zero (failsafe)
         timeoutRef.current = setTimeout(() => {
           forceLogout()
         }, remaining)
-      }
-
-      // Update countdown if modal is showing
-      if (showModal) {
-        setTimeRemaining(Math.max(0, Math.floor(remaining / 1000)))
       }
     }, 5000)
   }, [sessionTimeoutMs, warningTimeMs, showModal, forceLogout])
@@ -133,8 +144,8 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
     return null
   }
 
-  // Don't render modal if not showing
-  if (!showModal) {
+  // Don't render modal unless we are within the final minute
+  if (!showModal || timeRemaining > 60) {
     return null
   }
 
