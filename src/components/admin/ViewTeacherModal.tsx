@@ -95,7 +95,7 @@ export function ViewTeacherModal({ isOpen, onClose, teacher }: ViewTeacherModalP
                   <Phone className="h-4 w-4 text-gray-400" />
                   <div>
                     <p className="text-sm font-medium text-gray-500">Phone</p>
-                    <p className="text-sm">{teacher.phoneNumber}</p>
+                    <p className="text-sm break-all">{teacher.phoneNumber}</p>
                   </div>
                 </div>
               </div>

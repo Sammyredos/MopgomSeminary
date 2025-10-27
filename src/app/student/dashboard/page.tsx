@@ -673,10 +673,12 @@ export default function StudentDashboard() {
                         <GraduationCap className="h-4 w-4 text-gray-400" />
                         <span className="text-sm">
                           <span className="font-semibold">Matric Number:</span>{' '}
-                          {studentData.matriculationNumber ? (
+                          {studentData.matriculationNumber && registrationStatus?.isComplete ? (
                             <span className="capitalize">{studentData.matriculationNumber}</span>
                           ) : (
-                            <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-300">Unavailable! Complete Profile</Badge>
+                            <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-300">
+                              {registrationStatus?.isComplete ? 'Pending Verification' : 'Complete Profile First'}
+                            </Badge>
                           )}
                         </span>
                       </div>

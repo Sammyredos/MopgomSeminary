@@ -785,6 +785,11 @@ export default function StudentSignup() {
                 <label htmlFor="courseDesired" className="font-apercu-medium text-sm text-gray-700">
                   Course Of Study <span className="text-red-500">*</span>
                 </label>
+                <div className="mb-2">
+                  <p className="font-apercu-regular text-[10px] text-gray-400 bg-gray-50 px-3 py-2 rounded-md border border-gray-100">
+                    For the time being, we only offer <span className="font-apercu-bold text-gray-500">General Certificate</span> program through our comprehensive online learning platform. We are currently expanding our facilities and enhancing our capacity to accommodate additional programs in the near future.
+                  </p>
+                </div>
                 <Select value={formData.courseDesired} onValueChange={(value) => handleInputChange('courseDesired', value)}>
                   <SelectTrigger className={`h-12 border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors ${
                     errors.courseDesired ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
@@ -793,9 +798,9 @@ export default function StudentSignup() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="General Certificate">General Certificate</SelectItem>
-                    <SelectItem value="Diploma Certificate">Diploma Certificate</SelectItem>
-                    <SelectItem value="Bachelor's Degree">Bachelor's Degree</SelectItem>
-                    <SelectItem value="Master's Degree">Master's Degree</SelectItem>
+                    <SelectItem value="Diploma Certificate" disabled>Diploma Certificate</SelectItem>
+                    <SelectItem value="Bachelor's Degree" disabled>Bachelor's Degree</SelectItem>
+                    <SelectItem value="Master's Degree" disabled>Master's Degree</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.courseDesired && (

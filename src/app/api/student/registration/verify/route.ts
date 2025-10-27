@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { verifyToken } from '@/lib/auth'
 import { checkRegistrationCompletion } from '@/utils/registrationCompletion'
+import { generateMatriculationNumber } from '@/lib/matriculation-generator'
 
 const prisma = new PrismaClient()
 
@@ -103,12 +104,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, verified: true, verifiedAt: (updated as any).verifiedAt, verifiedBy: (updated as any).verifiedBy })
     }
 
+    // Generate matriculation number only when profile is complete and being verified
+    const matriculationNumber = await generateMatriculationNumber()
+
     const verified = await prisma.registration.update({
       where: { id: updated.id },
       data: {
         isVerified: true,
         verifiedAt: new Date(),
-        verifiedBy: user.email || null
+        verifiedBy: user.email || null,
+        matriculationNumber: matriculationNumber // Assign matriculation number upon verification
       }
     })
 

@@ -132,9 +132,9 @@ export default function AdminLogin() {
             <CardContent className="py-12 px-8">
               <div className="text-center">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                  </div>
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
                   <div className="space-y-2">
                     <h2 className="font-apercu-bold text-xl text-gray-800">Authenticating</h2>
                     <p className="font-apercu-medium text-gray-600">Checking your session...</p>
@@ -259,7 +259,7 @@ export default function AdminLogin() {
                   </div>
                 ) : loading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 bg-white/70 rounded-full animate-pulse" />
                     <span className="text-white">Signing in...</span>
                   </div>
                 ) : (

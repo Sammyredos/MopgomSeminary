@@ -198,9 +198,6 @@ export async function POST(request: NextRequest) {
 
     // Create user account and registration in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Generate matriculation number
-      const matriculationNumber = await generateMatriculationNumber()
-
       // Create user account
       const user = await tx.user.create({
         data: {
@@ -213,7 +210,7 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Create registration record
+      // Create registration record without matriculation number (assigned after profile completion)
       const registration = await tx.registration.create({
         data: {
           fullName: `${data.surname} ${data.firstname} ${data.lastname}`,
@@ -224,7 +221,7 @@ export async function POST(request: NextRequest) {
           branch: data.branch || 'Online Registration',
           phoneNumber: data.phone,
           emailAddress: data.email,
-          matriculationNumber: matriculationNumber,
+          matriculationNumber: null, // Will be assigned after profile completion
           courseDesired: data.courseDesired,
           emergencyContactName: data.emergencyContactName || `${data.surname} ${data.firstname} ${data.lastname}`,
           emergencyContactRelationship: data.emergencyContactRelationship || 'Self',

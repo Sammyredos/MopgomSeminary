@@ -1779,7 +1779,7 @@ export default function SettingsPage() {
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                <div className="h-4 w-4 mr-1 bg-gray-300 rounded animate-pulse" />
                 Saving...
               </>
             ) : (
@@ -1862,13 +1862,13 @@ export default function SettingsPage() {
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                <div className="h-4 w-4 mr-1 bg-gray-300 rounded animate-pulse" />
                 Saving...
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 mr-1" />
-                Save
+                <Send className="h-4 w-4 mr-1" />
+                Send Test
               </>
             )}
           </Button>
@@ -1925,7 +1925,7 @@ export default function SettingsPage() {
                 >
                   {savingRegistrationSettings ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      <div className="h-4 w-4 mr-1 bg-gray-300 rounded animate-pulse" />
                       Saving...
                     </>
                   ) : (
@@ -2350,7 +2350,7 @@ export default function SettingsPage() {
               className="cursor-pointer flex flex-col items-center space-y-2"
             >
               {uploadingLogo ? (
-                <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+                <div className="h-8 w-8 bg-orange-300 rounded animate-pulse" />
               ) : (
                 <Upload className="h-8 w-8 text-orange-500" />
               )}
@@ -2669,7 +2669,7 @@ export default function SettingsPage() {
               >
                 {testingEmail ? (
                   <>
-                    <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                    <div className="h-5 w-5 mr-3 bg-blue-300 rounded animate-pulse" />
                     <div className="text-left">
                       <div className="font-apercu-bold text-sm">Testing Email...</div>
                       <div className="font-apercu-regular text-xs text-blue-100">Please wait</div>
@@ -3838,7 +3838,7 @@ export default function SettingsPage() {
             >
               {savingRateLimits ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                   Saving...
                 </>
               ) : (
@@ -4022,7 +4022,7 @@ export default function SettingsPage() {
                     >
                       {importingData ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                           Importing...
                         </>
                       ) : (
@@ -4062,7 +4062,7 @@ export default function SettingsPage() {
                   >
                     {viewingLogs ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                         Loading...
                       </>
                     ) : (

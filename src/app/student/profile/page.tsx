@@ -1172,10 +1172,7 @@ export default function StudentProfilePage() {
                   </p>
                 ) : (
                   <p className="text-sm text-gray-700">
-                    Your profile is complete. An admin will verify your registration.
-                    Your matriculation number
-                    <span className="font-medium"> {studentData?.matriculationNumber || 'Not assigned'} </span>
-                    will be displayed after verification.
+                    Your profile is complete. A Matriculation number has been assigned to you.
                   </p>
                 )}
                 <div className="mt-4 flex justify-end gap-3">

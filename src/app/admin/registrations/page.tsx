@@ -1464,7 +1464,7 @@ export default function AdminRegistrations() {
                 size="sm"
               >
                 {isExporting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                 ) : (
                   <Download className="h-4 w-4 mr-2" />
                 )}
@@ -1481,7 +1481,7 @@ export default function AdminRegistrations() {
             <p className="font-apercu-regular text-sm text-gray-600">
               {loading ? (
                 <span className="flex items-center">
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                   {loadingText}
                 </span>
               ) : (
@@ -1507,7 +1507,7 @@ export default function AdminRegistrations() {
             </div>
             {refreshing && (
               <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                <div className="w-4 h-4 bg-blue-300 rounded animate-pulse"></div>
                 <span className="font-apercu-regular">Refreshing...</span>
               </div>
             )}
@@ -1582,7 +1582,7 @@ export default function AdminRegistrations() {
                             disabled
                             aria-label="Loading status"
                           >
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                             Loading
                           </Button>
                         )}
@@ -1631,8 +1631,8 @@ export default function AdminRegistrations() {
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600 font-apercu-regular">{registration.emailAddress}</div>
-                          <div className="text-sm text-gray-500 font-apercu-regular">{registration.phoneNumber}</div>
+                          <div className="text-sm text-gray-600 font-apercu-regular break-all">{registration.emailAddress}</div>
+                          <div className="text-sm text-gray-500 font-apercu-regular break-all">{registration.phoneNumber}</div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 font-apercu-regular">
                           {registration.courseDesired || 'N/A'}
@@ -1695,7 +1695,7 @@ export default function AdminRegistrations() {
                                   disabled
                                   aria-label="Loading status"
                                 >
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                                   Loading
                                 </Button>
                               )}
@@ -1848,7 +1848,7 @@ export default function AdminRegistrations() {
                     </div>
                     <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                       <label className="block font-apercu-medium text-xs sm:text-sm text-gray-600 mb-1">Phone Number</label>
-                      <p className="font-apercu-regular text-sm sm:text-base text-gray-900">{selectedRegistration.phoneNumber}</p>
+                      <p className="font-apercu-regular text-sm sm:text-base text-gray-900 break-all">{selectedRegistration.phoneNumber}</p>
                     </div>
                     <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                       <label className="block font-apercu-medium text-xs sm:text-sm text-gray-600 mb-1">Email Address</label>
@@ -2023,7 +2023,7 @@ export default function AdminRegistrations() {
                       size="sm"
                     >
                       {isExporting ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                       ) : (
                         <Download className="h-4 w-4 mr-2" />
                       )}
@@ -2060,7 +2060,7 @@ export default function AdminRegistrations() {
                       size="sm"
                     >
                       {isEditing ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                       ) : (
                         <FileText className="h-4 w-4 mr-2" />
                       )}
@@ -2470,7 +2470,7 @@ export default function AdminRegistrations() {
                     disabled={isEditing}
                   >
                     {isEditing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                     ) : (
                       <CheckCircle className="h-4 w-4 mr-2" />
                     )}
@@ -2544,7 +2544,7 @@ export default function AdminRegistrations() {
                   disabled={isDeleting}
                 >
                   {isDeleting ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                   ) : (
                     <Trash2 className="h-4 w-4 mr-2" />
                   )}

@@ -604,7 +604,11 @@ function TimetablePageContent() {
               className="px-3"
               title="Refresh Academic Year"
             >
-              <RefreshCw className={`h-4 w-4 ${academicYearLoading ? 'animate-spin' : ''}`} />
+              {academicYearLoading ? (
+                <div className="h-4 w-4 bg-gray-300 rounded animate-pulse" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
             </Button>
           </div>
           

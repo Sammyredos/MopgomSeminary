@@ -335,13 +335,13 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
 
                   <div>
                     <label className="font-apercu-medium text-sm text-gray-600">Phone Number</label>
-                    <div className="flex items-center space-x-2">
-                      <p className="font-apercu-regular text-sm text-gray-900 flex-1">{registration.phoneNumber}</p>
+                    <div className="flex items-start space-x-2">
+                      <p className="font-apercu-regular text-sm text-gray-900 flex-1 break-all word-wrap">{registration.phoneNumber}</p>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => copyToClipboard(registration.phoneNumber, 'phone')}
-                        className="p-1 flex-shrink-0"
+                        className="p-1 flex-shrink-0 mt-0"
                       >
                         {copied === 'phone' ? (
                           <CheckCircle className="h-4 w-4 text-green-600" />
@@ -378,13 +378,13 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
                 </div>
                 <div className="sm:col-span-2 lg:col-span-1">
                   <label className="font-apercu-medium text-sm text-gray-600">Phone</label>
-                  <div className="flex items-center space-x-2">
-                    <p className="font-apercu-regular text-sm text-gray-900 flex-1">{registration.emergencyContactPhone}</p>
+                  <div className="flex items-start space-x-2">
+                    <p className="font-apercu-regular text-sm text-gray-900 flex-1 break-all word-wrap">{registration.emergencyContactPhone}</p>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(registration.emergencyContactPhone, 'emergency')}
-                      className="p-1 flex-shrink-0"
+                      className="p-1 flex-shrink-0 mt-0"
                     >
                       {copied === 'emergency' ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />

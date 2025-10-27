@@ -80,7 +80,7 @@ export function StatsCard({
 
   if (href) {
     return (
-      <Link href={href} aria-label={ariaLabel || title} className="block focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg">
+      <Link href={href} aria-label={ariaLabel || title} className="block focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-lg no-underline hover:no-underline">
         {inner}
       </Link>
     )

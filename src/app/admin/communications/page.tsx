@@ -1559,7 +1559,7 @@ export default function CommunicationsPage() {
                   >
                     {isSendingBulkEmail ? (
                       <>
-                        <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-spin" />
+                        <div className="h-3 w-3 sm:h-4 sm:w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                         Sending...
                       </>
                     ) : (

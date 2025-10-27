@@ -125,7 +125,7 @@ export default function DeleteStudentModal({ isOpen, onClose, onSuccess, onStude
                   
                   <div className="flex items-center space-x-2">
                     <Phone className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{student.phoneNumber}</span>
+                    <span className="text-sm break-all">{student.phoneNumber}</span>
                   </div>
                   
                   <div className="flex items-center justify-between text-sm">
