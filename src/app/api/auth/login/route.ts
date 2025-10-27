@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     // Optimized: Try to find admin by email with minimal data first
     const admin = await prisma.admin.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      where: { email: normalizedEmail },
       select: {
         id: true,
         email: true,
@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
 
     // If admin not found or password doesn't match, try user table with optimized query
     const user = await prisma.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      where: { email: normalizedEmail },
       select: {
         id: true,
         email: true,

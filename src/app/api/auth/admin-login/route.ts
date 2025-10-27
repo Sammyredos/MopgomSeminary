@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
 
     // Try to find admin by email
     const admin = await prisma.admin.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
+      where: { email: normalizedEmail },
       select: {
         id: true,
         email: true,
