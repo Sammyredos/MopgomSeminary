@@ -30,7 +30,7 @@ const nextConfig = {
 
   // Image optimization
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'mopgomseminary.onrender.com'],
     formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
@@ -41,6 +41,10 @@ const nextConfig = {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
+      },
+      {
+        protocol: 'https',
+        hostname: 'mopgomseminary.onrender.com',
       }
     ],
     unoptimized: false,
