@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
 
 function Skeleton({
   className,
@@ -179,26 +181,30 @@ function PageHeaderSkeleton() {
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <Skeleton className="h-10 w-32" />
+        <ButtonSkeleton size="lg" className="w-32" />
       </div>
       <div className="flex space-x-2">
-        <Skeleton className="h-8 w-20" />
-        <Skeleton className="h-8 w-24" />
-        <Skeleton className="h-8 w-16" />
+        <ButtonSkeleton size="default" className="w-20" />
+        <ButtonSkeleton size="default" className="w-24" />
+        <ButtonSkeleton size="default" className="w-16" />
       </div>
     </div>
   )
 }
 
 // Button Loading Skeleton
-function ButtonSkeleton({ size = 'default' }: { size?: 'sm' | 'default' | 'lg' }) {
-  const sizeClasses = {
-    sm: 'h-8 w-20',
-    default: 'h-9 w-24',
-    lg: 'h-10 w-28'
-  }
-
-  return <Skeleton className={`${sizeClasses[size]} rounded-md`} />
+function ButtonSkeleton({ size = 'default', className }: { size?: 'sm' | 'default' | 'lg'; className?: string }) {
+  // Render a disabled button with a centered spinner instead of a rectangular skeleton
+  return (
+    <Button
+      disabled
+      variant="outline"
+      size={size}
+      className={cn("inline-flex items-center justify-center", className)}
+    >
+      <Loader2 className="h-4 w-4 animate-spin" />
+    </Button>
+  )
 }
 
 // Sidebar Loading Skeleton
@@ -523,8 +529,8 @@ function RegistrationFormSkeleton() {
 
             {/* Navigation Buttons Skeleton */}
             <div className="flex justify-between pt-6 border-t border-gray-100">
-              <Skeleton className="h-10 w-24 rounded-md" />
-              <Skeleton className="h-10 w-32 rounded-md" />
+              <ButtonSkeleton size="default" className="w-24" />
+              <ButtonSkeleton size="default" className="w-32" />
             </div>
           </div>
         </div>

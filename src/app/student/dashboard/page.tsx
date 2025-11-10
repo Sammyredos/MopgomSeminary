@@ -116,6 +116,7 @@ export default function StudentDashboard() {
   const [studentInfoHeight, setStudentInfoHeight] = useState<number>(340)
   const studentInfoRef = useRef<HTMLDivElement | null>(null)
   const [coursesCount, setCoursesCount] = useState<number>(0)
+  const [availableProgramCoursesCount, setAvailableProgramCoursesCount] = useState<number>(0)
   const { stats: messageStats } = useMessages()
   // Modal state for calendar date click
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
@@ -128,6 +129,7 @@ export default function StudentDashboard() {
       const ts = Date.now()
       let response = await fetch(`/api/student/profile?_t=${ts}`, {
         cache: 'no-store',
+        credentials: 'include',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache'
@@ -141,6 +143,7 @@ export default function StudentDashboard() {
       } else {
         response = await fetch(`/api/auth/me?_t=${ts}`, {
           cache: 'no-store',
+          credentials: 'include',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache'
@@ -295,23 +298,39 @@ export default function StudentDashboard() {
     return () => clearInterval(interval)
   }, [])
 
-  // Fetch enrolled course count
+  // Fetch enrolled subjects count (course allocations) for the authenticated student
   useEffect(() => {
-    const fetchCoursesCount = async () => {
+    const fetchEnrolledSubjectsCount = async () => {
       try {
-        if (!studentData?.id) return
-        const res = await fetch(`/api/students/${studentData.id}`)
+        const res = await fetch('/api/student/enrollments', { cache: 'no-store' })
         if (res.ok) {
           const data = await res.json()
-          const count = Array.isArray(data?.courseAllocations) ? data.courseAllocations.length : 0
+          const count = typeof data?.enrolledSubjectsCount === 'number' ? data.enrolledSubjectsCount : 0
           setCoursesCount(count)
         }
       } catch (err) {
-        console.warn('Failed to fetch course count:', err)
+        console.warn('Failed to fetch enrolled subjects count:', err)
       }
     }
-    fetchCoursesCount()
+    fetchEnrolledSubjectsCount()
   }, [studentData?.id])
+
+  // Fetch available courses for the student's program
+  useEffect(() => {
+    const fetchAvailableProgramCourses = async () => {
+      try {
+        const res = await fetch('/api/student/courses', { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          const count = Array.isArray(data?.courses) ? data.courses.length : 0
+          setAvailableProgramCoursesCount(count)
+        }
+      } catch (err) {
+        console.warn('Failed to fetch available program courses:', err)
+      }
+    }
+    fetchAvailableProgramCourses()
+  }, [studentData?.courseDesired])
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
@@ -469,11 +488,13 @@ export default function StudentDashboard() {
         {/* Hero Stats Section */}
         <div>
           <StatsGrid columns="auto">
-            {/* Total Course Subject */}
+            {/* Subjects: show enrolled count; fallback to available when 0 */}
             <StatsCard
-              title="Total Course Subject"
-              value={coursesCount}
-              subtitle="Enrolled subjects"
+              title="Subjects"
+              value={coursesCount > 0 ? coursesCount : availableProgramCoursesCount}
+              subtitle={(coursesCount > 0 ? availableProgramCoursesCount : coursesCount) > 0 
+                ? `Available: ${(coursesCount > 0 ? availableProgramCoursesCount : coursesCount)}`
+                : 'No available subjects'}
               icon={BookOpen}
               gradient="bg-gradient-to-r from-blue-500 to-cyan-600"
               bgGradient="bg-gradient-to-br from-white to-blue-50"
@@ -517,7 +538,7 @@ export default function StudentDashboard() {
             {/* Primary Content Row - Academic Overview & Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Academic Progress - Primary Focus */}
-              <div className="lg:col-span-8">
+              <div className="lg:col-span-8 order-2 lg:order-none">
                 <div className="space-y-6">
 
                   {/* Upcoming Deadline and Live Calendar - Two Grid */}
@@ -652,7 +673,7 @@ export default function StudentDashboard() {
               </div>
 
               {/* Sidebar - Student Info & Quick Actions */}
-              <div className="lg:col-span-4">
+              <div className="lg:col-span-4 order-1 lg:order-none">
                 <div className="space-y-6">
                   {/* Student Information */}
                   <div ref={studentInfoRef}>
@@ -726,7 +747,7 @@ export default function StudentDashboard() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900">My Courses</p>
-                              <p className="text-xs text-gray-600">View enrolled courses</p>
+                              <p className="text-xs text-gray-600">View courses</p>
                             </div>
                           </div>
                         </Link>

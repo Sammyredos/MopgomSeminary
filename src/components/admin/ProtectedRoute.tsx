@@ -19,12 +19,16 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { currentUser, loading } = useUser()
   const router = useRouter()
-  const [hasAccess, setHasAccess] = useState(false)
+  const [authState, setAuthState] = useState<'loading' | 'authorized' | 'redirecting'>('loading')
 
   useEffect(() => {
-    if (loading) return
+    if (loading) {
+      setAuthState('loading')
+      return
+    }
 
     if (!currentUser) {
+      setAuthState('redirecting')
       router.push('/admin/login')
       return
     }
@@ -47,29 +51,16 @@ export function ProtectedRoute({
       })
 
     if (hasRequiredRole && hasRequiredPermission) {
-      setHasAccess(true)
+      setAuthState('authorized')
     } else {
+      setAuthState('redirecting')
       router.push(fallbackPath)
     }
   }, [currentUser, loading, router, requiredRoles, requiredPermissions, fallbackPath])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen" suppressHydrationWarning={true}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" suppressHydrationWarning={true}></div>
-      </div>
-    )
-  }
-
-  if (!hasAccess) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to access this page.</p>
-        </div>
-      </div>
-    )
+  // Avoid any UI flash during loading or redirect
+  if (authState === 'loading' || authState === 'redirecting') {
+    return null
   }
 
   return <>{children}</>

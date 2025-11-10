@@ -113,7 +113,7 @@ export function FontLoader({
 
     const loadFonts = async () => {
       try {
-        console.log('🔤 Starting Apercu Pro font loading...')
+        console.log('🔤 Starting Space Grotesk font loading...')
         setLoadingProgress(10)
 
         // Check if FontFace API is supported
@@ -122,20 +122,20 @@ export function FontLoader({
 
           // Define the fonts to load with proper paths
           const fonts = [
-            new FontFace('Apercu Pro', 'url(/fonts/ApercuPro-Regular.woff)', {
+            new FontFace('Space Grotesk', 'url(/fonts/SpaceGrotesk-Regular.woff2)', {
               weight: '400',
               style: 'normal',
-              display: 'block'
+              display: 'swap'
             }),
-            new FontFace('Apercu Pro', 'url(/fonts/ApercuPro-Medium.woff)', {
+            new FontFace('Space Grotesk', 'url(/fonts/SpaceGrotesk-Medium.woff2)', {
               weight: '500',
               style: 'normal',
-              display: 'block'
+              display: 'swap'
             }),
-            new FontFace('Apercu Pro', 'url(/fonts/ApercuPro-Bold.woff)', {
+            new FontFace('Space Grotesk', 'url(/fonts/SpaceGrotesk-Bold.woff2)', {
               weight: '700',
               style: 'normal',
-              display: 'block'
+              display: 'swap'
             })
           ]
 
@@ -168,12 +168,12 @@ export function FontLoader({
           const fontStatuses = await verifyApercuFonts()
           const allLoaded = areApercuFontsLoaded()
 
-          console.log('📊 Font loading summary:', fontStatuses)
+          console.log('📊 Space Grotesk font loading summary:', fontStatuses)
 
           if (allLoaded) {
-            console.log('✅ All Apercu Pro fonts loaded and verified successfully')
+            console.log('✅ All Space Grotesk fonts loaded and verified successfully')
           } else {
-            console.warn('⚠️ Some Apercu Pro fonts failed to load, using fallbacks')
+            console.warn('⚠️ Some Space Grotesk fonts failed to load, using fallbacks')
           }
 
           setLoadingProgress(100)

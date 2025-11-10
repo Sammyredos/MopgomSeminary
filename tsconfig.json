@@ -67,12 +67,13 @@
     "allowUnreachableCode": false
   },
   "include": [
+    ".next/types/**/*.ts",
     "next-env.d.ts",
+    "prisma/**/*.ts",
+    "scripts/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/types/**/*.ts",
-    "prisma/**/*.ts",
-    "scripts/**/*.ts"
+    ".next-dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

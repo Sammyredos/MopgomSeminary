@@ -5,10 +5,10 @@ import { checkRegistrationCompletion } from '@/utils/registrationCompletion'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Auth check
     const token = request.cookies.get('auth-token')?.value
@@ -45,10 +45,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Auth check
     const token = request.cookies.get('auth-token')?.value
@@ -170,6 +170,66 @@ export async function PUT(
       }
     })
 
+    // If the registration email changed, synchronize related user/student records used for login
+    let emailSyncInfo: {
+      attempted: boolean
+      userUpdated: boolean
+      studentUpdated: boolean
+      reason?: string
+    } = { attempted: false, userUpdated: false, studentUpdated: false }
+
+    try {
+      const oldEmail = (existingRegistration.emailAddress || '').toLowerCase().trim()
+      const newEmail = (updatedRegistration.emailAddress || '').toLowerCase().trim()
+      if (oldEmail && newEmail && oldEmail !== newEmail) {
+        emailSyncInfo.attempted = true
+        // Check for conflicts in target email across admins/users/students
+        const [conflictAdmin, conflictUser, conflictStudent] = await Promise.all([
+          prisma.admin.findFirst({ where: { email: newEmail } }),
+          prisma.user.findFirst({ where: { email: newEmail } }),
+          prisma.student.findFirst({ where: { emailAddress: newEmail } })
+        ])
+
+        // Find the current user/student by the old email (if they exist)
+        const [currentUserByOldEmail, currentStudentByOldEmail] = await Promise.all([
+          prisma.user.findFirst({ where: { email: oldEmail } }),
+          prisma.student.findFirst({ where: { emailAddress: oldEmail } })
+        ])
+
+        // If target email is already used by another account (not the same user), don't proceed to avoid unique constraint errors
+        const targetEmailInUseByAnother = (
+          (conflictAdmin && conflictAdmin.email.toLowerCase() === newEmail) ||
+          (conflictUser && (!currentUserByOldEmail || conflictUser.id !== currentUserByOldEmail.id)) ||
+          (conflictStudent && (!currentStudentByOldEmail || conflictStudent.id !== currentStudentByOldEmail.id))
+        )
+
+        if (targetEmailInUseByAnother) {
+          emailSyncInfo.reason = 'New email already exists on another account; login email not changed.'
+        } else {
+          // Perform sync updates atomically
+          await prisma.$transaction(async (tx) => {
+            if (currentUserByOldEmail) {
+              const res = await tx.user.update({
+                where: { id: currentUserByOldEmail.id },
+                data: { email: newEmail }
+              })
+              emailSyncInfo.userUpdated = !!res
+            }
+            if (currentStudentByOldEmail) {
+              const res = await tx.student.update({
+                where: { id: currentStudentByOldEmail.id },
+                data: { emailAddress: newEmail }
+              })
+              emailSyncInfo.studentUpdated = !!res
+            }
+          })
+        }
+      }
+    } catch (syncError) {
+      console.warn('Email sync failed:', syncError)
+      emailSyncInfo.reason = 'Email sync encountered an error; login email may remain unchanged.'
+    }
+
     // Auto-set verification based on completion
     try {
       const completionStatus = checkRegistrationCompletion({
@@ -251,7 +311,14 @@ export async function PUT(
     const response = NextResponse.json({
       success: true,
       message: 'Registration updated successfully',
-      registration: updatedRegistration
+      registration: updatedRegistration,
+      // Provide informative notes about email synchronization outcomes
+      emailSync: emailSyncInfo.attempted ? {
+        attempted: emailSyncInfo.attempted,
+        userUpdated: emailSyncInfo.userUpdated,
+        studentUpdated: emailSyncInfo.studentUpdated,
+        reason: emailSyncInfo.reason
+      } : undefined
     })
 
     // Add headers to trigger real-time updates
@@ -264,6 +331,13 @@ export async function PUT(
       phoneNumber: updatedRegistration.phoneNumber,
       updatedAt: updatedRegistration.updatedAt
     }))
+    if (emailSyncInfo.attempted) {
+      response.headers.set('X-User-Email-Sync', JSON.stringify({
+        userUpdated: emailSyncInfo.userUpdated,
+        studentUpdated: emailSyncInfo.studentUpdated,
+        reason: emailSyncInfo.reason || ''
+      }))
+    }
 
     return response
 
@@ -277,10 +351,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     console.log('Delete registration API called for ID:', id)
 
     // Get token from cookie

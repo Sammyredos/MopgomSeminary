@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import LoadingIndicator from '@/components/ui/loading-indicator'
 import { AlertTriangle } from 'lucide-react';
 
 interface DeleteConfirmationModalProps {
@@ -33,8 +34,14 @@ export default function DeleteConfirmationModal({
     ? `Are you sure you want to delete "${itemName}"? This action cannot be undone.`
     : 'Are you sure you want to delete this item? This action cannot be undone.';
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -58,7 +65,11 @@ export default function DeleteConfirmationModal({
             onClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? 'Deleting...' : 'Delete'}
+            {isLoading ? (
+              <LoadingIndicator label="Deleting..." />
+            ) : (
+              'Delete'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -53,7 +53,8 @@ export function checkRegistrationCompletion(studentData: StudentData): Registrat
       id: 'contact',
       title: 'Contact & Address',
       completed: false,
-      requiredFields: ['email', 'phone', 'homeAddress', 'officePostalAddress'],
+      // Phone and officePostalAddress are no longer required per updated UI
+      requiredFields: ['email', 'homeAddress'],
       missingFields: []
     },
     {

@@ -34,7 +34,8 @@ import {
   BookOpen,
   School,
   Calendar,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -391,8 +392,13 @@ export function AdminSidebar({ className }: SidebarProps) {
         </div>
 
         {isLoadingUser ? (
-          // Skeleton loader for logout button
-          <div className="h-8 sm:h-9 w-full bg-gray-200 rounded animate-pulse" suppressHydrationWarning={true} />
+          // Spinner-based placeholder for logout button
+          <div className="w-full" suppressHydrationWarning={true}>
+            {/* Use a disabled button with spinner to indicate loading */}
+            <Button disabled variant="outline" size="sm" className="w-full justify-center">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </Button>
+          </div>
         ) : (
           <Button
             onClick={handleLogout}

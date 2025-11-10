@@ -17,7 +17,7 @@ const updateSemesterSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await authenticateRequest(request);
@@ -31,8 +31,9 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
     const semester = await db.semester.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         academicYear: true,
         courseOfferings: {
@@ -74,7 +75,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await authenticateRequest(request);
@@ -102,8 +103,9 @@ export async function PUT(
     }
 
     // Check if semester exists
+    const { id } = await params;
     const existingSemester = await db.semester.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { academicYear: true },
     });
 
@@ -141,7 +143,7 @@ export async function PUT(
         where: {
           academicYearId: validatedData.academicYearId,
           semesterNumber: validatedData.semesterNumber,
-          id: { not: params.id },
+          id: { not: id },
         },
       });
 
@@ -158,7 +160,7 @@ export async function PUT(
       await db.semester.updateMany({
         where: { 
           isCurrent: true,
-          id: { not: params.id },
+          id: { not: id },
         },
         data: { isCurrent: false },
       });
@@ -166,7 +168,7 @@ export async function PUT(
 
     // Update semester
     const updatedSemester = await db.semester.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         semesterNumber: validatedData.semesterNumber,
         name: validatedData.name,
@@ -207,7 +209,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await authenticateRequest(request);
@@ -222,8 +224,9 @@ export async function DELETE(
     }
 
     // Check if semester exists
+    const { id } = await params;
     const semester = await db.semester.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {
@@ -273,7 +276,7 @@ export async function DELETE(
 
     // Delete semester
     await db.semester.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Semester deleted successfully' });

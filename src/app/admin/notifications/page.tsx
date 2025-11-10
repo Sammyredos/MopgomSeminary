@@ -5,6 +5,7 @@ import { AdminLayoutNew } from '@/components/admin/AdminLayoutNew'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ButtonSkeleton } from '@/components/ui/skeleton'
 import { EnhancedBadge } from '@/components/ui/enhanced-badge'
 import { useTranslation } from '@/contexts/LanguageContext'
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
@@ -375,8 +376,8 @@ export default function NotificationsPage() {
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                      <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                      <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                      <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
                     </div>
                   </div>
                 </div>

@@ -91,49 +91,134 @@ export default function HomePage() {
             {/* Program Highlights Section */}
             <section id="programs" className="py-16 sm:py-24">
               <div className="text-center">
-                <h2 className="text-3xl font-display font-bold text-text-primary dark:text-white mb-12">Program Highlights</h2>
+                <h2 className="text-3xl font-display font-bold text-text-primary dark:text-white mb-12">Our Programs</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
-                  <Image 
-                    className="w-full h-48 object-cover" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcx7sTK2PKme6Mep9pEB-zeUbwvPN6WYXT0EwVLH2R74AxgF4Va5nkyjCgHbU3CFC8plDqfMfal1Hfp5x4VS8QrmMhUvHZHQ1XwWlUBWoFTWevpI6-HZgJzzNCCO6lyTP108fiXcQX4sBnCw0HIER4l2_coWMsNXQxwvjRPWV-UYyuTlI-aYT7M8yeQotYB8Ez1TSsBGRR4tAjEC3kylJYlrO7NIrDcJ9vXckESoqPM3YnHrHMx4TLIv23N1ZTVtCpeQtbAkKsbg"
-                    alt="Students studying in a library"
-                    width={400}
-                    height={192}
-                  />
-                  <div className="p-6 flex-grow flex flex-col">
-                    <h3 className="text-xl font-display font-bold text-text-primary dark:text-white mb-2">Master of Divinity (M.Div.)</h3>
-                    <p className="text-text-primary dark:text-gray-300 flex-grow mb-4">A comprehensive degree preparing students for ordained ministry and pastoral leadership.</p>
-                    <a className="text-primary font-semibold hover:underline mt-auto" href="#">Learn More <span aria-hidden="true">→</span></a>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                {/* General Certificate - Available */}
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-lg mb-4">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Available
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">General Certificate</h3>
+                  <p className="text-gray-600 text-sm mb-4 flex-grow">
+                    Comprehensive online learning program covering fundamental theological studies and practical ministry skills.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                      <span>Duration: 1-2 Years</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      <span>Mode: Hybrid</span>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
-                  <Image 
-                    className="w-full h-48 object-cover" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAle250fMYgIbmx5agd39a7OFYaXePC0JyIhIPsXbp3o27EQ1rTGt9qGMD-fMC9-W25ielXivGZUSHkgsbUK7vHHfTU3PyB81ru5uB5Gbi4oZrYyMPZUiS4bfylw-PJ3Yiy9waNuu8vzEXGhsxL1KySNbrn8PrgK1g67tXdSGf5KbO-K3gSFErGJnof9JFryStI7-9tkKDcWTTwLSl-w2Hq99IRRsbeaOgg1XbEDZ17kyviLFUZXMJ_JeVyKVyVMlRcsMGNq5fp-Q"
-                    alt="A group of diverse students in discussion"
-                    width={400}
-                    height={192}
-                  />
-                  <div className="p-6 flex-grow flex flex-col">
-                    <h3 className="text-xl font-display font-bold text-text-primary dark:text-white mb-2">Doctor of Ministry (D.Min.)</h3>
-                    <p className="text-text-primary dark:text-gray-300 flex-grow mb-4">An advanced professional degree for experienced ministry leaders seeking to enhance their skills.</p>
-                    <a className="text-primary font-semibold hover:underline mt-auto" href="#">Learn More <span aria-hidden="true">→</span></a>
+
+                {/* Diploma Certificate - Coming Soon */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-lg mb-4">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Coming Soon
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Diploma Certificate</h3>
+                  <p className="text-gray-600 text-sm mb-4 flex-grow">
+                    Advanced theological studies with specialized focus areas and enhanced practical training components.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                      <span>Duration: 2-3 Years</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      <span>Mode: On-site</span>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
-                  <Image 
-                    className="w-full h-48 object-cover" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuARXSAJd0xvjUI0u39Aqhr7HeTKxJ6PCGjRQAWmbPylVDE0plRBJ0jz6Oii4S2oBB1qJlmbVD_fwVruI4xipoY2HozzAiuV--l_UHFenvdPaqd9YfINaFyImtTwtbSRL7DB5Q2Fb64QxBrAcDfXhmwSjwz9Bit2ZxXalOvZbks8RInj-S4J7EqpZmuokTwhC4Xn7unOuWCnjcXUZGslQdVDUIKC7rZdyfPXDPoL5qzhnnaIZoV1_4tyMDnFJ3M4keOx-n2Pf6jLhg"
-                    alt="Students collaborating on a project"
-                    width={400}
-                    height={192}
-                  />
-                  <div className="p-6 flex-grow flex flex-col">
-                    <h3 className="text-xl font-display font-bold text-text-primary dark:text-white mb-2">Master of Arts (Theological Studies)</h3>
-                    <p className="text-text-primary dark:text-gray-300 flex-grow mb-4">A flexible program for those seeking a deeper understanding of theology for various vocations.</p>
-                    <a className="text-primary font-semibold hover:underline mt-auto" href="#">Learn More <span aria-hidden="true">→</span></a>
+
+                {/* Bachelor's Degree - Coming Soon */}
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center w-12 h-12 bg-purple-500 rounded-lg mb-4">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      Coming Soon
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Bachelor's Degree</h3>
+                  <p className="text-gray-600 text-sm mb-4 flex-grow">
+                    Comprehensive undergraduate program in theology with research components and leadership development.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                      <span>Duration: 3-4 Years</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      <span>Mode: On-Campus</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Master's Degree - Coming Soon */}
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-center w-12 h-12 bg-orange-500 rounded-lg mb-4">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      Coming Soon
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">Master's Degree</h3>
+                  <p className="text-gray-600 text-sm mb-4 flex-grow">
+                    Advanced graduate studies with specialization tracks and independent research opportunities.
+                  </p>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                      <span>Duration: 2-3 Years</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      <span>Mode: On-Campus</span>
+                    </div>
                   </div>
                 </div>
               </div>

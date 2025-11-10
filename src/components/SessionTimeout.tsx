@@ -16,12 +16,27 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
   const [isExtending, setIsExtending] = useState(false)
   const [extendError, setExtendError] = useState<string | null>(null)
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  // Timer references use number for browser environments
+  const countdownIntervalRef = useRef<number | null>(null)
+  const warnTimeoutRef = useRef<number | null>(null)
+  const logoutTimeoutRef = useRef<number | null>(null)
+  const showModalRef = useRef<boolean>(false)
+  const expiryRef = useRef<number | null>(null)
 
-  // Always warn only at final 1 minute before expiry
-  const sessionTimeoutMs = sessionTimeoutHours * 60 * 60 * 1000
-  const warningTimeMs = 1 * 60 * 1000
+  // Base timeouts
+  let sessionTimeoutMs = sessionTimeoutHours * 60 * 60 * 1000
+  let warningTimeMs = 1 * 60 * 1000
+
+  // Dev-only override via query params to enable quick visual testing
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('sessionTest') === '1') {
+      const expireSec = Number(params.get('expireSec') || 90) // default 90s total
+      const warnSec = Number(params.get('warnSec') || 60)     // default warn at last 60s
+      sessionTimeoutMs = Math.max(10, expireSec * 1000)
+      warningTimeMs = Math.min(sessionTimeoutMs - 1000, Math.max(1000, warnSec * 1000))
+    }
+  }
 
   // FORCE LOGOUT - No mercy, no delays
   const forceLogout = useCallback(async () => {
@@ -31,13 +46,17 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
     setSessionExpired(true)
 
     // Clear all timers immediately
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current)
+      countdownIntervalRef.current = null
     }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
+    if (warnTimeoutRef.current) {
+      clearTimeout(warnTimeoutRef.current)
+      warnTimeoutRef.current = null
+    }
+    if (logoutTimeoutRef.current) {
+      clearTimeout(logoutTimeoutRef.current)
+      logoutTimeoutRef.current = null
     }
 
     try {
@@ -56,54 +75,56 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
     }
   }, [isLoggingOut])
 
-  // Start session monitoring
+  // Start session monitoring with deterministic warn + countdown + logout
   const startSessionMonitoring = useCallback(() => {
-    // Clear any existing timers
-    if (intervalRef.current) clearInterval(intervalRef.current)
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    // Clear existing timers
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current)
+      countdownIntervalRef.current = null
+    }
+    if (warnTimeoutRef.current) {
+      clearTimeout(warnTimeoutRef.current)
+      warnTimeoutRef.current = null
+    }
+    if (logoutTimeoutRef.current) {
+      clearTimeout(logoutTimeoutRef.current)
+      logoutTimeoutRef.current = null
+    }
 
-    const sessionStartTime = Date.now()
-    const sessionExpiryTime = sessionStartTime + sessionTimeoutMs
+    const now = Date.now()
+    const sessionExpiryTime = now + sessionTimeoutMs
+    expiryRef.current = sessionExpiryTime
 
-    // Background check every 5 seconds until we hit the warning threshold
-    intervalRef.current = setInterval(() => {
-      const now = Date.now()
-      const remaining = sessionExpiryTime - now
+    // Schedule warning modal
+    const warnDelay = Math.max(0, sessionExpiryTime - warningTimeMs - now)
+    warnTimeoutRef.current = window.setTimeout(() => {
+      if (!expiryRef.current) return
+      setShowModal(true)
+      showModalRef.current = true
+      setExtendError(null)
 
-      if (remaining <= 0) {
-        forceLogout()
-        return
-      }
+      // Initialize remaining seconds using ceil to avoid rounding stalls
+      const initialRemaining = Math.max(0, Math.ceil((expiryRef.current - Date.now()) / 1000))
+      setTimeRemaining(initialRemaining)
 
-      // Show modal only when warning time is reached
-      if (remaining <= warningTimeMs && !showModal) {
-        setShowModal(true)
-        setExtendError(null)
-        setTimeRemaining(Math.max(0, Math.floor(remaining / 1000)))
-
-        // Switch to 1-second countdown updates for accuracy
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current)
-        }
-        intervalRef.current = setInterval(() => {
-          const nowTick = Date.now()
-          const remainingTick = sessionExpiryTime - nowTick
-
-          if (remainingTick <= 0) {
-            forceLogout()
-            return
-          }
-
-          setTimeRemaining(Math.max(0, Math.floor(remainingTick / 1000)))
-        }, 1000)
-
-        // Auto-logout when time reaches zero (failsafe)
-        timeoutRef.current = setTimeout(() => {
+      // Start precise 1-second countdown updates
+      countdownIntervalRef.current = window.setInterval(() => {
+        if (!expiryRef.current) return
+        const remainingTick = expiryRef.current - Date.now()
+        if (remainingTick <= 0) {
           forceLogout()
-        }, remaining)
-      }
-    }, 5000)
-  }, [sessionTimeoutMs, warningTimeMs, showModal, forceLogout])
+          return
+        }
+        setTimeRemaining(Math.max(0, Math.ceil(remainingTick / 1000)))
+      }, 1000)
+    }, warnDelay)
+
+    // Schedule forced logout at expiry (failsafe)
+    const logoutDelay = Math.max(0, sessionExpiryTime - now)
+    logoutTimeoutRef.current = window.setTimeout(() => {
+      forceLogout()
+    }, logoutDelay)
+  }, [sessionTimeoutMs, warningTimeMs, forceLogout])
 
   // Extend session (use refresh endpoint; never auto-logout on failure)
   const extendSession = useCallback(async () => {
@@ -121,7 +142,23 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
       if (response.ok) {
         // Hide modal and restart monitoring with fresh cookie expiry
         setShowModal(false)
+        showModalRef.current = false
         setTimeRemaining(0)
+
+        // Reset expiry and timers, then restart monitoring
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current)
+          countdownIntervalRef.current = null
+        }
+        if (warnTimeoutRef.current) {
+          clearTimeout(warnTimeoutRef.current)
+          warnTimeoutRef.current = null
+        }
+        if (logoutTimeoutRef.current) {
+          clearTimeout(logoutTimeoutRef.current)
+          logoutTimeoutRef.current = null
+        }
+        expiryRef.current = null
         startSessionMonitoring()
       } else {
         // Keep user in session; show error and allow retry
@@ -142,10 +179,16 @@ export function SessionTimeout({ sessionTimeoutHours = 1 }: SessionTimeoutProps)
 
     // Cleanup on unmount
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
+      if (warnTimeoutRef.current) clearTimeout(warnTimeoutRef.current)
+      if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current)
     }
   }, [startSessionMonitoring])
+
+  // Keep ref in sync with modal visibility without restarting monitoring
+  useEffect(() => {
+    showModalRef.current = showModal
+  }, [showModal])
 
   // Don't render anything if session has expired
   if (sessionExpired) {

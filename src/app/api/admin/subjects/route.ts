@@ -1,89 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { authenticateRequest } from '@/lib/auth-helpers'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { authenticateRequest } from "@/lib/auth-helpers";
 
-// GET - Fetch all subjects with pagination and filtering
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const authResult = await authenticateRequest(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: authResult.status || 401 })
+    const auth = await authenticateRequest(req);
+    if (!auth.success || !auth.user) {
+      return NextResponse.json({ error: auth.error || "Unauthorized" }, { status: auth.status || 401 });
     }
 
-    const currentUser = authResult.user!
+    const q = req.nextUrl.searchParams.get("q") || "";
+    const isActiveOnly = req.nextUrl.searchParams.get("active") === "true";
 
-    // Check permissions - Allow all school staff to view subjects
-    if (!['Super Admin', 'Principal', 'Admin', 'Department Head', 'Manager', 'Instructor', 'Librarian', 'Staff'].includes(currentUser.role?.name || '')) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
-    }
+    const where: any = {};
+    if (isActiveOnly) where.isActive = true;
+    if (q) where.OR = [
+      { subjectName: { contains: q, mode: "insensitive" } },
+      { subjectCode: { contains: q, mode: "insensitive" } },
+    ];
 
-    const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '1000')
-    const page = parseInt(searchParams.get('page') || '1')
-    const search = searchParams.get('search') || ''
-    const isActive = searchParams.get('isActive')
+    const subjects = await prisma.subject.findMany({
+      where,
+      orderBy: [{ subjectName: "asc" }],
+      select: { id: true, subjectName: true, subjectCode: true, isActive: true },
+    });
 
-    // Build where clause
-    const where: any = {}
-
-    if (search) {
-      where.OR = [
-        { subjectName: { contains: search } },
-        { subjectCode: { contains: search } },
-        { description: { contains: search } },
-      ]
-    }
-
-    if (isActive !== null && isActive !== undefined) {
-      where.isActive = isActive === 'true'
-    }
-
-    const skip = (page - 1) * limit
-
-    // Fetch subjects with pagination
-    const [subjects, total] = await Promise.all([
-      prisma.subject.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          subjectCode: true,
-          subjectName: true,
-          description: true,
-          credits: true,
-          isActive: true,
-          createdAt: true,
-          updatedAt: true,
-          _count: {
-            select: {
-              teacherSubjects: true,
-              courseSessions: true,
-              grades: true
-            }
-          }
-        }
-      }),
-      prisma.subject.count({ where })
-    ])
-
-    return NextResponse.json({
-      success: true,
-      subjects,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit)
-      }
-    })
-
-  } catch (error) {
-    console.error('Error fetching subjects:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch subjects' },
-      { status: 500 }
-    )
+    return NextResponse.json({ items: subjects });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Server error" }, { status: 500 });
   }
 }

@@ -18,12 +18,23 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const onlyActive = (searchParams.get('active') || 'true') === 'true';
+    const activeParam = searchParams.get('active');
+
+    // Support tri-state active filter:
+    // active=true  -> isActive: true
+    // active=false -> isActive: false
+    // active missing -> no filter (return all)
+    const activeFilter =
+      activeParam === 'true'
+        ? { isActive: true }
+        : activeParam === 'false'
+          ? { isActive: false }
+          : {};
 
     const courses = await prisma.course.findMany({
       where: {
         AND: [
-          onlyActive ? { isActive: true } : {},
+          activeFilter,
           search
             ? {
                 OR: [
@@ -42,6 +53,7 @@ export async function GET(request: NextRequest) {
         courseName: true,
         subjectArea: true,
         instructor: true,
+        description: true,
         isActive: true,
       },
     });
@@ -73,7 +85,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
 
     // Required fields validation
-    const required = ['courseCode', 'courseName', 'subjectArea', 'instructor', 'maxStudents', 'duration', 'platform']
+    const required = ['courseCode', 'courseName', 'subjectArea', 'instructor']
     for (const field of required) {
       if (data[field] === undefined || data[field] === null || (typeof data[field] === 'string' && data[field].trim() === '')) {
         return NextResponse.json({ error: `${field} is required` }, { status: 400 })
@@ -81,12 +93,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Type and value checks
-    if (typeof data.maxStudents !== 'number' || data.maxStudents < 1) {
-      return NextResponse.json({ error: 'maxStudents must be a positive number' }, { status: 400 })
-    }
-    if (typeof data.duration !== 'number' || data.duration < 1) {
-      return NextResponse.json({ error: 'duration must be a positive number' }, { status: 400 })
-    }
     if (typeof data.courseCode !== 'string' || data.courseCode.trim().length < 2) {
       return NextResponse.json({ error: 'courseCode must be a non-empty string' }, { status: 400 })
     }
@@ -98,9 +104,6 @@ export async function POST(request: NextRequest) {
     }
     if (typeof data.instructor !== 'string' || data.instructor.trim().length < 2) {
       return NextResponse.json({ error: 'instructor must be a non-empty string' }, { status: 400 })
-    }
-    if (typeof data.platform !== 'string' || data.platform.trim().length < 2) {
-      return NextResponse.json({ error: 'platform must be a non-empty string' }, { status: 400 })
     }
 
     // Check for existing course by code
@@ -122,9 +125,6 @@ export async function POST(request: NextRequest) {
         courseName: data.courseName.trim(),
         subjectArea: data.subjectArea.trim(),
         instructor: data.instructor.trim(),
-        maxStudents: data.maxStudents,
-        duration: data.duration,
-        platform: data.platform.trim(),
         meetingUrl,
         prerequisites,
         description,
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         courseName: true,
         subjectArea: true,
         instructor: true,
-        duration: true,
+        description: true,
         isActive: true,
         createdAt: true,
         updatedAt: true

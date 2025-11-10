@@ -16,7 +16,7 @@ const updateAcademicYearSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await authenticateRequest(request);
@@ -30,8 +30,9 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const { id } = await params;
     const academicYear = await db.academicYear.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         semesters: {
           orderBy: { semesterNumber: 'asc' },
@@ -64,7 +65,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await authenticateRequest(request);
@@ -92,8 +93,9 @@ export async function PUT(
     }
 
     // Check if academic year exists
+    const { id } = await params;
     const existingAcademicYear = await db.academicYear.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingAcademicYear) {
@@ -108,7 +110,7 @@ export async function PUT(
       const conflictingAcademicYear = await db.academicYear.findFirst({
         where: {
           year: validatedData.year,
-          id: { not: params.id },
+          id: { not: id },
         },
       });
 
@@ -125,7 +127,7 @@ export async function PUT(
       await db.academicYear.updateMany({
         where: { 
           isCurrent: true,
-          id: { not: params.id },
+          id: { not: id },
         },
         data: { isCurrent: false },
       });
@@ -133,7 +135,7 @@ export async function PUT(
 
     // Update academic year
     const updatedAcademicYear = await db.academicYear.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         year: validatedData.year,
         startDate: new Date(validatedData.startDate),
@@ -164,7 +166,7 @@ export async function PUT(
       const semesterDuration = yearDuration / 3;
 
       await db.semester.updateMany({
-        where: { academicYearId: params.id, semesterNumber: 1 },
+        where: { academicYearId: id, semesterNumber: 1 },
         data: {
           startDate: startDate,
           endDate: new Date(startDate.getTime() + semesterDuration),
@@ -173,7 +175,7 @@ export async function PUT(
       });
 
       await db.semester.updateMany({
-        where: { academicYearId: params.id, semesterNumber: 2 },
+        where: { academicYearId: id, semesterNumber: 2 },
         data: {
           startDate: new Date(startDate.getTime() + semesterDuration + 1),
           endDate: new Date(startDate.getTime() + (semesterDuration * 2)),
@@ -182,7 +184,7 @@ export async function PUT(
       });
 
       await db.semester.updateMany({
-        where: { academicYearId: params.id, semesterNumber: 3 },
+        where: { academicYearId: id, semesterNumber: 3 },
         data: {
           startDate: new Date(startDate.getTime() + (semesterDuration * 2) + 1),
           endDate: endDate,
@@ -209,7 +211,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authResult = await authenticateRequest(request);
@@ -224,8 +226,9 @@ export async function DELETE(
     }
 
     // Check if academic year exists
+    const { id } = await params;
     const academicYear = await db.academicYear.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {
@@ -261,7 +264,7 @@ export async function DELETE(
 
     // Delete academic year (this will cascade delete semesters)
     await db.academicYear.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Academic year deleted successfully' });

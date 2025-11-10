@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/contexts/ToastContext'
-import { ModalSkeleton } from '@/components/ui/skeleton'
+import ModalLoading from '@/components/ui/modal-loading'
 import { parseApiError } from '@/lib/error-messages'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import {
@@ -211,7 +211,7 @@ export function PersonPreviewModal({ isOpen, onCloseAction, registrationId, onRe
         </DialogHeader>
 
         {loading ? (
-          <ModalSkeleton />
+          <ModalLoading message="Loading details..." />
         ) : registration ? (
           <div className="space-y-6">
             {/* Room Allocation Info */}

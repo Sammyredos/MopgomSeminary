@@ -82,10 +82,17 @@ export default function DeleteStudentModal({ isOpen, onClose, onSuccess, onStude
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
+      setDeleteResult(null);
+      onClose();
+    }
+  };
+
   if (!student) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2 text-red-600">

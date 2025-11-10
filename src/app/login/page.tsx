@@ -182,7 +182,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#f1f1f1'}} suppressHydrationWarning={true}>
+    <div className="min-h-screen flex items-center justify-center p-4 spacegrotesk-page" style={{backgroundColor: '#f1f1f1'}} suppressHydrationWarning={true}>
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" suppressHydrationWarning={true} />
 
@@ -198,8 +198,8 @@ export default function LoginPage() {
                     <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="font-apercu-bold text-xl text-gray-800">Authenticating</h2>
-                    <p className="font-apercu-medium text-gray-600">Checking your session...</p>
+                    <h2 className="font-spacegrotesk-bold text-xl text-gray-800">Authenticating</h2>
+                    <p className="font-spacegrotesk-medium text-gray-600">Checking your session...</p>
                   </div>
                 </div>
               </div>
@@ -218,15 +218,15 @@ export default function LoginPage() {
                 fallbackText="M"
               />
             </div>
-            <h1 className="font-apercu-bold text-3xl text-gray-900 mb-2 animate-fade-in animate-delay-100">
+            <h1 className="font-spacegrotesk-bold text-3xl text-gray-900 mb-2 animate-fade-in animate-delay-100">
               Academic Access Panel
             </h1>
-            <p className="font-apercu-regular text-gray-600 animate-fade-in animate-delay-200">
+            <p className="font-spacegrotesk-regular text-gray-600 animate-fade-in animate-delay-200">
               Sign in to your dashboard
             </p>
             <div className="flex items-center justify-center gap-2 mt-3 animate-fade-in animate-delay-300">
               <Users className="w-4 h-4 text-indigo-600" />
-              <span className="font-apercu-medium text-sm text-indigo-600">{systemName}</span>
+              <span className="font-spacegrotesk-medium text-sm text-indigo-600">{systemName}</span>
             </div>
           </div>
 
@@ -247,7 +247,7 @@ export default function LoginPage() {
               
               {error && !lockoutEndTime && (
                 <Alert variant="destructive" className="border-red-200 bg-red-50">
-                  <AlertDescription className="font-apercu-medium text-red-700">
+                  <AlertDescription className="font-spacegrotesk-medium text-red-700">
                     {error}
                   </AlertDescription>
                 </Alert>

@@ -1,44 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/db'
+import { authenticateRequest } from '@/lib/auth-helpers'
 import { verifyToken } from '@/lib/auth'
-
-const prisma = new PrismaClient()
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from cookie
-    const token = request.cookies.get('auth-token')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 })
+    // Authenticate request consistently with other APIs
+    const auth = await authenticateRequest(request)
+    if (!auth.success || !auth.user) {
+      return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.status || 401 })
     }
 
-    // Verify token
-    const payload = verifyToken(token)
-    if (!payload) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
-    }
-
-    // Get user info first
-    const user = await prisma.user.findUnique({
-      where: { id: payload.adminId },
-      include: {
-        role: true
-      }
-    })
-
-    if (!user || !user.isActive) {
-      return NextResponse.json({ error: 'User not found or inactive' }, { status: 401 })
-    }
-
-    // Check if user is a student
-    if (user.role?.name !== 'Student') {
-      return NextResponse.json({ error: 'Access denied. Student role required.' }, { status: 403 })
+    // Only allow non-admin users (students) to access profile
+    if (auth.user.type !== 'user') {
+      return NextResponse.json({ error: 'Access denied. Students only.' }, { status: 403 })
     }
 
     // Get registration data for the student
     const registration = await prisma.registration.findFirst({
       where: { 
-        emailAddress: user.email 
+        emailAddress: auth.user.email 
       },
       orderBy: {
         createdAt: 'desc' // Get the most recent registration
@@ -49,10 +30,10 @@ export async function GET(request: NextRequest) {
       // Return basic user data if no registration found
       return NextResponse.json({
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phoneNumber || null,
+          id: auth.user.id,
+          name: auth.user.name,
+          email: auth.user.email,
+          phone: (auth as any).user?.phoneNumber || null,
           dateOfBirth: null,
           gender: null,
           address: null,
@@ -67,8 +48,8 @@ export async function GET(request: NextRequest) {
           emergencyContactPhone: null,
           emergencyContactRelationship: null,
           profilePicture: null,
-          status: user.isActive ? 'Active' : 'Inactive',
-          createdAt: user.createdAt
+          status: auth.user.isActive ? 'Active' : 'Inactive',
+          createdAt: new Date().toISOString()
         }
       })
     }
@@ -85,7 +66,7 @@ export async function GET(request: NextRequest) {
     // Return complete profile data with registration information
     return NextResponse.json({
       user: {
-        id: user.id,
+        id: auth.user.id,
         name: registration.fullName,
         email: registration.emailAddress,
         phone: registration.phoneNumber,
@@ -118,7 +99,7 @@ export async function GET(request: NextRequest) {
         emergencyContactPhone: registration.emergencyContactPhone,
         emergencyContactRelationship: registration.emergencyContactRelationship,
         profilePicture: null,
-        status: user.isActive ? 'Active' : 'Inactive',
+        status: auth.user.isActive ? 'Active' : 'Inactive',
         createdAt: registration.createdAt
       }
     })

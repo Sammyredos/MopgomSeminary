@@ -5,11 +5,12 @@ import { existsSync } from 'fs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
     // Join the path segments
-    const filePath = params.path.join('/')
+    const { path } = await params
+    const filePath = path.join('/')
     
     // Construct the full file path
     const fullPath = join(process.cwd(), 'public', 'uploads', filePath)
@@ -55,7 +56,9 @@ export async function GET(
     }
     
     // Return the file with appropriate headers
-    return new NextResponse(fileBuffer, {
+    // Convert Buffer to Uint8Array to satisfy Web Response BodyInit types
+    const body = new Uint8Array(fileBuffer)
+    return new NextResponse(body, {
       status: 200,
       headers: {
         'Content-Type': contentType,

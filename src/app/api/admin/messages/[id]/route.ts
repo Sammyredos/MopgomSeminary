@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Authenticate user
@@ -16,7 +16,7 @@ export async function DELETE(
     }
 
     const currentUser = authResult.user!
-    const messageId = params.id
+    const { id: messageId } = await params
 
     // Verify the message belongs to the current user (recipient)
     const message = await prisma.message.findUnique({

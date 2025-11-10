@@ -253,10 +253,17 @@ export default function EditStudentModal({ isOpen, onClose, onSuccess, student }
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
+      setErrors({});
+      onClose();
+    }
+  };
+
   if (!student) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Student</DialogTitle>

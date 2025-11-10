@@ -8,6 +8,7 @@ export interface AuthenticatedUser {
   name: string
   type: 'admin' | 'user'
   isActive: boolean
+  courseDesired?: string | null
   role: {
     id: string
     name: string
@@ -46,14 +47,15 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       return { success: false, error: 'Invalid token', status: 401 }
     }
 
-    // Determine user type from token
-    const userType = payload.type || 'admin' // Default to admin for backward compatibility
+    // Determine principal identifier and user type from token
+    let userType: 'admin' | 'user' = (payload.type === 'user' || payload.type === 'admin') ? payload.type : 'admin'
+    const principalId = payload.adminId
 
-    let user
+    let user: any = null
     if (userType === 'admin') {
-      // Fetch admin user
+      // Try admin first
       user = await prisma.admin.findUnique({
-        where: { id: payload.adminId },
+        where: { id: principalId },
         include: {
           role: {
             include: {
@@ -62,10 +64,28 @@ export async function authenticateRequest(request: NextRequest): Promise<{
           }
         }
       })
+
+      // Fallback to regular user if not found (for legacy tokens mislabelled as admin)
+      if (!user) {
+        const candidate = await prisma.user.findUnique({
+          where: { id: principalId },
+          include: {
+            role: {
+              include: {
+                permissions: true
+              }
+            }
+          }
+        })
+        if (candidate) {
+          user = candidate
+          userType = 'user'
+        }
+      }
     } else {
-      // Fetch regular user
+      // Try regular user first
       user = await prisma.user.findUnique({
-        where: { id: payload.adminId }, // adminId field is used for both types
+        where: { id: principalId },
         include: {
           role: {
             include: {
@@ -74,6 +94,24 @@ export async function authenticateRequest(request: NextRequest): Promise<{
           }
         }
       })
+
+      // Fallback to admin if not found (handles rare mislabelled tokens)
+      if (!user) {
+        const candidate = await prisma.admin.findUnique({
+          where: { id: principalId },
+          include: {
+            role: {
+              include: {
+                permissions: true
+              }
+            }
+          }
+        })
+        if (candidate) {
+          user = candidate
+          userType = 'admin'
+        }
+      }
     }
 
     if (!user || !user.isActive) {
@@ -87,6 +125,7 @@ export async function authenticateRequest(request: NextRequest): Promise<{
       name: user.name,
       type: userType,
       isActive: user.isActive,
+      courseDesired: null,
       role: user.role ? {
         id: user.role.id,
         name: user.role.name,
@@ -95,6 +134,25 @@ export async function authenticateRequest(request: NextRequest): Promise<{
           name: rp.permission?.name || rp.name
         }))
       } : null
+    }
+
+    // Attach courseDesired from registration when possible (students)
+    try {
+      if (authenticatedUser.type === 'user' && authenticatedUser.email) {
+        const reg = await prisma.registration.findFirst({
+          where: {
+            OR: [
+              { emailAddress: authenticatedUser.email },
+              { emailAddress: authenticatedUser.email.toLowerCase() },
+              { emailAddress: authenticatedUser.email.toUpperCase() }
+            ]
+          },
+          select: { courseDesired: true }
+        })
+        authenticatedUser.courseDesired = reg?.courseDesired || null
+      }
+    } catch (e) {
+      console.warn('authenticateRequest: unable to attach courseDesired', e)
     }
 
     return { success: true, user: authenticatedUser }

@@ -3,7 +3,7 @@
  * Provides loading states for the attendance verification page
  */
 
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton, ButtonSkeleton } from '@/components/ui/skeleton'
 import { Card } from '@/components/ui/card'
 
 // Statistics Cards Skeleton
@@ -71,7 +71,7 @@ export function VerificationControlsSkeleton() {
                   </div>
                 </div>
               </div>
-              <Skeleton className="h-9 w-20" /> {/* Verify button */}
+              <ButtonSkeleton size="default" className="w-20" /> {/* Verify button */}
             </div>
           ))}
         </div>
@@ -84,8 +84,8 @@ export function VerificationControlsSkeleton() {
 export function ActionButtonsSkeleton() {
   return (
     <div className="flex justify-end space-x-3">
-      <Skeleton className="h-10 w-28" /> {/* QR Scanner button */}
-      <Skeleton className="h-10 w-20" /> {/* Refresh button */}
+      <ButtonSkeleton size="lg" className="w-28" /> {/* QR Scanner button */}
+      <ButtonSkeleton size="lg" className="w-20" /> {/* Refresh button */}
     </div>
   )
 }

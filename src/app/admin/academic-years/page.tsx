@@ -33,7 +33,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { Pagination } from '@/components/ui/pagination'
 import { useUser } from '@/contexts/UserContext'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface AcademicYear {
   id: string
@@ -44,7 +44,22 @@ interface AcademicYear {
 
 export default function AcademicYearsPage() {
   const { currentUser } = useUser()
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    // Respect persisted choice; otherwise default to grid on mobile, list otherwise
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('academic-years-view-mode') as 'grid' | 'list' | null
+      if (saved) return saved
+      const isMobile = window.innerWidth < 640
+      return isMobile ? 'grid' : 'list'
+    }
+    return 'list'
+  })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('academic-years-view-mode', viewMode)
+    }
+  }, [viewMode])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [years, setYears] = useState<AcademicYear[]>([
     { id: 'ay-2023', name: '2023/2024', status: 'archived', description: 'Completed year' },

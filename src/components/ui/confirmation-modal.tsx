@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import LoadingIndicator from '@/components/ui/loading-indicator'
 import {
   Dialog,
   DialogContent,
@@ -31,9 +32,14 @@ export function ConfirmationModal({
   description,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  variant = 'danger',
+  variant = 'info',
   loading = false
 }: ConfirmationModalProps) {
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !loading) {
+      onClose();
+    }
+  };
   const getVariantStyles = () => {
     switch (variant) {
       case 'danger':
@@ -83,7 +89,7 @@ export function ConfirmationModal({
   const IconComponent = styles.icon
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md mx-4 touch-manipulation select-none">
         <DialogHeader>
           <div className="flex items-center space-x-3 mb-2">
@@ -116,10 +122,7 @@ export function ConfirmationModal({
             className={`font-apercu-medium text-white order-1 sm:order-2 h-11 sm:h-10 touch-manipulation select-none ${styles.buttonBg}`}
           >
             {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Processing...
-              </>
+              <LoadingIndicator label="Processing..." iconClassName="text-white" />
             ) : (
               confirmText
             )}

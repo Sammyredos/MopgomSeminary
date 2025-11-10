@@ -89,6 +89,18 @@ const EmptyIllustrations = {
     </svg>
   ),
   
+  noCourses: (
+    <svg className="w-full h-full" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="50" y="60" width="100" height="80" rx="8" fill="#f3f4f6" stroke="#e5e7eb" strokeWidth="2"/>
+      <rect x="60" y="80" width="80" height="4" rx="2" fill="#d1d5db"/>
+      <rect x="60" y="90" width="60" height="4" rx="2" fill="#d1d5db"/>
+      <rect x="60" y="100" width="70" height="4" rx="2" fill="#d1d5db"/>
+      <circle cx="100" cy="120" r="12" fill="none" stroke="#9ca3af" strokeWidth="2" strokeDasharray="3,3"/>
+      <path d="M95 115 L105 125 M105 115 L95 125" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"/>
+      <text x="100" y="170" textAnchor="middle" className="fill-gray-400 text-sm">No courses available</text>
+    </svg>
+  ),
+
   search: (
     <svg className="w-full h-full" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="90" cy="90" r="35" fill="none" stroke="#d1d5db" strokeWidth="4"/>
@@ -229,6 +241,18 @@ export const EmptyStates = {
     />
   ),
   
+  NoCourses: ({ programType, action }: { programType?: string; action?: EmptyStateProps['action'] }) => (
+    <EmptyState
+      icon={EmptyIllustrations.noCourses}
+      title={`No ${programType || 'courses'} available`}
+      description={programType 
+        ? `No courses are currently available for the ${programType} program. Check back later or contact administration.`
+        : "No courses are currently available. New courses will appear here when they're added."
+      }
+      action={action}
+    />
+  ),
+
   Error: ({ action }: { action?: EmptyStateProps['action'] }) => (
     <EmptyState
       icon={EmptyIllustrations.error}

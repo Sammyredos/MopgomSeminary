@@ -27,11 +27,11 @@ const updateStudentSchema = z.object({
   courseId: z.string().optional(),
 });
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await request.json();
     const data = updateStudentSchema.parse(body);
-    const studentIdParam = params.id;
+    const { id: studentIdParam } = await params;
 
     // Build update payload
     const updatePayload: any = {};

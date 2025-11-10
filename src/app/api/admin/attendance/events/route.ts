@@ -7,106 +7,12 @@
 import { NextRequest } from 'next/server'
 import { authenticateRequest } from '@/lib/auth-helpers'
 import { Logger } from '@/lib/logger'
+import { registerConnection, updateHeartbeat, removeConnection, getConnectionsSize } from '@/lib/attendance-events'
 
 const logger = Logger('AttendanceEvents')
 
-// Store active connections with metadata for better cleanup
-const connections = new Map<ReadableStreamDefaultController, {
-  userId: string
-  createdAt: number
-  lastHeartbeat: number
-}>()
-
-// Clean up stale connections every 2 minutes
-setInterval(() => {
-  const now = Date.now()
-  const staleThreshold = 60000 // 1 minute without heartbeat
-  const staleConnections: ReadableStreamDefaultController[] = []
-
-  connections.forEach((metadata, controller) => {
-    if (now - metadata.lastHeartbeat > staleThreshold) {
-      staleConnections.push(controller)
-    }
-  })
-
-  if (staleConnections.length > 0) {
-    logger.info(`Cleaning up ${staleConnections.length} stale connections`)
-    staleConnections.forEach(controller => {
-      try {
-        controller.close()
-      } catch (error) {
-        // Ignore errors when closing stale connections
-      }
-      connections.delete(controller)
-    })
-  }
-}, 120000) // Every 2 minutes
-
 // Event types
-export interface AttendanceEvent {
-  type: 'verification' | 'status_change' | 'new_scan'
-  data: {
-    registrationId: string
-    fullName: string
-    status: 'present' | 'absent' | 'late'
-    timestamp: string
-    scannerName?: string
-    platoonName?: string
-    roomName?: string
-  }
-}
-
-// Broadcast event to all connected clients with enhanced reliability
-export function broadcastAttendanceEvent(event: AttendanceEvent) {
-  const eventData = `data: ${JSON.stringify(event)}\n\n`
-
-  logger.info('Broadcasting attendance event', {
-    type: event.type,
-    registrationId: event.data.registrationId,
-    fullName: event.data.fullName,
-    connections: connections.size,
-    timestamp: event.data.timestamp
-  })
-
-  if (connections.size === 0) {
-    logger.warn('No active SSE connections to broadcast to')
-    return
-  }
-
-  let successCount = 0
-  let failureCount = 0
-  const failedConnections: ReadableStreamDefaultController[] = []
-
-  // Send to all connected clients with error handling
-  connections.forEach((metadata, controller) => {
-    try {
-      controller.enqueue(new TextEncoder().encode(eventData))
-      successCount++
-      // Update last heartbeat time
-      metadata.lastHeartbeat = Date.now()
-    } catch (error) {
-      logger.error('Failed to send event to client', error)
-      failedConnections.push(controller)
-      failureCount++
-    }
-  })
-
-  // Clean up failed connections
-  failedConnections.forEach(controller => {
-    connections.delete(controller)
-  })
-
-  logger.info('Event broadcast completed', {
-    successCount,
-    failureCount,
-    remainingConnections: connections.size
-  })
-
-  // If we have failures, log them for debugging
-  if (failureCount > 0) {
-    logger.warn(`${failureCount} connections failed during broadcast`)
-  }
-}
+// Broadcast logic moved to shared lib to avoid route export violations
 
 export async function GET(request: NextRequest) {
   try {
@@ -135,17 +41,13 @@ export async function GET(request: NextRequest) {
         streamController = controller
         const now = Date.now()
 
-        // Add connection to active connections with metadata
-        connections.set(controller, {
-          userId: currentUser.id,
-          createdAt: now,
-          lastHeartbeat: now
-        })
+        // Register connection in shared registry
+        registerConnection(controller, currentUser.id)
 
-        logger.info('New SSE connection established', {
-          userId: currentUser.id,
-          totalConnections: connections.size
-        })
+          logger.info('New SSE connection established', {
+            userId: currentUser.id,
+            totalConnections: getConnectionsSize()
+          })
 
         // Send initial connection message
         const welcomeEvent = `data: ${JSON.stringify({
@@ -168,40 +70,37 @@ export async function GET(request: NextRequest) {
             })}\n\n`
             controller.enqueue(new TextEncoder().encode(heartbeatEvent))
 
-            // Update last heartbeat time
-            const metadata = connections.get(controller)
-            if (metadata) {
-              metadata.lastHeartbeat = Date.now()
-            }
+            // Update last heartbeat time in shared registry
+            updateHeartbeat(controller)
           } catch (error) {
             logger.error('Heartbeat failed, cleaning up connection', error)
             clearInterval(heartbeat)
-            connections.delete(controller)
+            removeConnection(controller)
           }
         }, heartbeatInterval)
 
         // Cleanup on close
         request.signal.addEventListener('abort', () => {
           clearInterval(heartbeat)
-          connections.delete(controller)
+          removeConnection(controller)
           controller.close()
           logger.info('SSE connection closed', {
             userId: currentUser.id,
-            remainingConnections: connections.size
+            remainingConnections: getConnectionsSize()
           })
         })
       },
 
       cancel(reason?: any) {
         if (streamController) {
-          connections.delete(streamController)
+          removeConnection(streamController)
           try {
             streamController.close()
           } catch {}
         }
         logger.info('SSE connection cancelled', {
           userId: currentUser.id,
-          remainingConnections: connections.size,
+          remainingConnections: getConnectionsSize(),
           reason: typeof reason === 'string' ? reason : undefined
         })
       }

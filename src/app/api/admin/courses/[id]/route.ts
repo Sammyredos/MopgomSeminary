@@ -27,10 +27,7 @@ export async function GET(
         courseName: true,
         subjectArea: true,
         instructor: true,
-        maxStudents: true,
         currentEnrollment: true,
-        duration: true,
-        platform: true,
         meetingUrl: true,
         prerequisites: true,
         description: true,
@@ -85,22 +82,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
-    // Validate numeric fields if provided
-    if (data.maxStudents !== undefined) {
-      if (typeof data.maxStudents !== 'number' || data.maxStudents < 1) {
-        return NextResponse.json({ error: 'maxStudents must be a positive number' }, { status: 400 })
-      }
-      if (data.maxStudents < existing.currentEnrollment) {
-        return NextResponse.json({ error: `Cannot reduce maxStudents below current enrollment (${existing.currentEnrollment})` }, { status: 400 })
-      }
-    }
-
-    if (data.duration !== undefined) {
-      if (typeof data.duration !== 'number' || data.duration < 1) {
-        return NextResponse.json({ error: 'duration must be a positive number' }, { status: 400 })
-      }
-    }
-
+    // Validate fields if provided (no validation needed for removed fields)
+    
     // Ensure courseCode uniqueness if changing
     if (data.courseCode && data.courseCode !== existing.courseCode) {
       const byCode = await prisma.course.findUnique({ where: { courseCode: data.courseCode } })
@@ -116,9 +99,6 @@ export async function PUT(
         ...(data.courseName && { courseName: String(data.courseName).trim() }),
         ...(data.subjectArea && { subjectArea: String(data.subjectArea).trim() }),
         ...(data.instructor && { instructor: String(data.instructor).trim() }),
-        ...(data.platform && { platform: String(data.platform).trim() }),
-        ...(data.maxStudents !== undefined && { maxStudents: data.maxStudents }),
-        ...(data.duration !== undefined && { duration: data.duration }),
         ...(data.meetingUrl !== undefined && { meetingUrl: data.meetingUrl || null }),
         ...(data.prerequisites !== undefined && { prerequisites: data.prerequisites || null }),
         ...(data.description !== undefined && { description: data.description || null }),
@@ -130,10 +110,7 @@ export async function PUT(
         courseName: true,
         subjectArea: true,
         instructor: true,
-        maxStudents: true,
         currentEnrollment: true,
-        duration: true,
-        platform: true,
         meetingUrl: true,
         prerequisites: true,
         description: true,

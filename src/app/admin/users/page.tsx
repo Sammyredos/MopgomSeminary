@@ -9,7 +9,9 @@ import ChangePasswordModal from '@/components/admin/ChangePasswordModal'
 import { SimpleMessaging } from '@/components/admin/SimpleMessaging'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ButtonSkeleton } from '@/components/ui/skeleton'
 import { formatNumber } from '@/lib/statistics'
+import { ViewToggle } from '@/components/ui/view-toggle'
 
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
 import { useTranslation } from '@/contexts/LanguageContext'
@@ -73,6 +75,15 @@ export default function UsersPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState('')
   const [isSearching, setIsSearching] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin-users-view-mode') as 'grid' | 'list' | null
+      if (saved) return saved
+      const isMobile = window.innerWidth < 640
+      return isMobile ? 'grid' : 'list'
+    }
+    return 'list'
+  })
 
   // Pagination state (10 items per page as required)
   const [currentPage, setCurrentPage] = useState(1)
@@ -132,6 +143,13 @@ export default function UsersPage() {
       return true
     })
   }, [users, instantSearchTerm, filterRole, currentUser?.id])
+
+  // Persist view mode changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin-users-view-mode', viewMode)
+    }
+  }, [viewMode])
 
   // Fetch user statistics for accurate counts
   const fetchUserStats = useCallback(async () => {
@@ -521,10 +539,10 @@ export default function UsersPage() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex justify-end space-x-2">
-                          <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                          <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                          <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                          <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                          <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                          <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                          <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                          <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
                         </div>
                       </td>
                     </tr>
@@ -556,10 +574,10 @@ export default function UsersPage() {
                     </div>
                   </div>
                   <div className="flex justify-end space-x-2">
-                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                    <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                    <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                    <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                    <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
                   </div>
                 </div>
               ))}
@@ -569,10 +587,10 @@ export default function UsersPage() {
             <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
               <div className="flex space-x-2">
-                <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
               </div>
             </div>
           </Card>
@@ -695,7 +713,7 @@ export default function UsersPage() {
             </div>
           </div>
 
-          {/* Results count */}
+          {/* Results count + View mode toggle */}
           <div className="pt-3 border-t border-gray-200">
             <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2">
               <p className="font-apercu-regular text-sm text-gray-600">
@@ -712,36 +730,47 @@ export default function UsersPage() {
                   <span className="ml-2">• Page {currentPage} of {totalPages}</span>
                 )}
               </p>
-              {(instantSearchTerm || filterRole) && (
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {instantSearchTerm && (
-                    <span className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-full font-apercu-medium flex items-center gap-1">
-                      <Search className="h-3 w-3" />
-                      Searching: &quot;{instantSearchTerm}&quot;
-                      <button
-                        onClick={() => setInstantSearchTerm('')}
-                        className="ml-1 hover:bg-indigo-200 rounded-full w-4 h-4 flex items-center justify-center text-xs"
-                        title="Clear search"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  )}
-                  {filterRole && (
-                    <span className="bg-purple-100 text-purple-800 px-3 py-1.5 rounded-full font-apercu-medium flex items-center gap-1">
-                      <Filter className="h-3 w-3" />
-                      Role: {roles.find(r => r.id === filterRole)?.name}
-                      <button
-                        onClick={() => setFilterRole('')}
-                        className="ml-1 hover:bg-purple-200 rounded-full w-4 h-4 flex items-center justify-center text-xs"
-                        title="Clear filter"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  )}
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {(instantSearchTerm || filterRole) && (
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {instantSearchTerm && (
+                      <span className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-full font-apercu-medium flex items-center gap-1">
+                        <Search className="h-3 w-3" />
+                        Searching: &quot;{instantSearchTerm}&quot;
+                        <button
+                          onClick={() => setInstantSearchTerm('')}
+                          className="ml-1 hover:bg-indigo-200 rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                          title="Clear search"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                    {filterRole && (
+                      <span className="bg-purple-100 text-purple-800 px-3 py-1.5 rounded-full font-apercu-medium flex items-center gap-1">
+                        <Filter className="h-3 w-3" />
+                        Role: {roles.find(r => r.id === filterRole)?.name}
+                        <button
+                          onClick={() => setFilterRole('')}
+                          className="ml-1 hover:bg-purple-200 rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                          title="Clear filter"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                )}
+                <ViewToggle
+                  viewMode={viewMode}
+                  onViewChange={(mode) => {
+                    setViewMode(mode)
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('admin-users-view-mode', mode)
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -764,6 +793,110 @@ export default function UsersPage() {
           </div>
         </div>
 
+        {/* Grid View */}
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredUsers.map((user) => (
+              <Card key={user.id} className="p-4 border border-gray-200 hover:border-gray-300 transition-colors h-full">
+                {/* User Header */}
+                <div className="flex items-center space-x-3 mb-4">
+                  <Avatar className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-apercu-bold text-sm">
+                      {getInitials(capitalizeName(user.name))}
+                    </span>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-apercu-bold text-base text-gray-900 truncate">{capitalizeName(user.name)}</p>
+                    <p className="font-apercu-regular text-sm text-gray-500 truncate">{user.email}</p>
+                  </div>
+                </div>
+
+                {/* User Details */}
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-apercu-medium text-sm text-gray-600">Role</span>
+                    <EnhancedBadge
+                      variant={getRoleBadgeVariant(user.role?.name || 'No Role', user.role?.isSystem || false)}
+                      className="font-apercu-medium text-xs"
+                      icon={getRoleIcon(user.role?.name || 'No Role')}
+                    >
+                      {user.role?.name || 'No Role'}
+                    </EnhancedBadge>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="font-apercu-medium text-sm text-gray-600">Status</span>
+                    <EnhancedBadge
+                      variant={getStatusBadgeVariant(user.isActive ? 'active' : 'inactive')}
+                      className="font-apercu-medium text-xs"
+                      icon={user.isActive ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
+                    >
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </EnhancedBadge>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="font-apercu-medium text-sm text-gray-600">Last Login</span>
+                    <span className="font-apercu-regular text-sm text-gray-900">{formatLastLogin(user.lastLogin)}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="font-apercu-medium text-sm text-gray-600">Created</span>
+                    <span className="font-apercu-regular text-sm text-gray-900">{formatDate(user.createdAt)}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="border-t border-gray-100 pt-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-apercu-medium text-xs h-8"
+                      onClick={() => handleEditUser(user)}
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-apercu-medium text-xs h-8 text-blue-600 hover:text-blue-700 hover:border-blue-300"
+                      onClick={() => handleSendMessage(user)}
+                    >
+                      <MessageSquare className="h-3 w-3 mr-1" />
+                      Message
+                    </Button>
+                    {currentUser?.role?.name === 'Super Admin' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-apercu-medium text-xs h-8 text-orange-600 hover:text-orange-700 hover:border-orange-300"
+                        onClick={() => handleChangePassword(user)}
+                      >
+                        <Key className="h-3 w-3 mr-1" />
+                        Password
+                      </Button>
+                    )}
+                    {currentUser?.role?.name === 'Super Admin' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-apercu-medium text-xs h-8 text-red-600 hover:text-red-700 hover:border-red-300"
+                        onClick={() => handleDeleteUser(user)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : null}
+
+        {viewMode !== 'grid' && (<>
         {/* Desktop Table */}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full">
@@ -1065,6 +1198,8 @@ export default function UsersPage() {
             </Card>
           ))}
         </div>
+
+        </>)}
 
         {filteredUsers.length === 0 && (
           <div className="text-center py-8">

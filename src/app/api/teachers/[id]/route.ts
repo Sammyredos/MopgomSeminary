@@ -14,11 +14,12 @@ const updateTeacherSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const teacher = await prisma.teacher.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         teacherSubjects: {
           include: {
@@ -53,15 +54,16 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();
     const validatedData = updateTeacherSchema.parse(body);
 
     // Check if teacher exists
+    const { id } = await params;
     const existingTeacher = await prisma.teacher.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingTeacher) {
@@ -110,7 +112,7 @@ export async function PUT(
     }
 
     const updatedTeacher = await prisma.teacher.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         teacherId: validatedData.teacherId ?? undefined,
         fullName: validatedData.fullName ?? undefined,
@@ -141,12 +143,13 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check if teacher exists
+    const { id } = await params;
     const existingTeacher = await prisma.teacher.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingTeacher) {
@@ -159,21 +162,21 @@ export async function DELETE(
     // Check if teacher has any active course sessions or grades
     const activeCourseSessions = await prisma.courseSession.count({
       where: {
-        teacherId: params.id,
+        teacherId: id,
         isActive: true,
       },
     });
 
     const grades = await prisma.grade.count({
       where: {
-        teacherId: params.id,
+        teacherId: id,
       },
     });
 
     if (activeCourseSessions > 0 || grades > 0) {
       // Instead of deleting, deactivate the teacher
       const deactivatedTeacher = await prisma.teacher.update({
-        where: { id: params.id },
+        where: { id },
         data: { isActive: false },
       });
 
@@ -185,7 +188,7 @@ export async function DELETE(
 
     // If no dependencies, delete the teacher
     await prisma.teacher.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json(

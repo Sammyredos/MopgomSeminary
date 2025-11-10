@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Eye, EyeOff, Lock, Mail, Users, Shield, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, Users, Shield, ArrowRight, Loader2 } from 'lucide-react'
 // import { HydrationSafeDiv } from '@/components/ui/hydration-safe' // Commented out as unused
 
 import { useProgress } from '@/hooks/useProgress'
@@ -121,7 +121,7 @@ export default function AdminLogin() {
 
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4" suppressHydrationWarning={true}>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-4" suppressHydrationWarning={true}>
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" suppressHydrationWarning={true} />
 
@@ -259,7 +259,7 @@ export default function AdminLogin() {
                   </div>
                 ) : loading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-white/70 rounded-full animate-pulse" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span className="text-white">Signing in...</span>
                   </div>
                 ) : (

@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#f1f1f1'}}>
+      <div className="min-h-screen flex items-center justify-center p-4 pb-16" style={{backgroundColor: '#f1f1f1'}}>
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 shadow-lg overflow-hidden">
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#f1f1f1'}}>
+    <div className="min-h-screen flex items-center justify-center p-4 pb-16" style={{backgroundColor: '#f1f1f1'}}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 shadow-lg overflow-hidden">

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog'
 import { 
   User, 
   Mail, 
@@ -32,6 +33,7 @@ import { ModernDatePicker } from '@/components/ui/modern-date-picker'
 import { PasswordRequirements } from '@/components/ui/passwordrequirements'
 import '@/styles/login-animations.css'
 import { RegistrationFormSkeleton } from '@/components/ui/skeleton'
+import { getCourseAvailabilitySettings } from '@/lib/course-programs-api'
 
 interface FormData {
   surname: string
@@ -78,6 +80,7 @@ export default function StudentSignup() {
     password?: string
     confirmPassword?: string
   }>({})
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -91,7 +94,86 @@ export default function StudentSignup() {
     isFormClosed: false
   })
   const [statusLoading, setStatusLoading] = useState(true)
+  
+  // State for course configuration (synced with test-course-tabs page)
+  const [courseConfig, setCourseConfig] = useState({
+    generalDisabled: false,    // Default: enabled
+    diplomaDisabled: true,     // Default: disabled
+    bachelorDisabled: true,    // Default: disabled
+    masterDisabled: true       // Default: disabled
+  })
 
+  // Load saved form data from localStorage on component mount
+  useEffect(() => {
+    const savedFormData = localStorage.getItem('signupFormData')
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData)
+        setFormData(parsedData)
+      } catch (error) {
+        console.error('Error loading saved form data:', error)
+      }
+    }
+  }, [])
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('signupFormData', JSON.stringify(formData))
+  }, [formData])
+
+  // Load course configuration from API
+  useEffect(() => {
+    const loadCourseConfig = async () => {
+      try {
+        const programs = await getCourseAvailabilitySettings()
+        
+        // Map the program settings to courseConfig format
+        const configMap: { [key: string]: string } = {
+          'general': 'generalDisabled',
+          'diploma': 'diplomaDisabled',
+          'bachelor': 'bachelorDisabled',
+          'master': 'masterDisabled'
+        }
+        
+        const newConfig = {
+          generalDisabled: false,
+          diplomaDisabled: true,
+          bachelorDisabled: true,
+          masterDisabled: true
+        }
+        
+        // Update config based on API settings
+        programs.forEach((program) => {
+          const configKey = configMap[program.id]
+          if (configKey) {
+            newConfig[configKey as keyof typeof newConfig] = !program.enabled
+          }
+        })
+        
+        setCourseConfig(newConfig)
+      } catch (error) {
+        console.error('Error loading course configuration:', error)
+        // Keep default configuration on error
+      }
+    }
+
+    // Load initial configuration
+    loadCourseConfig()
+
+    // Listen for localStorage changes (when CourseAvailabilityModal updates the settings)
+    // This provides real-time updates when admin changes settings in another tab
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'courseAvailabilitySettings') {
+        loadCourseConfig()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
 
   // Fetch registration settings from public endpoint
   useEffect(() => {
@@ -434,6 +516,9 @@ export default function StudentSignup() {
 
       setSuccess(true)
       
+      // Clear saved form data after successful submission
+      localStorage.removeItem('signupFormData')
+      
     } catch (error) {
       console.error('Registration error:', error)
       setErrors({ 
@@ -442,6 +527,25 @@ export default function StudentSignup() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Clear form data function
+  const clearFormData = () => {
+    const emptyFormData = {
+      surname: '',
+      firstname: '',
+      lastname: '',
+      email: '',
+      dateOfBirth: '',
+      gender: '',
+      phone: '',
+      courseDesired: '',
+      password: '',
+      confirmPassword: ''
+    }
+    setFormData(emptyFormData)
+    setErrors({})
+    localStorage.removeItem('signupFormData')
   }
 
   // Show success state similar to forgot password page
@@ -504,7 +608,7 @@ export default function StudentSignup() {
   // Show form closed message if registration is closed
   if (registrationSettings?.isFormClosed) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 animate-gradient flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 animate-gradient flex items-center justify-center p-4 pb-16">
         <div className="w-full max-w-2xl">
           <Card className="shadow-xl border-2 border-[#efefef] bg-white/80 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
@@ -540,7 +644,7 @@ export default function StudentSignup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{backgroundColor: '#f1f1f1'}} suppressHydrationWarning={true}>
+    <div className="min-h-screen flex items-center justify-center p-4 pb-16" style={{backgroundColor: '#f1f1f1'}} suppressHydrationWarning={true}>
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" suppressHydrationWarning={true} />
 
@@ -785,24 +889,70 @@ export default function StudentSignup() {
                 <label htmlFor="courseDesired" className="font-apercu-medium text-sm text-gray-700">
                   Course Of Study <span className="text-red-500">*</span>
                 </label>
-                <div className="mb-2">
-                  <p className="font-apercu-regular text-[10px] text-gray-400 bg-gray-50 px-3 py-2 rounded-md border border-gray-100">
-                    For the time being, we only offer <span className="font-apercu-bold text-gray-500">General Certificate</span> program through our comprehensive online learning platform. We are currently expanding our facilities and enhancing our capacity to accommodate additional programs in the near future.
-                  </p>
-                </div>
-                <Select value={formData.courseDesired} onValueChange={(value) => handleInputChange('courseDesired', value)}>
-                  <SelectTrigger className={`h-12 border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors ${
-                    errors.courseDesired ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
-                  }`}>
-                    <SelectValue placeholder="Select your course of study" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="General Certificate">General Certificate</SelectItem>
-                    <SelectItem value="Diploma Certificate" disabled>Diploma Certificate</SelectItem>
-                    <SelectItem value="Bachelor's Degree" disabled>Bachelor's Degree</SelectItem>
-                    <SelectItem value="Master's Degree" disabled>Master's Degree</SelectItem>
-                  </SelectContent>
-                </Select>
+                {(() => {
+                  const allAdvancedCoursesDisabled = courseConfig.diplomaDisabled && courseConfig.bachelorDisabled && courseConfig.masterDisabled;
+                  const allCoursesDisabled = courseConfig.generalDisabled && allAdvancedCoursesDisabled;
+                  
+                  return (
+                    <>
+                      {/* Show notice when all courses are disabled or only General Certificate is available */}
+                      {(allAdvancedCoursesDisabled && !courseConfig.generalDisabled) && (
+                        <div className="mb-2">
+                          <p className="font-apercu-regular text-[10px] text-gray-400 bg-gray-50 px-3 py-2 rounded-md border border-gray-100">
+                            For the time being, we only offer <span className="font-apercu-bold text-gray-500">General Certificate</span> program through our comprehensive online learning platform. We are currently expanding our facilities and enhancing our capacity to accommodate additional programs in the near future.
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Show warning when all courses are disabled */}
+                      {allCoursesDisabled && (
+                        <div className="mb-2">
+                          <p className="font-apercu-regular text-[10px] text-red-400 bg-red-50 px-3 py-2 rounded-md border border-red-100">
+                            All courses are currently disabled. Please contact the administrator or check the course configuration.
+                          </p>
+                        </div>
+                      )}
+                      
+                      <Select value={formData.courseDesired} onValueChange={(value) => handleInputChange('courseDesired', value)}>
+                        <SelectTrigger className={`h-12 border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 transition-colors ${
+                          errors.courseDesired ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                        }`}>
+                          <SelectValue placeholder="Select your course of study" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem 
+                            value="General Certificate" 
+                            disabled={courseConfig.generalDisabled}
+                            className={courseConfig.generalDisabled ? "text-gray-400" : "text-green-600 font-medium"}
+                          >
+                            General Certificate {!courseConfig.generalDisabled ? "✓" : "🔒"}
+                          </SelectItem>
+                          <SelectItem 
+                            value="Diploma Certificate" 
+                            disabled={courseConfig.diplomaDisabled}
+                            className={courseConfig.diplomaDisabled ? "text-gray-400" : "text-green-600 font-medium"}
+                          >
+                            Diploma Certificate {!courseConfig.diplomaDisabled ? "✓" : "🔒"}
+                          </SelectItem>
+                          <SelectItem 
+                            value="Bachelor's Degree" 
+                            disabled={courseConfig.bachelorDisabled}
+                            className={courseConfig.bachelorDisabled ? "text-gray-400" : "text-green-600 font-medium"}
+                          >
+                            Bachelor's Degree {!courseConfig.bachelorDisabled ? "✓" : "🔒"}
+                          </SelectItem>
+                          <SelectItem 
+                            value="Master's Degree" 
+                            disabled={courseConfig.masterDisabled}
+                            className={courseConfig.masterDisabled ? "text-gray-400" : "text-green-600 font-medium"}
+                          >
+                            Master's Degree {!courseConfig.masterDisabled ? "✓" : "🔒"}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </>
+                  );
+                })()}
                 {errors.courseDesired && (
                   <p className="text-red-500 text-xs font-apercu-regular">{errors.courseDesired}</p>
                 )}
@@ -916,6 +1066,39 @@ export default function StudentSignup() {
                   </div>
                 )}
               </Button>
+
+              {/* Clear Form Button */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setConfirmClearOpen(true)}
+                className="w-full h-10 mt-2 font-apercu-regular text-sm border-red-200 text-red-700 bg-red-50 hover:bg-red-100 hover:border-red-300 transition-colors duration-200"
+              >
+                Clear Form
+              </Button>
+
+              {/* Confirm Clear Modal */}
+              <Dialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="font-apercu-bold">Clear all form fields?</DialogTitle>
+                    <DialogDescription className="font-apercu-regular">
+                      This will remove all entered information and reset the form. This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex items-center justify-end gap-3">
+                    <DialogClose asChild>
+                      <Button variant="ghost" className="px-4">Cancel</Button>
+                    </DialogClose>
+                    <Button
+                      onClick={() => { clearFormData(); setConfirmClearOpen(false) }}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      Clear Form
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </form>
 
             {/* Login Link */}

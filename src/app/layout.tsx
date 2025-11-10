@@ -26,26 +26,26 @@ export default function RootLayout({
         {/* Prevent iOS auto-linking that can cause hydration mismatches */}
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
 
-        {/* Compulsory Apercu Font Preloading - High Priority */}
+        {/* Preload Space Grotesk font files for faster rendering */}
         <link
           rel="preload"
-          href="/fonts/ApercuPro-Regular.woff"
+          href="/fonts/SpaceGrotesk-Regular.woff2"
           as="font"
-          type="font/woff"
+          type="font/woff2"
           crossOrigin="anonymous"
         />
         <link
           rel="preload"
-          href="/fonts/ApercuPro-Medium.woff"
+          href="/fonts/SpaceGrotesk-Medium.woff2"
           as="font"
-          type="font/woff"
+          type="font/woff2"
           crossOrigin="anonymous"
         />
         <link
           rel="preload"
-          href="/fonts/ApercuPro-Bold.woff"
+          href="/fonts/SpaceGrotesk-Bold.woff2"
           as="font"
-          type="font/woff"
+          type="font/woff2"
           crossOrigin="anonymous"
         />
 
@@ -53,37 +53,37 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="preconnect" href="//fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Critical Apercu Pro Font CSS - Inlined for immediate loading */}
+        {/* Critical Space Grotesk Font CSS - Inlined for immediate loading */}
         <style dangerouslySetInnerHTML={{
           __html: `
             @font-face {
-              font-family: 'Apercu Pro';
-              src: url('/fonts/ApercuPro-Regular.woff') format('woff');
+              font-family: 'Space Grotesk';
+              src: url('/fonts/SpaceGrotesk-Regular.woff2') format('woff2');
               font-weight: 400;
               font-style: normal;
-              font-display: block;
+              font-display: swap;
             }
             @font-face {
-              font-family: 'Apercu Pro';
-              src: url('/fonts/ApercuPro-Medium.woff') format('woff');
+              font-family: 'Space Grotesk';
+              src: url('/fonts/SpaceGrotesk-Medium.woff2') format('woff2');
               font-weight: 500;
               font-style: normal;
-              font-display: block;
+              font-display: swap;
             }
             @font-face {
-              font-family: 'Apercu Pro';
-              src: url('/fonts/ApercuPro-Bold.woff') format('woff');
+              font-family: 'Space Grotesk';
+              src: url('/fonts/SpaceGrotesk-Bold.woff2') format('woff2');
               font-weight: 700;
               font-style: normal;
-              font-display: block;
+              font-display: swap;
             }
             html, body, * {
-              font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+              font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
             }
           `
         }} />
       </head>
-      <body className="font-apercu antialiased text-gray-900 bg-white" suppressHydrationWarning={true}>
+      <body className="antialiased text-gray-900 bg-white" suppressHydrationWarning={true}>
         <UserProvider>
           <FontLoader showOnlyOnInitialLogin={true}>
             <LanguageProvider>

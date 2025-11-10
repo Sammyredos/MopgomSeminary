@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { authenticateRequest } from '@/lib/auth-helpers'
 import { Logger } from '@/lib/logger'
-import { broadcastAttendanceEvent } from '../events/route'
+import { broadcastAttendanceEvent } from '@/lib/attendance-events'
 import { sendVerificationConfirmationEmail } from '@/lib/email'
 
 const logger = Logger('AttendanceVerification')

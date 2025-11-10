@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import LoadingIndicator from '@/components/ui/loading-indicator'
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -146,8 +147,15 @@ export function CreateTeacherModal({ isOpen, onClose, onTeacherCreated }: Create
     onClose();
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      resetForm();
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Instructor</DialogTitle>
@@ -313,7 +321,11 @@ export function CreateTeacherModal({ isOpen, onClose, onTeacherCreated }: Create
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create Instructor'}
+              {isSubmitting ? (
+                <LoadingIndicator label="Creating..." />
+              ) : (
+                'Create Instructor'
+              )}
             </Button>
           </div>
         </form>

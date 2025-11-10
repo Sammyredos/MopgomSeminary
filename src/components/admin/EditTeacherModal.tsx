@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import LoadingIndicator from '@/components/ui/loading-indicator'
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -104,6 +105,30 @@ export function EditTeacherModal({ isOpen, onClose, teacher, onTeacherUpdated }:
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isSubmitting) {
+      onClose();
+      // Reset form data when closing
+      if (teacher) {
+        setFormData({
+          teacherId: teacher.teacherId || '',
+          fullName: teacher.fullName || '',
+          emailAddress: teacher.emailAddress || '',
+          phoneNumber: teacher.phoneNumber || '',
+          dateOfBirth: teacher.dateOfBirth ? new Date(teacher.dateOfBirth).toISOString().split('T')[0] : '',
+          address: teacher.address || '',
+          qualification: teacher.qualification || '',
+          experience: teacher.experience?.toString() || '',
+          department: teacher.department || '',
+          position: teacher.position || '',
+          salary: teacher.salary?.toString() || '',
+          hireDate: teacher.hireDate ? new Date(teacher.hireDate).toISOString().split('T')[0] : '',
+          isActive: teacher.isActive ?? true
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     if (teacher) {
       setFormData({
@@ -165,7 +190,7 @@ export function EditTeacherModal({ isOpen, onClose, teacher, onTeacherUpdated }:
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Instructor</DialogTitle>
@@ -340,7 +365,11 @@ export function EditTeacherModal({ isOpen, onClose, teacher, onTeacherUpdated }:
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Updating...' : 'Update Instructor'}
+              {isSubmitting ? (
+                <LoadingIndicator label="Updating..." />
+              ) : (
+                'Update Instructor'
+              )}
             </Button>
           </div>
         </form>

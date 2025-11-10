@@ -218,6 +218,7 @@ model Course {
 
   courseAllocations CourseAllocation[]
   courseSessions    CourseSession[]
+  contents          CourseContent[]
 
   @@map("courses")
 }
@@ -405,6 +406,7 @@ model Subject {
   teacherSubjects TeacherSubject[]
   grades          Grade[]
   courseSessions  CourseSession[]
+  contents        CourseContent[]
 
   @@map("subjects")
 }
@@ -490,4 +492,37 @@ model LoginAttempt {
 
   @@unique([email, ipAddress], name: "email_ip")
   @@map("login_attempts")
+}
+
+// Course content items linked to a course and optionally a subject
+enum ContentType {
+  youtube
+  audio
+  pdf
+  link
+  text
+}
+
+model CourseContent {
+  id            String      @id @default(cuid())
+  courseId      String
+  subjectId     String?
+  subjectLabel  String?
+  title         String
+  contentType   ContentType
+  url           String?
+  description   String?
+  additionalInfo String?
+  orderIndex    Int         @default(0)
+  isPublished   Boolean     @default(true)
+  createdById   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  course        Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subject       Subject?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  @@index([courseId])
+  @@index([subjectId])
+  @@map("course_contents")
 }

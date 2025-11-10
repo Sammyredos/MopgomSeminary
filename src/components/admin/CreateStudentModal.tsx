@@ -163,8 +163,16 @@ export default function CreateStudentModal({ isOpen, onClose, onSuccess, onStude
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isLoading) {
+      setFormData(initialFormData);
+      setErrors({});
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Student</DialogTitle>

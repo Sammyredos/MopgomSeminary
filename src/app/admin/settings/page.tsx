@@ -16,6 +16,7 @@ import { EmailConfigDisplay } from '@/components/admin/EmailConfigDisplay'
 import { useTranslation } from '@/contexts/LanguageContext'
 import { LogoManager } from '@/lib/logo-manager'
 import { RolesPermissionsManager } from '@/components/admin/RolesPermissionsManager'
+import CourseAvailabilitySettings from '@/components/admin/CourseAvailabilitySettings'
 
 
 import {
@@ -61,7 +62,8 @@ import {
   XCircle,
   Info,
   Code,
-  Server
+  Server,
+  GraduationCap
 } from 'lucide-react'
 import '@/styles/settings-responsive.css'
 
@@ -187,6 +189,7 @@ export default function SettingsPage() {
   })
   const [savingRegistrationSettings, setSavingRegistrationSettings] = useState(false)
   const [editingRegistrationSettings, setEditingRegistrationSettings] = useState(false)
+  const [editingCoursePrograms, setEditingCoursePrograms] = useState(false)
 
   const [activeTab, setActiveTab] = useState('general')
   const [isInitialized, setIsInitialized] = useState(false) // Track if tab has been initialized from URL
@@ -2139,6 +2142,68 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </div>
+      </Card>
+
+      {/* Course Program Availability */}
+      <Card className="border-0 shadow-sm bg-white">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
+                <GraduationCap className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-apercu-bold text-xl text-gray-900">Course Program Availability</h3>
+                <p className="font-apercu-regular text-sm text-gray-600 mt-1">Manage which course programs are available for student registration</p>
+              </div>
+            </div>
+            {/* Edit/Save Buttons */}
+            {!editingCoursePrograms && userRole === 'Super Admin' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingCoursePrograms(true)}
+                className="font-apercu-medium"
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            )}
+            {editingCoursePrograms && userRole === 'Super Admin' && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingCoursePrograms(false)}
+                  className="font-apercu-medium"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setEditingCoursePrograms(false)}
+                  className="bg-green-600 hover:bg-green-700 font-apercu-medium"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  Save
+                </Button>
+              </div>
+            )}
+            {userRole === 'Admin' && (
+              <Badge className="bg-gray-100 text-gray-600 border-gray-200 font-apercu-medium">
+                Read Only
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <div className="p-6">
+          <CourseAvailabilitySettings 
+            isEditing={editingCoursePrograms}
+            onSave={() => setEditingCoursePrograms(false)}
+            onCancel={() => setEditingCoursePrograms(false)}
+          />
         </div>
       </Card>
 

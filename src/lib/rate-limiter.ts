@@ -364,7 +364,7 @@ export function getUserRateLimitIdentifier(request: NextRequest): string | undef
     if (token) {
       // Extract user ID from token for user-specific rate limiting
       const payload = JSON.parse(atob(token.split('.')[1]))
-      return `user:${payload.adminId || payload.userId}`
+      return `user:${payload.adminId}`
     }
   } catch (error) {
     // Fallback to IP-based rate limiting

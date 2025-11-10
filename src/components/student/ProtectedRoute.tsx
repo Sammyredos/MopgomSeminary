@@ -29,8 +29,8 @@ export function ProtectedRoute({
       return
     }
 
-    // Check if user has student role
-    const isStudent = currentUser.role?.name === 'Student'
+    // Treat any non-admin account as student-accessible
+    const isStudent = currentUser.type === 'user' || currentUser.role?.name === 'Student'
 
     if (isStudent) {
       setAuthState('authorized')

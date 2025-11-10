@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db'
 import { authenticateRequest } from '@/lib/auth-helpers'
 
 import { Logger } from '@/lib/logger'
-import { broadcastAttendanceEvent } from '../events/route'
+import { broadcastAttendanceEvent } from '@/lib/attendance-events'
 
 const logger = Logger('AttendanceUnverification')
 

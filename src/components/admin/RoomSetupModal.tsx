@@ -172,8 +172,14 @@ export function RoomSetupModal({ isOpen, onClose, onSave, onError, room, default
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !loading) {
+      onClose()
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl mx-4 sm:mx-0">
         <DialogHeader>
           <div className="flex items-center space-x-3">

@@ -1,6 +1,6 @@
 /**
  * Font Verification Utility
- * Ensures Apercu Pro fonts are loaded and available
+ * Ensures Space Grotesk fonts are loaded and available
  */
 
 export interface FontStatus {
@@ -23,9 +23,9 @@ export class FontVerifier {
   }
 
   /**
-   * Verify if a specific Apercu Pro font is loaded
+   * Verify if a specific Space Grotesk font is loaded
    */
-  async verifyFont(family: string = 'Apercu Pro', weight: string = '400'): Promise<FontStatus> {
+  async verifyFont(family: string = 'Space Grotesk', weight: string = '400'): Promise<FontStatus> {
     const key = `${family}-${weight}`
     
     // Return cached result if available
@@ -101,18 +101,18 @@ export class FontVerifier {
   }
 
   /**
-   * Verify all Apercu Pro font weights
+   * Verify all Space Grotesk font weights
    */
   async verifyAllApercuFonts(): Promise<FontStatus[]> {
     const weights = ['400', '500', '700']
-    const promises = weights.map(weight => this.verifyFont('Apercu Pro', weight))
+    const promises = weights.map(weight => this.verifyFont('Space Grotesk', weight))
     return Promise.all(promises)
   }
 
   /**
    * Get font loading status
    */
-  getFontStatus(family: string = 'Apercu Pro', weight: string = '400'): FontStatus | null {
+  getFontStatus(family: string = 'Space Grotesk', weight: string = '400'): FontStatus | null {
     const key = `${family}-${weight}`
     return this.fontStatuses.get(key) || null
   }
@@ -134,12 +134,12 @@ export class FontVerifier {
   }
 
   /**
-   * Check if all critical Apercu fonts are loaded
+   * Check if all critical Space Grotesk fonts are loaded
    */
   areAllFontsLoaded(): boolean {
     const criticalWeights = ['400', '500', '700']
     return criticalWeights.every(weight => {
-      const status = this.getFontStatus('Apercu Pro', weight)
+      const status = this.getFontStatus('Space Grotesk', weight)
       return status?.loaded === true
     })
   }

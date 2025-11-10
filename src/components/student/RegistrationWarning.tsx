@@ -22,7 +22,7 @@ export function RegistrationWarning({ completionStatus, className = '' }: Regist
   }
 
   return (
-    <Card data-slot="card" className={`text-card-foreground flex flex-col gap-6 rounded-xl border border-amber-200 bg-amber-50 shadow-lg py-0 ${className}`}>
+    <Card data-slot="card" className={`text-card-foreground flex flex-col space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 rounded-xl border border-amber-200 bg-amber-50 shadow-lg py-0 ${className}`}>
       <CardContent data-slot="card-content" className="px-4 sm:px-6 pb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2" />

@@ -141,7 +141,7 @@ a:hover {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -168,11 +168,11 @@ a:hover {
 
 /* Enhanced typography and visibility - Compulsory Apercu Pro */
 html {
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
 }
 
 body {
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   line-height: 1.6;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
@@ -183,22 +183,22 @@ body {
 
 /* Force Apercu Pro on all elements */
 * {
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
 }
 
 /* Improved text contrast and readability with Apercu Pro weights */
 h1, h2, h3, h4, h5, h6 {
   color: #111827;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 700; /* Apercu Pro Bold */
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700; /* Space Grotesk Bold */
   line-height: 1.3;
   letter-spacing: -0.025em;
 }
 
 p, span, div {
   color: #374151;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 400; /* Apercu Pro Regular */
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 400; /* Space Grotesk Regular */
 }
 
 /* Form elements with better visibility and Apercu font */
@@ -206,13 +206,13 @@ input, textarea, select {
   color: #111827 !important;
   background-color: #ffffff !important;
   border-color: #d1d5db !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   font-weight: 400 !important;
 }
 
 input::placeholder, textarea::placeholder {
   color: #9ca3af !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
 }
 
 /* Button text visibility */
@@ -267,18 +267,18 @@ a:hover {
   font-weight: 500;
 }
 
-/* Button text enhancement with Apercu Pro */
+/* Button text enhancement with Space Grotesk */
 button, .btn {
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 500 !important; /* Apercu Pro Medium */
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 500 !important; /* Space Grotesk Medium */
   letter-spacing: 0.025em;
 }
 
-/* Form label enhancement with Apercu Pro */
+/* Form label enhancement with Space Grotesk */
 label {
   color: #374151 !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 500 !important; /* Apercu Pro Medium */
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 500 !important; /* Space Grotesk Medium */
 }
 
 /* Navigation and header text */
@@ -299,34 +299,34 @@ a:hover, button:hover, [role="button"]:hover {
 
 /* Font weight utilities are defined in fonts.css */
 
-/* Apply Apercu Pro weights to specific text classes */
+/* Apply Space Grotesk weights to specific text classes */
 .text-gray-900 {
   color: #111827 !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 500; /* Medium for emphasis */
 }
 
 .text-gray-800 {
   color: #1f2937 !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 500; /* Medium for emphasis */
 }
 
 .text-gray-700 {
   color: #374151 !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400; /* Regular */
 }
 
 .text-gray-600 {
   color: #4b5563 !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400; /* Regular */
 }
 
 .text-gray-500 {
   color: #6b7280 !important;
-  font-family: 'Apercu Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400; /* Regular */
 }
 
@@ -353,7 +353,7 @@ body {
     @apply border-gray-200;
   }
   body {
-    @apply bg-white text-gray-900 font-apercu antialiased;
+    @apply bg-white text-gray-900 antialiased;
   }
 }
 /* stylelint-enable at-rule-no-unknown */

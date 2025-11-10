@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { AdminLayoutNew } from '@/components/admin/AdminLayoutNew'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ButtonSkeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { EnhancedBadge, getStatusBadgeVariant } from '@/components/ui/enhanced-badge'
 import { useToast } from '@/contexts/ToastContext'
@@ -13,6 +14,7 @@ import { parseApiError } from '@/lib/error-messages'
 // Removed heavy animations for better performance
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 // import { Avatar } from '@/components/ui/avatar'
 import { StatsCard, StatsGrid } from '@/components/ui/stats-card'
 import { UserCard } from '@/components/ui/user-card'
@@ -45,8 +47,8 @@ import {
   UserCheck,
   Loader2,
   Trash2,
-  LogIn,
-  Ban
+  Ban,
+  Filter
 } from 'lucide-react'
 
 interface Registration {
@@ -114,9 +116,12 @@ export default function AdminRegistrations() {
   const [refreshing, setRefreshing] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
-    // Get saved view mode from localStorage, default to 'list'
+    // Respect persisted choice; otherwise default to grid on mobile, list on larger screens
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('registrations-view-mode') as 'grid' | 'list') || 'list'
+      const saved = localStorage.getItem('registrations-view-mode') as 'grid' | 'list' | null
+      if (saved) return saved
+      const isMobile = window.innerWidth < 640
+      return isMobile ? 'grid' : 'list'
     }
     return 'list'
   })
@@ -158,6 +163,10 @@ export default function AdminRegistrations() {
     averageAge: 0
   })
 
+  // Course programs state for consistent dropdown options
+  const [coursePrograms, setCoursePrograms] = useState<Array<{id: string, name: string, enabled: boolean}>>([])
+  const [loadingCoursePrograms, setLoadingCoursePrograms] = useState(true)
+
   const { success, error } = useToast()
 
   
@@ -186,7 +195,19 @@ export default function AdminRegistrations() {
   const [genderFilter, setGenderFilter] = useState<string>('all')
   const [verifyFilter, setVerifyFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  // Year filter (applies to both Registrations and Students views)
+  const [yearFilter, setYearFilter] = useState<string>('all')
+  const availableYears = Array.from(new Set(
+    registrations
+      .map(r => {
+        const d = new Date(r.createdAt)
+        const y = d.getFullYear()
+        return Number.isFinite(y) ? y : null
+      })
+      .filter((y): y is number => y !== null)
+  )).sort((a, b) => b - a)
   const availableCourses = Array.from(new Set(registrations.map(r => r.courseDesired).filter(Boolean)))
+  const [showFiltersModal, setShowFiltersModal] = useState(false)
 
   const fetchRegistrations = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -249,20 +270,53 @@ export default function AdminRegistrations() {
     }
   }, []) // Remove error dependency to prevent infinite loop
 
+  // Fetch course programs for consistent dropdown options
+  const fetchCoursePrograms = useCallback(async () => {
+    try {
+      setLoadingCoursePrograms(true)
+      const response = await fetch('/api/course-programs')
+      if (!response.ok) {
+        throw new Error('Failed to fetch course programs')
+      }
+      const data = await response.json()
+      setCoursePrograms(data.programs || [])
+    } catch (error) {
+      console.error('Error fetching course programs:', error)
+      // Fallback to default programs if API fails
+      setCoursePrograms([
+        { id: 'general', name: 'General Certificate', enabled: true },
+        { id: 'diploma', name: 'Diploma Certificate', enabled: true },
+        { id: 'bachelor', name: "Bachelor's Degree", enabled: true },
+        { id: 'master', name: "Master's Degree", enabled: true }
+      ])
+    } finally {
+      setLoadingCoursePrograms(false)
+    }
+  }, [])
+
   // Fetch registrations on component mount
   useEffect(() => {
     fetchRegistrations()
+    fetchCoursePrograms()
   }, []) // Remove fetchRegistrations dependency to prevent infinite loop
 
-  // Default to grid view on Students tab
+  // Default to grid view on Students tab for mobile devices; persist user selection
   useEffect(() => {
-    if (isStudentsRoute && viewMode !== 'grid') {
-      setViewMode('grid')
-      if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
+      const isMobile = window.innerWidth < 640
+      if (isStudentsRoute && isMobile && viewMode !== 'grid') {
+        setViewMode('grid')
         localStorage.setItem('registrations-view-mode', 'grid')
       }
     }
   }, [])
+
+  // Persist view mode changes so user preference is remembered
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('registrations-view-mode', viewMode)
+    }
+  }, [viewMode])
 
   // Reset to page 1 when search changes
   useEffect(() => {
@@ -357,10 +411,13 @@ export default function AdminRegistrations() {
     // Students route specific filters
     const matchesCourse = !isStudentsRoute || courseFilter === 'all' || registration.courseDesired === courseFilter
     const matchesGender = !isStudentsRoute || genderFilter === 'all' || registration.gender === genderFilter
-    const matchesVerify = !isStudentsRoute || verifyFilter === 'all' || (verifyFilter === 'verified' ? !!registration.isVerified : !registration.isVerified)
+  const matchesVerify = verifyFilter === 'all' || (verifyFilter === 'verified' ? !!registration.isVerified : !registration.isVerified)
     const matchesStatus = !isStudentsRoute || statusFilter === 'all' || (statusFilter === 'banned' ? registration.userIsActive === false : registration.userIsActive === true)
+    // Year filter (shared by Registrations and Students)
+    const regYear = (() => { try { return new Date(registration.createdAt).getFullYear() } catch { return NaN } })()
+    const matchesYear = yearFilter === 'all' || regYear === Number(yearFilter)
 
-    return matchesSearch && matchesCourse && matchesGender && matchesVerify && matchesStatus
+    return matchesSearch && matchesCourse && matchesGender && matchesVerify && matchesStatus && matchesYear
   })
 
   // Client-side pagination
@@ -558,37 +615,7 @@ export default function AdminRegistrations() {
     setRegistrationToDelete(null)
   }
 
-  // Impersonate student and open dashboard (new tab, popup-safe)
-  const handleImpersonateStudent = async (email: string) => {
-    // Open a blank tab immediately to avoid popup blockers
-    const newTab = window.open('about:blank', '_blank')
-    try {
-      const res = await fetch('/api/admin/impersonate/student', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        error(data.error || 'Failed to login as student')
-        // Close the placeholder tab if impersonation fails
-        if (newTab && !newTab.closed) newTab.close()
-        return
-      }
-      success('Logged in as student. Opening dashboard...')
-      const url = data.redirectUrl || '/student/dashboard'
-      if (newTab && !newTab.closed) {
-        // Navigate the already-opened tab after cookie is set
-        newTab.location.href = url
-      } else {
-        // Fallback if popup was blocked or closed
-        window.open(url, '_blank')
-      }
-    } catch (e) {
-      error('Network error while logging in as student')
-      if (newTab && !newTab.closed) newTab.close()
-    }
-  }
+  // Removed student impersonation/login for admin students view per requirements
 
   // Deactivate student by email
   const handleToggleStudentActive = async (email: string, isActive?: boolean) => {
@@ -1316,9 +1343,9 @@ export default function AdminRegistrations() {
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="flex space-x-2">
-                            <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                            <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
-                            <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                            <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                            <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
+                            <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
                           </div>
                         </td>
                       </tr>
@@ -1357,8 +1384,8 @@ export default function AdminRegistrations() {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <div className="flex-1 h-8 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-8 w-8 bg-gray-200 rounded animate-pulse" />
+                          <div className="flex-1 h-8 bg-gray-200 rounded animate-pulse" />
+                          <ButtonSkeleton size="sm" className="h-8 w-8 p-0 rounded" />
                   </div>
                 </Card>
               ))}
@@ -1416,7 +1443,7 @@ export default function AdminRegistrations() {
       {/* Search and Filters */}
       <div className="px-6">
         <Card className="p-4 lg:p-6 my-6 bg-white">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-start space-y-4 lg:space-y-0 lg:space-x-4">
           <div className="flex-1 lg:max-w-md">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -1431,27 +1458,92 @@ export default function AdminRegistrations() {
           </div>
 
           {isStudentsRoute && (
-            <div className="flex flex-col sm:flex-row gap-2">
-              <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="all">All Courses</option>
-                {availableCourses.map((c) => (<option key={c} value={c}>{c}</option>))}
-              </select>
-              <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="all">All Genders</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
-              <select value={verifyFilter} onChange={(e) => setVerifyFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="all">All Statuses</option>
-                <option value="verified">Verified</option>
-                <option value="unverified">Unverified</option>
-              </select>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm lg:text-base font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option value="all">All (Ban/Unban)</option>
-                <option value="unbanned">Unbanned</option>
-                <option value="banned">Banned</option>
-              </select>
-            </div>
+            <>
+              <div className="lg:hidden">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full font-apercu-medium text-sm"
+                  onClick={() => setShowFiltersModal(true)}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                </Button>
+              </div>
+              <Dialog open={showFiltersModal} onOpenChange={setShowFiltersModal}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Filters</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-3 mt-2">
+                    <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="all">All Courses</option>
+                      {availableCourses.map((c) => (<option key={c} value={c}>{c}</option>))}
+                    </select>
+                    <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="all">All Genders</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                    <select value={verifyFilter} onChange={(e) => setVerifyFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="all">All Statuses</option>
+                      <option value="verified">Verified</option>
+                      <option value="unverified">Unverified</option>
+                    </select>
+                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="all">All (Ban/Unban)</option>
+                      <option value="unbanned">Unbanned</option>
+                      <option value="banned">Banned</option>
+                    </select>
+                    <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="all">All Years</option>
+                      {availableYears.map((y) => (<option key={y} value={String(y)}>{y}</option>))}
+                    </select>
+                    <div className="flex justify-end mt-2">
+                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-transparent font-apercu-medium" onClick={() => setShowFiltersModal(false)}>Apply</Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+          {!isStudentsRoute && (
+            <>
+              <div className="lg:hidden">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full font-apercu-medium text-sm"
+                  onClick={() => setShowFiltersModal(true)}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                </Button>
+              </div>
+              <Dialog open={showFiltersModal} onOpenChange={setShowFiltersModal}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Filters</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-3 mt-2">
+                    {/* Year filter */}
+                    <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="all">All Years</option>
+                      {availableYears.map((y) => (<option key={y} value={String(y)}>{y}</option>))}
+                    </select>
+                    {/* Verified status filter */}
+                    <select value={verifyFilter} onChange={(e) => setVerifyFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-apercu-regular focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <option value="all">All Statuses</option>
+                      <option value="verified">Verified</option>
+                      <option value="unverified">Unverified</option>
+                    </select>
+                    <div className="flex justify-end mt-2">
+                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-transparent font-apercu-medium" onClick={() => setShowFiltersModal(false)}>Apply</Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
           )}
 
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
@@ -1504,6 +1596,17 @@ export default function AdminRegistrations() {
                   localStorage.setItem('registrations-view-mode', mode)
                 }} 
               />
+              <Button
+                variant="default"
+                size="sm"
+                className="hidden lg:inline-flex ml-2 font-apercu-medium"
+                onClick={() => setShowFiltersModal(true)}
+                aria-label="Open filters"
+                title="Filters"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
             </div>
             {refreshing && (
               <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -1545,15 +1648,6 @@ export default function AdminRegistrations() {
                   extraActions={
                     isStudentsRoute ? (
                       <div className="flex gap-2 w-full">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => handleImpersonateStudent(registration.emailAddress)}
-                        >
-                          <LogIn className="h-4 w-4 mr-2" />
-                          Login
-                        </Button>
                         {registration.userIsActive === true ? (
                           <Button
                             variant="destructive"
@@ -1656,16 +1750,6 @@ export default function AdminRegistrations() {
                         {isStudentsRoute ? (
                           <td className="px-4 py-4 text-sm font-apercu-medium">
                             <div className="flex flex-wrap gap-2">
-                              {/* Login icon button */}
-                              <Button
-                                size="sm"
-                                onClick={() => handleImpersonateStudent(registration.emailAddress)}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                aria-label="Login as student"
-                              >
-                                <LogIn className="h-4 w-4" />
-                              </Button>
-
                               {/* Ban or Activate icon button with distinctive color */}
                               {registration.userIsActive === true ? (
                                 <Button
@@ -2427,18 +2511,20 @@ export default function AdminRegistrations() {
                       <Select
                         value={editFormData.courseDesired || ''}
                         onValueChange={(val) => handleEditFormChange('courseDesired', val)}
-                        disabled={isEditing}
+                        disabled={isEditing || loadingCoursePrograms}
                       >
                         <SelectTrigger className="font-apercu-regular">
-                          <SelectValue placeholder="Select course" />
+                          <SelectValue placeholder={loadingCoursePrograms ? "Loading courses..." : "Select course"} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="General Certificate">General Certificate</SelectItem>
-                          <SelectItem value="Diploma Programme">Diploma Programme</SelectItem>
-                          <SelectItem value="Advanced Diploma">Advanced Diploma</SelectItem>
-                          <SelectItem value="Certificate in Theology">Certificate in Theology</SelectItem>
-                          <SelectItem value="Pastoral Studies">Pastoral Studies</SelectItem>
-                          <SelectItem value="Youth Ministry">Youth Ministry</SelectItem>
+                          {coursePrograms
+                            .filter(program => program.enabled)
+                            .map(program => (
+                              <SelectItem key={program.id} value={program.name}>
+                                {program.name}
+                              </SelectItem>
+                            ))
+                          }
                         </SelectContent>
                       </Select>
                     </div>

@@ -174,6 +174,17 @@ export function ManualAllocationModal({ isOpen, onClose, onSuccess }: ManualAllo
     onClose()
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setStep('select-person')
+      setSelectedRegistration(null)
+      setSelectedRoom(null)
+      setSearchTerm('')
+      setAgeValidationError(null)
+      onClose()
+    }
+  }
+
   const filteredRegistrations = unallocatedRegistrations.filter(reg =>
     reg.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     reg.emailAddress.toLowerCase().includes(searchTerm.toLowerCase())
@@ -195,7 +206,7 @@ export function ManualAllocationModal({ isOpen, onClose, onSuccess }: ManualAllo
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="font-apercu-bold text-xl">

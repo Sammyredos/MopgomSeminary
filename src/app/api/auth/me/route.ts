@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
         }
       })
     } else {
-      // Fetch regular user
+      // Fetch regular user - tokens use adminId field for compatibility
       user = await prisma.user.findUnique({
-        where: { id: payload.adminId }, // adminId field is used for both types
+        where: { id: payload.adminId },
         include: {
           role: {
             include: {
@@ -51,6 +51,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Return user info with flattened permissions for easier access
+    // Attempt to include courseDesired for student users from Registration
+    let courseDesired: string | null = null
+    try {
+      if (userType === 'user' && user?.email) {
+        const reg = await prisma.registration.findFirst({
+          where: {
+            OR: [
+              { emailAddress: user.email },
+              { emailAddress: user.email.toLowerCase() },
+              { emailAddress: user.email.toUpperCase() }
+            ]
+          },
+          select: { courseDesired: true }
+        })
+        courseDesired = reg?.courseDesired || null
+      }
+    } catch (e) {
+      console.warn('/api/auth/me: unable to attach courseDesired', e)
+    }
+
     return NextResponse.json({
       user: {
         id: user.id,
@@ -60,7 +80,8 @@ export async function GET(request: NextRequest) {
         type: userType,
         role: user.role,
         permissions: user.role?.permissions?.map(p => p.name) || [],
-        isActive: user.isActive
+        isActive: user.isActive,
+        courseDesired
       }
     })
 
