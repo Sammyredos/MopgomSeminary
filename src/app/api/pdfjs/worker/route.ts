@@ -11,13 +11,10 @@ import path from 'path'
  */
 export async function GET(_req: NextRequest) {
   try {
-    const workerPath = path.resolve(
-      process.cwd(),
-      'node_modules',
-      'pdfjs-dist',
-      'build',
-      'pdf.worker.min.js'
-    )
+    const baseDir = path.resolve(process.cwd(), 'node_modules', 'pdfjs-dist', 'build')
+    const mjsPath = path.join(baseDir, 'pdf.worker.min.mjs')
+    const jsPath = path.join(baseDir, 'pdf.worker.min.js')
+    const workerPath = fs.existsSync(mjsPath) ? mjsPath : jsPath
 
     if (!fs.existsSync(workerPath)) {
       return new NextResponse('/* pdf.worker.min.js not found */', {

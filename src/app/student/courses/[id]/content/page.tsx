@@ -118,8 +118,8 @@ export default function StudentCourseContentPage() {
                         >
                           {item.contentType === 'pdf' && item.url ? (
                             <>
-                              <Button asChild size="sm" variant="outline" className="hover:bg-emerald-50">
-                                <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}`} prefetch={false}>
+                              <Button asChild size="sm" variant="outline" className="group bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
+                                <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}&subject=${encodeURIComponent(item.subjectLabel || 'General')}&description=${encodeURIComponent(item.description || '')}`} prefetch={false}>
                                   <ExternalLink className="h-4 w-4 mr-1" />Open Secure Viewer
                                 </Link>
                               </Button>

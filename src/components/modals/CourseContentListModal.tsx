@@ -191,7 +191,7 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
             ) : filtered.length === 0 ? (
               <p className="text-sm text-gray-600">No content found.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pageItems.map(item => (
                   <CourseContentCard
                     key={item.id}

@@ -3,9 +3,11 @@ const path = require('path')
 const nextConfig = {
   // Use a custom build directory to avoid OneDrive file locks on .next
   // Moving the build output prevents EBUSY errors caused by sync/indexing
-  distDir: '.next',
+  distDir: '.next-dev',
   // External packages for server components
   serverExternalPackages: ['prisma', '@prisma/client'],
+
+  // Avoid esmExternals which can externalize ESM packages and break client chunks
 
   // Transpile ESM packages that ship modern syntax
   transpilePackages: ['pdfjs-dist'],
@@ -20,6 +22,10 @@ const nextConfig = {
       ...config.resolve.alias,
       '@': require('path').resolve(__dirname, 'src'),
     }
+
+    // Remove extensionAlias to avoid resolving UMD imports to ESM .mjs
+    // This ensures 'pdfjs-dist/build/pdf.js' uses the UMD build consistently.
+    // If future packages require .mjs resolution, handle them explicitly.
 
     // Only add fallbacks for client-side builds
     if (!isServer) {

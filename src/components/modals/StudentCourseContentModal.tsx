@@ -111,7 +111,7 @@ export default function StudentCourseContentModal({ isOpen, onClose, course }: S
                 <div className="text-sm text-gray-500">No content available</div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pageItems.map(item => (
                   <CourseContentCard
                     key={item.id}
@@ -122,8 +122,8 @@ export default function StudentCourseContentModal({ isOpen, onClose, course }: S
                     // Do not pass isPublished or url for students (we add our own Open action)
                   >
                     {item.url && item.contentType === 'pdf' ? (
-                      <Button asChild size="sm" variant="outline" className="hover:bg-emerald-50">
-                        <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}`} prefetch={false}>
+                      <Button asChild size="sm" variant="outline" className="group bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
+                        <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}&subject=${encodeURIComponent(item.subjectLabel || 'General')}&description=${encodeURIComponent(item.description || '')}`} prefetch={false}>
                           Open Secure Viewer
                         </Link>
                       </Button>
@@ -132,7 +132,7 @@ export default function StudentCourseContentModal({ isOpen, onClose, course }: S
                         asChild
                         size="sm"
                         variant="outline"
-                        className="hover:bg-emerald-50"
+                        className="group bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm"
                       >
                         <a href={item.url as string} target="_blank" rel="noopener noreferrer">Open</a>
                       </Button>
