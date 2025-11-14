@@ -1,3 +1,5 @@
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
@@ -5,12 +7,12 @@ import { existsSync } from 'fs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: { path: string[] } }
 ) {
   try {
     // Join the path segments
-    const { path } = await params
-    const filePath = path.join('/')
+    const { path: segments } = params
+    const filePath = segments.join('/')
     
     // Construct the full file path
     const fullPath = join(process.cwd(), 'public', 'uploads', filePath)
