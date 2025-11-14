@@ -38,6 +38,12 @@ export function programLabel(program: ProgramKey | null): string | null {
   }
 }
 
+// Utility: case-insensitive contains filter across providers
+function ciContains(value: string) {
+  const isPostgres = (process.env.DATABASE_URL || '').startsWith('postgres')
+  return isPostgres ? { contains: value, mode: 'insensitive' as const } : { contains: value }
+}
+
 // Build robust subjectArea filtering aligned with admin UI logic
 // Mirrors admin CourseList program filters so students see the same subjects
 // as presented under admin tabs (e.g., general-certificate).
@@ -48,40 +54,40 @@ export function subjectAreaWhere(program: ProgramKey) {
       // We include general but exclude diploma/bachelor/master entries.
       return {
         AND: [
-          { subjectArea: { contains: 'general' } }
+          { subjectArea: ciContains('general') }
         ],
         NOT: [
-          { subjectArea: { contains: 'diploma' } },
-          { subjectArea: { contains: 'bachelor' } },
-          { subjectArea: { contains: 'master' } }
+          { subjectArea: ciContains('diploma') },
+          { subjectArea: ciContains('bachelor') },
+          { subjectArea: ciContains('master') }
         ]
       }
     case 'diploma':
       // Accept any subjectArea mentioning "Diploma" (with or without "Certificate")
       return {
         AND: [
-          { subjectArea: { contains: 'diploma' } }
+          { subjectArea: ciContains('diploma') }
         ]
       }
     case 'bachelor':
       // Include common bachelor synonyms
       return {
         OR: [
-          { subjectArea: { contains: 'bachelor' } },
-          { subjectArea: { contains: 'undergraduate' } },
-          { subjectArea: { contains: "b.sc" } },
-          { subjectArea: { contains: "bsc" } }
+          { subjectArea: ciContains('bachelor') },
+          { subjectArea: ciContains('undergraduate') },
+          { subjectArea: ciContains('b.sc') },
+          { subjectArea: ciContains('bsc') }
         ]
       }
     case 'master':
       // Include master/masters and common abbreviations
       return {
         OR: [
-          { subjectArea: { contains: 'master' } },
-          { subjectArea: { contains: 'masters' } },
-          { subjectArea: { contains: 'msc' } },
-          { subjectArea: { contains: 'ma' } },
-          { subjectArea: { contains: 'postgraduate' } }
+          { subjectArea: ciContains('master') },
+          { subjectArea: ciContains('masters') },
+          { subjectArea: ciContains('msc') },
+          { subjectArea: ciContains('ma') },
+          { subjectArea: ciContains('postgraduate') }
         ]
       }
   }

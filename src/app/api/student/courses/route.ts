@@ -105,11 +105,13 @@ export async function GET(request: NextRequest) {
     console.log('Student courses query where:', where)
 
     if (search) {
+      const isPostgres = (process.env.DATABASE_URL || '').startsWith('postgres')
+      const ci = (value: string) => isPostgres ? { contains: value, mode: 'insensitive' as const } : { contains: value }
       where.OR = [
-        { courseName: { contains: search } },
-        { courseCode: { contains: search } },
-        { description: { contains: search } },
-        { instructor: { contains: search } }
+        { courseName: ci(search) },
+        { courseCode: ci(search) },
+        { description: ci(search) },
+        { instructor: ci(search) }
       ]
     }
 
