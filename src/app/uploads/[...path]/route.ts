@@ -1,17 +1,17 @@
 export const runtime = 'nodejs'
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
+  _request: Request,
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
     // Join the path segments
-    const { path: segments } = params
+    const { path: segments } = await params
     const filePath = segments.join('/')
     
     // Construct the full file path
