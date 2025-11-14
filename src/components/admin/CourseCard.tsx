@@ -13,8 +13,10 @@ import {
   Clock,
   GraduationCap,
   Loader2,
-  ChevronRight
+  ChevronRight,
+  Eye
 } from 'lucide-react'
+import CourseContentListModal from '@/components/modals/CourseContentListModal'
 
 
 interface Course {
@@ -60,6 +62,7 @@ const CourseCardComponent = function CourseCard({
 }: CourseCardProps) {
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showContentList, setShowContentList] = useState(false)
 
   const { success, error } = useToast()
 
@@ -139,6 +142,7 @@ const CourseCardComponent = function CourseCard({
                 onClick={() => onEdit(course)}
                 className="font-apercu-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 transition-colors duration-150"
                 disabled={deleting}
+                title="Edit Course"
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -281,12 +285,28 @@ const CourseCardComponent = function CourseCard({
                 }
               }}
             >
-              Upload Course Content
+              Upload Content
               <ChevronRight className="h-4 w-4 ml-1 text-white/90 group-hover:text-white" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="group border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              onClick={() => setShowContentList(true)}
+              title="View uploaded content"
+            >
+              <Eye className="h-4 w-4 mr-1" /> View Content
             </Button>
           </div>
         </div>
       </Card>
+
+      {/* Content List Modal */}
+      <CourseContentListModal
+        isOpen={showContentList}
+        onClose={() => setShowContentList(false)}
+        course={{ id: course.id, courseCode: course.courseCode, courseName: course.courseName }}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (

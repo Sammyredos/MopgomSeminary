@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { VisuallyHidden } from '@/components/ui/visually-hidden'
 import { Menu } from 'lucide-react'
+import ProfileCompletionGuard from '@/components/student/ProfileCompletionGuard'
 
 interface StudentLayoutProps {
   children: ReactNode
@@ -100,7 +101,9 @@ export function StudentLayout({
         '/student/calendar',
         '/student/assignments',
         '/student/messages',
-        '/student/profile'
+        '/student/profile',
+        // Prefetch secure viewer to speed up first open
+        '/student/content/viewer'
       ]
 
       studentRoutes.forEach(route => {
@@ -200,6 +203,8 @@ export function StudentLayout({
           >
             <div className="py-6">
               <div className="px-6">
+                {/* Guard student pages to ensure profile completion; redirects to profile with next param */}
+                <ProfileCompletionGuard />
                 {children}
               </div>
             </div>

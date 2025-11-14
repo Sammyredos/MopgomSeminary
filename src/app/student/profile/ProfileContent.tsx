@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -87,6 +88,8 @@ function computeCompletion(d: StudentData): number {
 }
 
 export default function TestProfileMockPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [studentData, setStudentData] = useState<StudentData | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
@@ -334,6 +337,13 @@ export default function TestProfileMockPage() {
         }
         notifySuccess('Profile verified successfully, your Matric Number has been generated')
         setIsEditing(false)
+        // If user was redirected here, resume the intended page
+        const next = searchParams?.get('next')
+        if (next && next.startsWith('/')) {
+          try {
+            router.push(next)
+          } catch {}
+        }
       } else {
         const msg = (payload && (payload.message || payload.error)) || 'Please try again later'
         notifyError('Profile verification failed', msg)

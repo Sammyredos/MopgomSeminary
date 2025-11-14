@@ -6,8 +6,10 @@ import { StudentLayout } from '@/components/student/StudentLayout'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import CourseContentCard from '@/components/ui/course-content-card'
 import { useParams, useRouter } from 'next/navigation'
 import { ChevronLeft, PlayCircle, Music, FileText, Link as LinkIcon, File, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
 
 type ContentType = 'youtube' | 'audio' | 'pdf' | 'link' | 'text'
 
@@ -37,6 +39,7 @@ export default function StudentCourseContentPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const load = async () => {
@@ -104,52 +107,35 @@ export default function StudentCourseContentPage() {
                   <p className="text-sm text-gray-600">No published content yet.</p>
                 ) : (
                   <>
-                    {/** Grid styling aligned with admin courses cards **/}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                       {paginatedItems.map((item) => (
-                        <div key={item.id} className="group border border-gray-200 rounded-lg bg-white p-4 sm:p-5 hover:shadow-lg transition-shadow">
-                          <div className="flex items-start gap-3">
-                            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-emerald-600 to-green-600 flex items-center justify-center flex-shrink-0">
-                              {iconFor(item.contentType)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start gap-2 min-w-0">
-                                <span className="font-apercu-medium text-sm text-gray-900 truncate break-words">
-                                  {item.title}
-                                </span>
-                              </div>
-                              <div className="mt-1 flex items-center gap-2 flex-wrap">
-                                <Badge variant="outline" className="text-[10px] capitalize">{item.subjectLabel?.trim() || 'General'}</Badge>
-                                <Badge variant="outline" className="text-[10px]">{item.isPublished ? 'Published' : 'Draft'}</Badge>
-                              </div>
-                              {item.description && (
-                                <p
-                                  className="mt-2 text-xs text-gray-600"
-                                  style={{
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
-                                    overflow: 'hidden'
-                                  }}
-                                >
-                                  {item.description}
-                                </p>
-                              )}
-                              {item.contentType === 'text' && item.additionalInfo && (
-                                <p className="mt-2 text-sm text-gray-800" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                  {item.additionalInfo}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="mt-3 flex items-center justify-end">
-                            {item.url && (
+                        <CourseContentCard
+                          key={item.id}
+                          title={item.title}
+                          subjectLabel={item.subjectLabel}
+                          description={item.description}
+                          contentType={item.contentType}
+                        >
+                          {item.contentType === 'pdf' && item.url ? (
+                            <>
                               <Button asChild size="sm" variant="outline" className="hover:bg-emerald-50">
-                                <a href={item.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-1" />Open</a>
+                                <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}`} prefetch={false}>
+                                  <ExternalLink className="h-4 w-4 mr-1" />Open Secure Viewer
+                                </Link>
                               </Button>
-                            )}
-                          </div>
-                        </div>
+                            </>
+                          ) : (
+                            item.url && (
+                              <Button asChild size="sm" variant="outline" className="hover:bg-emerald-50">
+                                <a
+                                  href={item.url as string}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                ><ExternalLink className="h-4 w-4 mr-1" />Open</a>
+                              </Button>
+                            )
+                          )}
+                        </CourseContentCard>
                       ))}
                     </div>
 

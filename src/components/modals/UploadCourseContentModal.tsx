@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, UploadCloud, ChevronRight, FileText, Link as LinkIcon, Youtube, FileAudio, FileDigit, PencilLine, Trash2, X } from 'lucide-react'
+import { Loader2, UploadCloud, ChevronRight, FileText, Link as LinkIcon, Youtube, FileAudio, FileDigit, PencilLine, X } from 'lucide-react'
 
 type ContentType = 'youtube' | 'audio' | 'pdf' | 'link' | 'text'
 
@@ -41,17 +41,19 @@ interface UploadCourseContentModalProps {
   onClose: () => void
   course: Course | null
   onUploaded?: (item?: CourseContentItem) => void
+  initialItem?: CourseContentItem | null
 }
 
-export default function UploadCourseContentModal({ isOpen, onClose, course, onUploaded }: UploadCourseContentModalProps) {
+export default function UploadCourseContentModal({ isOpen, onClose, course, onUploaded, initialItem = null }: UploadCourseContentModalProps) {
   const [items, setItems] = useState<CourseContentItem[]>([])
-  const [loadingItems, setLoadingItems] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const [subjectLabel, setSubjectLabel] = useState<string>('')
   const [title, setTitle] = useState<string>('')
   const [contentType, setContentType] = useState<ContentType>('youtube')
   const [url, setUrl] = useState<string>('')
+  const [pdfUploadMode, setPdfUploadMode] = useState<'link' | 'file'>('link')
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [bodyText, setBodyText] = useState<string>('')
   const [description, setDescription] = useState<string>('')
   const [orderIndex, setOrderIndex] = useState<string>('')
@@ -64,7 +66,6 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
 
     const loadItems = async () => {
       try {
-        setLoadingItems(true)
         setErrorMsg(null)
         const res = await fetch(`/api/admin/courses/${course.id}/contents`, { cache: 'no-store', credentials: 'include' })
         if (!res.ok) throw new Error(`Failed to fetch contents: ${res.status}`)
@@ -74,17 +75,36 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
         console.error('Error loading course contents', e)
         setErrorMsg(e?.message || 'Unable to load course content')
       } finally {
-        setLoadingItems(false)
+        // No UI loading indicator needed here since we removed inline listing
       }
     }
     loadItems()
   }, [isOpen, course?.id])
+
+  // Prefill state when an initial item is provided for editing
+  useEffect(() => {
+    if (isOpen && initialItem) {
+      setEditingItem(initialItem)
+      setSubjectLabel(initialItem.subjectLabel || '')
+      setTitle(initialItem.title || '')
+      setContentType(initialItem.contentType)
+      setUrl(initialItem.url || '')
+      setPdfUploadMode('link')
+      setPdfFile(null)
+      setBodyText(initialItem.additionalInfo || '')
+      setDescription(initialItem.description || '')
+      setOrderIndex(String(typeof initialItem.orderIndex === 'number' ? initialItem.orderIndex : ''))
+      setIsPublished(Boolean(initialItem.isPublished))
+    }
+  }, [isOpen, initialItem])
 
   const resetForm = () => {
     setSubjectLabel('')
     setTitle('')
     setContentType('youtube')
     setUrl('')
+    setPdfUploadMode('link')
+    setPdfFile(null)
     setBodyText('')
     setDescription('')
     setOrderIndex('')
@@ -92,44 +112,7 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
     setEditingItem(null)
   }
 
-  const beginEdit = (item: CourseContentItem) => {
-    setEditingItem(item)
-    setSubjectLabel(item.subjectLabel || '')
-    setTitle(item.title || '')
-    setContentType(item.contentType)
-    setUrl(item.url || '')
-    setBodyText(item.additionalInfo || '')
-    setDescription(item.description || '')
-    setOrderIndex(String(typeof item.orderIndex === 'number' ? item.orderIndex : ''))
-    setIsPublished(Boolean(item.isPublished))
-  }
-
-  const deleteItem = async (item: CourseContentItem) => {
-    if (!course) return
-    try {
-      setErrorMsg(null)
-      const res = await fetch(`/api/admin/courses/${course.id}/contents/${item.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      })
-      if (!res.ok) {
-        const dd = await res.json()
-        throw new Error(dd.error || 'Failed to delete')
-      }
-      // refresh items
-      const ref = await fetch(`/api/admin/courses/${course.id}/contents`, { cache: 'no-store', credentials: 'include' })
-      if (ref.ok) {
-        const data = await ref.json()
-        setItems(Array.isArray(data?.items) ? data.items : [])
-      }
-      // if deleting the editing item, reset form
-      if (editingItem && editingItem.id === item.id) {
-        resetForm()
-      }
-    } catch (e: any) {
-      setErrorMsg(e?.message || 'Delete failed')
-    }
-  }
+  // Inline edit/delete listing removed from this modal for a cleaner upload-only experience
 
   const iconForType = (t: ContentType) => {
     switch (t) {
@@ -165,13 +148,33 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
       setErrorMsg('Title is required')
       return
     }
-    if (contentType !== 'text' && !url.trim()) {
-      setErrorMsg('URL is required for non-text content')
-      return
-    }
-    if (contentType === 'text' && !bodyText.trim()) {
-      setErrorMsg('Body text is required for text content')
-      return
+    // Validate based on content type and mode
+    if (contentType === 'text') {
+      if (!bodyText.trim()) {
+        setErrorMsg('Body text is required for text content')
+        return
+      }
+    } else if (contentType === 'pdf') {
+      if (pdfUploadMode === 'link') {
+        if (!url.trim()) {
+          setErrorMsg('URL is required when linking a PDF')
+          return
+        }
+      } else {
+        if (!pdfFile) {
+          setErrorMsg('Please choose a PDF file to upload')
+          return
+        }
+        if (pdfFile && pdfFile.type !== 'application/pdf' && !pdfFile.name.toLowerCase().endsWith('.pdf')) {
+          setErrorMsg('Invalid file type. Please select a PDF file.')
+          return
+        }
+      }
+    } else {
+      if (!url.trim()) {
+        setErrorMsg('URL is required for this content type')
+        return
+      }
     }
     try {
       setSubmitting(true)
@@ -183,10 +186,29 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
       const effectiveOrderIndex = orderIndex.trim() === ''
         ? (editingItem ? editingItem.orderIndex : nextIndex)
         : (isNaN(parseInt(orderIndex, 10)) ? 0 : parseInt(orderIndex, 10))
+      // If PDF upload mode is file, upload the file first to get its URL
+      let finalUrl = (contentType === 'text') ? undefined : url.trim()
+      if (contentType === 'pdf' && pdfUploadMode === 'file' && pdfFile && course) {
+        const fd = new FormData()
+        fd.append('file', pdfFile)
+        const uploadRes = await fetch(`/api/admin/courses/${course.id}/contents/upload`, {
+          method: 'POST',
+          credentials: 'include',
+          body: fd,
+        })
+        if (!uploadRes.ok) {
+          const err = await uploadRes.json().catch(() => ({}))
+          throw new Error(err?.error || 'Failed to upload PDF file')
+        }
+        const uploadData = await uploadRes.json()
+        finalUrl = uploadData?.fileUrl
+        if (!finalUrl) throw new Error('Upload succeeded but no file URL returned')
+      }
+
       const payload: any = {
         title: title.trim(),
         contentType,
-        url: contentType === 'text' ? undefined : url.trim(),
+        url: contentType === 'text' ? undefined : finalUrl,
         description: description.trim() || undefined,
         additionalInfo: contentType === 'text' ? bodyText.trim() : undefined,
         orderIndex: effectiveOrderIndex,
@@ -258,7 +280,7 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
           <Card className="p-4 sm:p-5 bg-white">
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="space-y-2">
@@ -286,16 +308,59 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
               </div>
 
               {contentType === 'text' ? (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">Body Text</Label>
-                  <Textarea rows={6} placeholder="Write the content here" value={bodyText} onChange={e => setBodyText(e.target.value)} />
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">URL</Label>
-                  <Input placeholder="https://..." value={url} onChange={e => setUrl(e.target.value)} />
-                </div>
-              )}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-700">Body Text</Label>
+          <Textarea rows={6} placeholder="Write the content here" value={bodyText} onChange={e => setBodyText(e.target.value)} />
+        </div>
+      ) : (
+        contentType === 'pdf' ? (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">PDF Source</Label>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="radio"
+                  name="pdfUploadMode"
+                  value="file"
+                  checked={pdfUploadMode === 'file'}
+                  onChange={() => setPdfUploadMode('file')}
+                />
+                Upload file
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="radio"
+                  name="pdfUploadMode"
+                  value="link"
+                  checked={pdfUploadMode === 'link'}
+                  onChange={() => setPdfUploadMode('link')}
+                />
+                Link to file
+              </label>
+            </div>
+
+            {pdfUploadMode === 'file' ? (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Select PDF</Label>
+                <Input type="file" accept="application/pdf" onChange={e => setPdfFile(e.target.files?.[0] || null)} />
+                {pdfFile && (
+                  <div className="text-xs text-gray-600">Selected: {pdfFile.name}</div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">PDF URL</Label>
+                <Input placeholder="https://..." value={url} onChange={e => setUrl(e.target.value)} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">URL</Label>
+            <Input placeholder="https://..." value={url} onChange={e => setUrl(e.target.value)} />
+          </div>
+        )
+      )}
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Description (optional)</Label>
@@ -338,85 +403,6 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
                 </Button>
               </div>
             </form>
-          </Card>
-
-          <Card className="p-4 sm:p-5 bg-white">
-            {loadingItems ? (
-              <p className="text-sm text-gray-600">Loading existing content…</p>
-            ) : errorMsg ? (
-              <p className="text-sm text-red-600">{errorMsg}</p>
-            ) : (
-              <div className="space-y-4">
-                {Object.keys(grouped).length === 0 ? (
-                  <p className="text-sm text-gray-600">No content yet.</p>
-                ) : (
-                  Object.entries(grouped).map(([section, entries]) => (
-                    <div key={section} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="text-base font-apercu-medium text-gray-900 capitalize">{section}</div>
-                        <span className="text-xs text-gray-500">{entries.length} item{entries.length !== 1 ? 's' : ''}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {entries.map(item => {
-                          const Icon = iconForType(item.contentType)
-                          return (
-                            <div key={item.id} className="border rounded-md p-3 flex items-start justify-between">
-                              <div className="flex items-start gap-2 min-w-0">
-                                <Icon className="h-4 w-4 text-emerald-700 mt-0.5" />
-                                <div className="min-w-0">
-                                  <div className="text-sm font-apercu-medium text-gray-900 break-words">
-                                    {item.title}
-                                  </div>
-                                  {item.description && (
-                                    <div
-                                      className="text-xs text-gray-600"
-                                      style={{
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical',
-                                        overflow: 'hidden'
-                                      }}
-                                    >
-                                      {item.description}
-                                    </div>
-                                  )}
-                                  {item.url && (
-                                    <a href={item.url} className="text-xs text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Open Link</a>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-[10px]">{item.isPublished ? 'Published' : 'Draft'}</Badge>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-7 w-7 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                                  onClick={() => beginEdit(item)}
-                                  title="Edit"
-                                >
-                                  <PencilLine className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-7 w-7 border-red-200 text-red-700 hover:bg-red-50"
-                                  onClick={() => deleteItem(item)}
-                                  title="Delete"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
           </Card>
         </div>
       </DialogContent>

@@ -8,6 +8,7 @@ import { CourseCard } from '@/components/admin/CourseCard'
 import { CourseListSkeleton } from '@/components/ui/skeleton-loader'
 import EditCourseModal from '@/components/modals/EditCourseModal'
 import UploadCourseContentModal from '@/components/modals/UploadCourseContentModal'
+import { useToast } from '@/contexts/ToastContext'
 
 interface Course {
   id: string
@@ -57,6 +58,7 @@ export function CourseList({
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [uploadCourse, setUploadCourse] = useState<Course | null>(null)
   const itemsPerPage = 10
+  const { success } = useToast()
 
   // Fetch courses for this program type
   const fetchCourses = async () => {
@@ -249,7 +251,7 @@ export function CourseList({
         isOpen={uploadModalOpen}
         onClose={handleUploadClose}
         course={uploadCourse ? { id: uploadCourse.id, courseCode: uploadCourse.courseCode, courseName: uploadCourse.courseName } : null}
-        onUploaded={() => {/* optional: could trigger refresh or toast */}}
+        onUploaded={() => { success('Content added successfully'); fetchCourses() }}
       />
     </div>
   )

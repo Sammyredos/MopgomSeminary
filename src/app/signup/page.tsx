@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -65,6 +65,13 @@ export default function StudentSignup() {
     password: '',
     confirmPassword: ''
   })
+  
+  // Count how many fields have non-empty values to control Clear Form visibility
+  const filledFieldsCount = useMemo(() => {
+    return Object.values(formData).reduce((count, value) => {
+      return count + (typeof value === 'string' && value.trim() !== '' ? 1 : 0)
+    }, 0)
+  }, [formData])
   
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<{
@@ -1068,14 +1075,16 @@ export default function StudentSignup() {
               </Button>
 
               {/* Clear Form Button */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setConfirmClearOpen(true)}
-                className="w-full h-10 mt-2 font-apercu-regular text-sm border-red-200 text-red-700 bg-red-50 hover:bg-red-100 hover:border-red-300 transition-colors duration-200"
-              >
-                Clear Form
-              </Button>
+              {filledFieldsCount >= 2 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setConfirmClearOpen(true)}
+                  className="w-full h-10 mt-2 font-apercu-regular text-sm border-red-200 text-red-700 bg-red-50 hover:bg-red-100 hover:border-red-300 transition-colors duration-200"
+                >
+                  Clear Form
+                </Button>
+              )}
 
               {/* Confirm Clear Modal */}
               <Dialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>

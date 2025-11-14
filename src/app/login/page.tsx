@@ -324,7 +324,7 @@ export default function LoginPage() {
                       href="/forgot-password"
                       className="font-apercu-medium text-indigo-600 hover:text-indigo-500 transition-colors"
                     >
-                      Forgot your password?
+                      Forgot password?
                     </Link>
                   </div>
                 </div>

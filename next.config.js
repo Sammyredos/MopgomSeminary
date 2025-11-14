@@ -3,9 +3,12 @@ const path = require('path')
 const nextConfig = {
   // Use a custom build directory to avoid OneDrive file locks on .next
   // Moving the build output prevents EBUSY errors caused by sync/indexing
-  distDir: '.next-dev',
+  distDir: '.next',
   // External packages for server components
   serverExternalPackages: ['prisma', '@prisma/client'],
+
+  // Transpile ESM packages that ship modern syntax
+  transpilePackages: ['pdfjs-dist'],
 
   // Ensure correct workspace root for file tracing in monorepo-like setups
   outputFileTracingRoot: path.join(__dirname),

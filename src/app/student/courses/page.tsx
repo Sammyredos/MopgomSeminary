@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { BookOpen } from 'lucide-react'
 import { CourseCard } from '@/components/student/CourseCard'
+import StudentCourseContentModal from '@/components/modals/StudentCourseContentModal'
 import { CourseListSkeleton } from '@/components/ui/skeleton-loader'
 
 interface Course {
@@ -33,6 +34,8 @@ export default function StudentCoursesPage() {
   const [debounceTimer, setDebounceTimer] = useState<any>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const [contentModalOpen, setContentModalOpen] = useState(false)
+  const [selectedCourseForContent, setSelectedCourseForContent] = useState<Course | null>(null)
 
   const fetchCourses = async (opts?: { search?: string }) => {
     try {
@@ -140,11 +143,10 @@ export default function StudentCoursesPage() {
                               maxStudents={course.maxStudents}
                               currentEnrollment={course.currentEnrollment}
                               onViewDetails={(id) => {
-                                try {
-                                  // Navigate to the course content viewer
-                                  window.location.assign(`/student/courses/${id}/content`)
-                                } catch {
-                                  console.log('Navigating to content page:', id)
+                                const courseObj = courses.find(c => c.id === id)
+                                if (courseObj) {
+                                  setSelectedCourseForContent({ id: courseObj.id, courseCode: courseObj.courseCode, courseName: courseObj.courseName, subjectArea: courseObj.subjectArea, instructor: courseObj.instructor, description: courseObj.description, isActive: courseObj.isActive, maxStudents: courseObj.maxStudents, currentEnrollment: courseObj.currentEnrollment })
+                                  setContentModalOpen(true)
                                 }
                               }}
                             />
@@ -181,9 +183,15 @@ export default function StudentCoursesPage() {
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
+        {/* Student Course Content Modal */}
+        <StudentCourseContentModal
+          isOpen={contentModalOpen}
+          onClose={() => setContentModalOpen(false)}
+          course={selectedCourseForContent ? { id: selectedCourseForContent.id, courseCode: selectedCourseForContent.courseCode, courseName: selectedCourseForContent.courseName } : null}
+        />
+      </div>
       </StudentLayout>
     </ProtectedRoute>
   )

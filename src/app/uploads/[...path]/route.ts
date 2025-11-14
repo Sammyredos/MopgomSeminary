@@ -53,18 +53,29 @@ export async function GET(
       case 'ico':
         contentType = 'image/x-icon'
         break
+      case 'pdf':
+        contentType = 'application/pdf'
+        break
     }
     
     // Return the file with appropriate headers
     // Convert Buffer to Uint8Array to satisfy Web Response BodyInit types
     const body = new Uint8Array(fileBuffer)
+    const headers: Record<string, string> = {
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Content-Length': fileBuffer.length.toString(),
+    }
+
+    // Encourage inline display for PDFs to avoid forced download
+    if (extension === 'pdf') {
+      const filename = filePath.split('/').pop() || 'file.pdf'
+      headers['Content-Disposition'] = `inline; filename="${filename}"`
+    }
+
     return new NextResponse(body, {
       status: 200,
-      headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000, immutable',
-        'Content-Length': fileBuffer.length.toString(),
-      },
+      headers,
     })
     
   } catch (error) {

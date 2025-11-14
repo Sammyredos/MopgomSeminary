@@ -228,7 +228,13 @@ export function StudentSidebar({ className }: SidebarProps) {
             (() => {
               let lastGroup = ''
               return dynamicNavigation.map((item, index) => {
-                const isActive = pathname === item.href
+                // Mark link active for exact path or nested routes under it
+                // Mark 'My Courses' active for nested routes and the secure viewer context
+                const isCoursesItem = item.href === '/student/courses'
+                const isCoursesContext = pathname === '/student/content/viewer' || pathname.startsWith('/student/content')
+                const isActive = isCoursesItem
+                  ? (pathname === item.href || pathname.startsWith(item.href + '/') || isCoursesContext)
+                  : (pathname === item.href || pathname.startsWith(item.href + '/'))
                 const showSeparator = item.group !== lastGroup && index > 0
                 lastGroup = item.group || ''
                 
