@@ -393,13 +393,23 @@ export function AutoCalendarView({ events, onEventClick, onDateClick, compact = 
         )}
 
         {/* Day headers */}
-        <div className={cn("grid grid-cols-7 mb-2", compact && "mb-1")}
-        >
+        <div className={cn("grid grid-cols-7 mb-2", compact && "mb-1")}>
           {dayNames.map((day) => (
-            <div key={day} className={cn("text-center font-medium text-gray-500", compact ? "text-xs sm:text-sm py-1" : "text-sm sm:text-base py-1 sm:py-2")}
+            <div
+              key={day}
+              className={cn(
+                "text-center font-medium text-gray-500",
+                compact ? "text-xs sm:text-sm py-1" : "text-sm sm:text-base py-1 sm:py-2"
+              )}
             >
-              <span className="hidden sm:inline">{day}</span>
-              <span className="sm:hidden">{day.slice(0, 1)}</span>
+              {compact ? (
+                <span>{day.slice(0, 2)}</span>
+              ) : (
+                <>
+                  <span className="hidden sm:inline">{day}</span>
+                  <span className="sm:hidden">{day.slice(0, 1)}</span>
+                </>
+              )}
             </div>
           ))}
         </div>

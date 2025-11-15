@@ -198,27 +198,29 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
                     title={item.title}
                     subjectLabel={item.subjectLabel}
                     isPublished={item.isPublished}
-                    description={item.description}
                     contentType={item.contentType}
                     url={item.url || undefined}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                      onClick={() => handleEdit(item)}
-                    >
-                      <PencilLine className="h-4 w-4 mr-1" /> Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-red-200 text-red-700 hover:bg-red-50"
-                      onClick={() => handleDelete(item)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" /> Delete
-                    </Button>
-                  </CourseContentCard>
+                    actions={
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <PencilLine className="h-4 w-4 mr-1" /> Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-red-200 text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete(item)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                        </Button>
+                      </div>
+                    }
+                  />
                 ))}
               </div>
             )}

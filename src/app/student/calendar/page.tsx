@@ -9,8 +9,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/contexts/ToastContext';
 import { 
   Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight,
   Clock,
   MapPin,
   BookOpen,
@@ -19,6 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import AutoCalendarView from '@/components/admin/AutoCalendarView';
 
 interface CalendarEvent {
   id: string;
@@ -63,25 +62,18 @@ function StudentCalendarContent() {
   const { error } = useToast();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-
-  // Calendar navigation
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
-  
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // Responsive: top-level hook to manage compact mode; avoids nested hooks errors
+  const [isCompact, setIsCompact] = useState(false);
+  useEffect(() => {
+    const handleResize = () => setIsCompact(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Get first day of month and number of days
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-  const firstDayWeekday = firstDayOfMonth.getDay();
-  const daysInMonth = lastDayOfMonth.getDate();
+  // Deprecated manual calendar calculations removed in favor of AutoCalendarView
 
   // Fetch calendar events
   useEffect(() => {
@@ -112,99 +104,16 @@ function StudentCalendarContent() {
   };
 
   // Helper functions
-  const isToday = (date: number) => {
-    const today = new Date();
-    return today.getDate() === date && 
-           today.getMonth() === currentMonth && 
-           today.getFullYear() === currentYear;
-  };
-
-  const isSelected = (date: number) => {
-    if (!selectedDate) return false;
-    return selectedDate.getDate() === date && 
-           selectedDate.getMonth() === currentMonth && 
-           selectedDate.getFullYear() === currentYear;
-  };
+  // Selection state handled via onDateClick from AutoCalendarView
 
   const getEventsForDate = (date: number) => {
-    const targetDate = new Date(currentYear, currentMonth, date);
+    const baseDate = selectedDate || new Date();
+    const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), date);
     return events.filter(event => {
       const eventStart = new Date(event.startDate);
       const eventEnd = new Date(event.endDate);
       return targetDate >= eventStart && targetDate <= eventEnd;
     });
-  };
-
-  const handleDateClick = (date: number) => {
-    const clickedDate = new Date(currentYear, currentMonth, date, 12, 0, 0, 0);
-    setSelectedDate(clickedDate);
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(prev.getMonth() - 1);
-      } else {
-        newDate.setMonth(prev.getMonth() + 1);
-      }
-      return newDate;
-    });
-    setSelectedDate(null);
-  };
-
-  const generateCalendarDays = () => {
-    const days: JSX.Element[] = [];
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < firstDayWeekday; i++) {
-      days.push(
-        <div key={`empty-${i}`} className="h-20 border border-gray-100"></div>
-      );
-    }
-    
-    // Add days of the month
-    for (let date = 1; date <= daysInMonth; date++) {
-      const dayEvents = getEventsForDate(date);
-      const isCurrentDay = isToday(date);
-      const isSelectedDay = isSelected(date);
-      
-      days.push(
-        <div
-          key={date}
-          onClick={() => handleDateClick(date)}
-          className={cn(
-            "h-20 border border-gray-100 p-2 cursor-pointer transition-all duration-200 hover:bg-gray-50 flex flex-col",
-            isCurrentDay && "bg-blue-50 border-blue-200",
-            isSelectedDay && "bg-blue-100 border-blue-300"
-          )}
-        >
-          <div className={cn(
-            "text-sm font-medium mb-1 flex-shrink-0",
-            isCurrentDay && "text-blue-600",
-            isSelectedDay && "text-blue-700"
-          )}>
-            {date}
-          </div>
-          
-          {/* Event indicators */}
-          <div className="flex flex-wrap gap-1 flex-1 min-h-0">
-            {dayEvents.slice(0, 3).map((event, index) => (
-              <div
-                key={`${event.id}-${index}`}
-                className={cn("w-2 h-2 rounded-full", eventTypeDots[event.eventType])}
-                title={event.title}
-              />
-            ))}
-            {dayEvents.length > 3 && (
-              <div className="text-xs text-gray-500">+{dayEvents.length - 3}</div>
-            )}
-          </div>
-        </div>
-      );
-    }
-    
-    return days;
   };
 
   if (loading) {
@@ -284,64 +193,20 @@ function StudentCalendarContent() {
         description="View important dates and events"
       >
         <div className="space-y-6">
-            {/* Cards Container with Flex Layout */}
+            {/* Cards Container with Flex Layout (stack on tablets, side-by-side on desktop) */}
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Calendar Card */}
               <Card className="bg-white shadow-sm flex-1">
                 <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-semibold">
-                      {monthNames[currentMonth]} {currentYear}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigateMonth('prev')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigateMonth('next')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  <CardTitle className="text-xl font-semibold">Live Calendar</CardTitle>
                 </CardHeader>
-                
                 <CardContent>
-                  {/* Day headers */}
-                  <div className="grid grid-cols-7 mb-2">
-                    {dayNames.map((day) => (
-                      <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Calendar grid */}
-                  <div className="grid grid-cols-7 border border-gray-200 rounded-lg overflow-hidden">
-                    {generateCalendarDays()}
-                  </div>
-                  
-                  {/* Legend */}
-                  <div className="mt-4 flex flex-wrap gap-4 justify-center">
-                    {Object.entries(eventTypeColors).map(([type, colorClass]) => (
-                      <div key={type} className="flex items-center gap-2">
-                        <div className={cn("w-3 h-3 rounded", eventTypeDots[type as keyof typeof eventTypeDots])} />
-                        <span className="text-sm text-gray-600">
-                          {type.charAt(0) + type.slice(1).toLowerCase()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Selected date info */}
+                  <AutoCalendarView
+                    events={events}
+                    onDateClick={(date) => setSelectedDate(date)}
+                    compact={isCompact}
+                    height={isCompact ? 360 : 420}
+                  />
                   {selectedDate && (
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                       <h4 className="font-medium mb-3">
@@ -352,7 +217,6 @@ function StudentCalendarContent() {
                           day: 'numeric' 
                         })}
                       </h4>
-                      
                       {getEventsForDate(selectedDate.getDate()).length === 0 ? (
                         <p className="text-sm text-gray-500">No events scheduled</p>
                       ) : (
@@ -360,10 +224,7 @@ function StudentCalendarContent() {
                           {getEventsForDate(selectedDate.getDate()).map((event) => {
                             const IconComponent = eventTypeIcons[event.eventType];
                             return (
-                              <div
-                                key={event.id}
-                                className="flex items-start gap-3 p-3 bg-white rounded-lg border"
-                              >
+                              <div key={event.id} className="flex items-start gap-3 p-3 bg-white rounded-lg border">
                                 <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", eventTypeColors[event.eventType])}>
                                   <IconComponent className="h-5 w-5" />
                                 </div>
@@ -393,7 +254,7 @@ function StudentCalendarContent() {
               </Card>
 
               {/* Upcoming Events Card */}
-              <Card className="bg-white shadow-sm lg:w-80 flex-shrink-0">
+              <Card className="bg-white shadow-sm md:w-full lg:w-80 flex-shrink-0">
                 <CardHeader>
                   <CardTitle className="text-lg font-semibold">Upcoming Events</CardTitle>
                 </CardHeader>

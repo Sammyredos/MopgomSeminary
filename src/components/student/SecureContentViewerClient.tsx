@@ -15,11 +15,11 @@ export default function SecureContentViewerClient() {
   const url = params.get('url') ? decodeURIComponent(params.get('url') as string) : ''
   const title = params.get('title') ? decodeURIComponent(params.get('title') as string) : 'Secure Document'
   const subject = params.get('subject') ? decodeURIComponent(params.get('subject') as string) : 'General'
-  const description = params.get('description') ? decodeURIComponent(params.get('description') as string) : ''
+  // Description parameter removed; we no longer display it in the secure viewer
   // Removed watermark for PDF viewer per user request
 
   return (
-    <div className="px-6 py-6 space-y-4">
+    <div className="py-6 space-y-4">
       <Button
         onClick={() => router.back()}
         className="mb-2 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100"
@@ -35,7 +35,7 @@ export default function SecureContentViewerClient() {
           className="rounded-2xl border border-gray-200 bg-[#fafafa] p-4 sm:p-5"
           onContextMenu={(e) => e.preventDefault()}
         >
-          <SecurePdfViewer fileUrl={url} title={title} subjectLabel={subject} description={description} />
+          <SecurePdfViewer fileUrl={url} title={title} subjectLabel={subject} />
         </div>
       )}
     </div>

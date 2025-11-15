@@ -118,7 +118,10 @@ export default function SecurePdfViewer({ fileUrl, title, watermarkText, subject
       const page = await pdf.getPage(currentPage)
       const baseViewport = page.getViewport({ scale: 1 })
       const containerWidth = containerRef.current.clientWidth || baseViewport.width
-      const deviceScale = Math.min(1.6, Math.max(0.7, containerWidth / baseViewport.width))
+      // Scale the page to exactly match the container width on small/tablet screens.
+      // Keep existing large-screen behavior but cap the upscale to avoid overly large canvases.
+      const ratio = containerWidth / baseViewport.width
+      const deviceScale = Math.min(ratio, 1.6)
       const viewport = page.getViewport({ scale: deviceScale })
       // Prepare canvases (crossfade)
       const prevCanvas = containerRef.current.querySelector('canvas') as HTMLCanvasElement | null
@@ -130,7 +133,8 @@ export default function SecurePdfViewer({ fileUrl, title, watermarkText, subject
       canvas.width = Math.floor(viewport.width * dpr)
       canvas.height = Math.floor(viewport.height * dpr)
       // Match canvas CSS width exactly to computed viewport width to avoid blur
-      canvas.style.width = `${Math.floor(viewport.width)}px`
+      // Match CSS width to the container to ensure true responsiveness
+      canvas.style.width = `${Math.floor(containerWidth)}px`
       canvas.style.display = 'block'
       canvas.style.margin = '0 auto 16px auto'
       canvas.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)'
@@ -242,11 +246,7 @@ export default function SecurePdfViewer({ fileUrl, title, watermarkText, subject
             </div>
           </div>
         </div>
-        {description && (
-          <p className="mt-3 text-sm text-gray-700/80 leading-relaxed">
-            {description}
-          </p>
-        )}
+        {/* Description removed per request */}
       </div>
       {/* Watermark Overlay */}
       {watermarkText && (

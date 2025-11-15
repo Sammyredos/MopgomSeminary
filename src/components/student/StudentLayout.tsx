@@ -17,12 +17,19 @@ interface StudentLayoutProps {
   children: ReactNode
   title?: string
   description?: string
+  /**
+   * Optional horizontal padding class for the inner content wrapper.
+   * Defaults to `px-0`. Set to a different value (e.g., `px-4`) if needed
+   * for pages like the PDF viewer where full-bleed content is preferred.
+   */
+  contentPaddingClass?: string
 }
 
 export function StudentLayout({ 
   children, 
   title, 
-  description 
+  description,
+  contentPaddingClass = 'px-0'
 }: StudentLayoutProps) {
   const { setupHoverPrefetch, observeElement } = useRoutePrefetch()
   const { currentUser, loading: isLoadingUser } = useUser()
@@ -187,7 +194,7 @@ export function StudentLayout({
         <div className="flex flex-col min-h-screen" suppressHydrationWarning={true}>
           {/* Header */}
           {(title || description) && (
-            <header className="bg-white border-b border-gray-200 px-6 py-4">
+            <header className="bg-white border-b border-gray-200 px-4 py-4">
               <h1 className="text-2xl font-apercu-bold text-gray-900">{title}</h1>
               {description && (
                 <p className="text-sm text-gray-600 mt-1">{description}</p>
@@ -201,8 +208,8 @@ export function StudentLayout({
             role="main"
             aria-label={title ? `${title} content` : 'Main content'}
           >
-            <div className="py-6">
-              <div className="px-6">
+            <div className="py-6 px-4">
+              <div className={contentPaddingClass}>
                 {/* Guard student pages to ensure profile completion; redirects to profile with next param */}
                 <ProfileCompletionGuard />
                 {children}

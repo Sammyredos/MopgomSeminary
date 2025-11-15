@@ -112,7 +112,7 @@ export default function StudentCoursesPage() {
 
               {/* Courses content inside inner content card, matching admin */}
               <div className="mt-6">
-                <div className="p-6 rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300">
+                <div className="p-4 rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300">
                   {loading ? (
                     <CourseListSkeleton count={itemsPerPage} />
                   ) : error ? (

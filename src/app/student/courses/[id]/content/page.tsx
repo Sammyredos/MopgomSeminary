@@ -91,12 +91,12 @@ export default function StudentCourseContentPage() {
   return (
     <ProtectedRoute>
       <StudentLayout title="Course Content" description="Explore materials shared for this course">
-        <div className="px-6 py-8 space-y-6">
+        <div className="px-0 py-8 space-y-6">
           <Button variant="outline" onClick={() => router.push('/student/courses')} className="mb-2">
             <ChevronLeft className="h-4 w-4 mr-1" /> Back to Courses
           </Button>
 
-          <Card className="p-4 sm:p-6 bg-white">
+          <Card className="p-4 sm:p-4 bg-white">
             {loading ? (
               <p className="text-sm text-gray-600">Loading content...</p>
             ) : errorMsg ? (
@@ -115,17 +115,14 @@ export default function StudentCourseContentPage() {
                           subjectLabel={item.subjectLabel}
                           description={item.description}
                           contentType={item.contentType}
-                        >
-                          {item.contentType === 'pdf' && item.url ? (
-                            <>
+                          actions={
+                            item.contentType === 'pdf' && item.url ? (
                               <Button asChild size="sm" variant="outline" className="group bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
-                                <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}&subject=${encodeURIComponent(item.subjectLabel || 'General')}&description=${encodeURIComponent(item.description || '')}`} prefetch={false}>
+                                <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}&subject=${encodeURIComponent(item.subjectLabel || 'General')}`} prefetch={false}>
                                   <ExternalLink className="h-4 w-4 mr-1" />Open Secure Viewer
                                 </Link>
                               </Button>
-                            </>
-                          ) : (
-                            item.url && (
+                            ) : item.url ? (
                               <Button asChild size="sm" variant="outline" className="hover:bg-emerald-50">
                                 <a
                                   href={item.url as string}
@@ -133,9 +130,9 @@ export default function StudentCourseContentPage() {
                                   rel="noopener noreferrer"
                                 ><ExternalLink className="h-4 w-4 mr-1" />Open</a>
                               </Button>
-                            )
-                          )}
-                        </CourseContentCard>
+                            ) : null
+                          }
+                        />
                       ))}
                     </div>
 

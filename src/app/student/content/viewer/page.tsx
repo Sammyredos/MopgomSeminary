@@ -6,8 +6,8 @@ import SecureContentViewerClient from '@/components/student/SecureContentViewerC
 export default function StudentSecureContentViewerPage() {
   return (
     <ProtectedRoute>
-      <StudentLayout title="Secure Document" description="Secure, read-only viewer">
-        <Suspense fallback={<div className="px-6 py-6">Loading viewer…</div>}>
+      <StudentLayout title="Secure Document" contentPaddingClass="px-0">
+        <Suspense fallback={<div className="py-6">Loading viewer…</div>}>
           <SecureContentViewerClient />
         </Suspense>
       </StudentLayout>

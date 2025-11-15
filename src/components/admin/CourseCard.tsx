@@ -107,9 +107,9 @@ const CourseCardComponent = function CourseCard({
 
   return (
     <>
-      <Card className="p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200 bg-white">
+      <Card className="p-4 sm:p-6 hover:shadow-lg transition-shadow duration-200 bg-white max-w-full">
         {/* Course Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-6 gap-3">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 gap-3 flex-wrap">
         <div className="flex items-center space-x-3 flex-1 min-w-0">
           <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-emerald-600 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
@@ -135,7 +135,7 @@ const CourseCardComponent = function CourseCard({
         </div>
 
           {canEditCourses && (
-            <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 md:flex-nowrap flex-wrap">
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -272,10 +272,10 @@ const CourseCardComponent = function CourseCard({
         )}
         {/* CTA: Upload Course Content */}
         <div className="pt-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               size="sm"
-              className="group bg-green-600 hover:bg-green-700 text-white border-0 shadow-sm"
+              className="group bg-green-600 hover:bg-green-700 text-white border-0 shadow-sm w-full sm:w-auto"
               onClick={() => {
                 if (typeof onUploadContent === 'function') {
                   onUploadContent(course)
@@ -291,7 +291,7 @@ const CourseCardComponent = function CourseCard({
             <Button
               size="sm"
               variant="outline"
-              className="group border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              className="group border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full sm:w-auto"
               onClick={() => setShowContentList(true)}
               title="View uploaded content"
             >

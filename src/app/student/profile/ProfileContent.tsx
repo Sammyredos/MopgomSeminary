@@ -366,7 +366,7 @@ export default function TestProfileMockPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="w-full px-6 py-6">
+        <div className="w-full px-4 py-6">
           <div className="space-y-6">
             {/* Header Skeleton */}
             <Card className="shadow-sm border border-gray-200 bg-white">
@@ -409,7 +409,7 @@ export default function TestProfileMockPage() {
   if (!studentData) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="w-full px-6 py-6">
+        <div className="w-full px-4 py-6">
           <div className="text-gray-700">No profile data found.</div>
         </div>
       </div>

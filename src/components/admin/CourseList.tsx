@@ -199,7 +199,7 @@ export function CourseList({
         - Keep 2 columns at lg (>=1024) to avoid cramped cards
         - Move to 3 columns at xl (>=1280) and 4 at 2xl
       */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
         {paginatedCourses.map((course) => (
           <CourseCard 
             key={course.id}
