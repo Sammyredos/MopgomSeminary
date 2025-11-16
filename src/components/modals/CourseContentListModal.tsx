@@ -1,15 +1,15 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Loader2, ChevronLeft, ChevronRight, FileText, Link as LinkIcon, Youtube, FileAudio, FileDigit, PencilLine, Trash2 } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, FileText, PencilLine, Trash2 } from 'lucide-react'
 import UploadCourseContentModal from '@/components/modals/UploadCourseContentModal'
 import { useToast } from '@/contexts/ToastContext'
 import CourseContentCard from '@/components/ui/course-content-card'
+import { CourseContentListItem } from '@/components/ui/course-content-list-item'
 
 type ContentType = 'youtube' | 'audio' | 'pdf' | 'link' | 'text'
 
@@ -44,8 +44,7 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
   const [loading, setLoading] = useState<boolean>(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [search, setSearch] = useState<string>('')
-  const itemsPerPage = 10
+  const itemsPerPage = 5
   const { success, error } = useToast()
   const [editItem, setEditItem] = useState<CourseContentItem | null>(null)
   const [showEditModal, setShowEditModal] = useState<boolean>(false)
@@ -77,34 +76,9 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
     loadItems()
   }, [isOpen, course?.id])
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase()
-    if (!term) return items
-    return items.filter(i =>
-      (i.title || '').toLowerCase().includes(term) ||
-      (i.description || '').toLowerCase().includes(term) ||
-      (i.subjectLabel || 'General').toLowerCase().includes(term)
-    )
-  }, [items, search])
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1
+  const totalPages = Math.ceil(items.length / itemsPerPage) || 1
   const startIndex = (currentPage - 1) * itemsPerPage
-  const pageItems = filtered.slice(startIndex, startIndex + itemsPerPage)
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [search])
-
-  const iconForType = (t: ContentType) => {
-    switch (t) {
-      case 'youtube': return Youtube
-      case 'audio': return FileAudio
-      case 'pdf': return FileDigit
-      case 'link': return LinkIcon
-      case 'text': return FileText
-      default: return FileText
-    }
-  }
+  const pageItems = items.slice(startIndex, startIndex + itemsPerPage)
 
   const handleOpenChange = (open: boolean) => {
     if (!open) onClose()
@@ -158,12 +132,7 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-            Course Content
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] sm:w-auto sm:max-w-4xl max-h-[85vh] overflow-y-auto">
 
         {course && (
           <div className="mb-3">
@@ -173,13 +142,6 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
         )}
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm text-gray-600">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</div>
-            <div className="flex-1" />
-            <div className="w-full sm:w-64">
-              <Input placeholder="Search content…" value={search} onChange={e => setSearch(e.target.value)} />
-            </div>
-          </div>
 
           <Card className="p-4 sm:p-5 bg-white">
             {loading ? (
@@ -188,19 +150,22 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
               </div>
             ) : errorMsg ? (
               <p className="text-sm text-red-600">{errorMsg}</p>
-            ) : filtered.length === 0 ? (
+            ) : items.length === 0 ? (
               <p className="text-sm text-gray-600">No content found.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pageItems.map(item => (
-                  <CourseContentCard
-                    key={item.id}
-                    title={item.title}
-                    subjectLabel={item.subjectLabel}
-                    isPublished={item.isPublished}
-                    contentType={item.contentType}
-                    url={item.url || undefined}
-                    actions={
+              <div className="space-y-4">
+                <div className="md:hidden space-y-3 -mx-1 sm:mx-0">
+                  {pageItems.map(item => (
+                    <div key={item.id} className="space-y-2">
+                      <CourseContentListItem
+                        id={item.id}
+                        title={item.title}
+                        subjectLabel={item.subjectLabel}
+                        contentType={item.contentType}
+                        description={item.description}
+                        url={item.url}
+                        showDescription={false}
+                      />
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
@@ -219,9 +184,70 @@ export default function CourseContentListModal({ isOpen, onClose, course }: Cour
                           <Trash2 className="h-4 w-4 mr-1" /> Delete
                         </Button>
                       </div>
-                    }
-                  />
-                ))}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden md:block">
+                  <div className="overflow-x-auto -mx-4 sm:-mx-5 md:mx-0">
+                    <table className="w-full border border-gray-200 rounded-lg">
+                      <thead className="bg-emerald-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-apercu-bold text-gray-600 uppercase tracking-wider">Title</th>
+                          <th className="px-3 py-2 text-left text-xs font-apercu-bold text-gray-600 uppercase tracking-wider">Subject</th>
+                          <th className="px-3 py-2 text-left text-xs font-apercu-bold text-gray-600 uppercase tracking-wider">Type</th>
+                          <th className="px-3 py-2 text-left text-xs font-apercu-bold text-gray-600 uppercase tracking-wider">Status</th>
+                          <th className="px-3 py-2 text-left text-xs font-apercu-bold text-gray-600 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {pageItems.map(item => (
+                          <tr key={item.id} className="hover:bg-emerald-50/40">
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <div className="text-sm font-apercu-medium text-gray-900 break-words">{item.title}</div>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <Badge variant="outline" className="text-[11px] bg-emerald-50 text-emerald-700 border-emerald-200">{item.subjectLabel || 'General'}</Badge>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <Badge variant="outline" className="text-[11px] bg-emerald-50 text-emerald-700 border-emerald-200">{(item.contentType || '').charAt(0).toUpperCase() + (item.contentType || '').slice(1)}</Badge>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <Badge className={`${item.isPublished ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'} text-[11px]`}>{item.isPublished ? 'Published' : 'Draft'}</Badge>
+                            </td>
+                            <td className="px-3 py-3 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                {item.url ? (
+                                  <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
+                                    <a href={item.url as string} target="_blank" rel="noopener noreferrer">Open</a>
+                                  </Button>
+                                ) : (
+                                  <Badge variant="outline" className="text-[11px] bg-gray-50 text-gray-600 border-gray-200">No link</Badge>
+                                )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                  onClick={() => handleEdit(item)}
+                                >
+                                  <PencilLine className="h-4 w-4 mr-1" /> Edit
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-red-200 text-red-700 hover:bg-red-50"
+                                  onClick={() => handleDelete(item)}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </Card>
