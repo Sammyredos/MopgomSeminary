@@ -1,9 +1,7 @@
 const path = require('path')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use a custom build directory to avoid OneDrive file locks on .next
-  // Moving the build output prevents EBUSY errors caused by sync/indexing
-  distDir: '.next-dev',
+  // Use default .next build directory for standard hosting
   // External packages for server components
   serverExternalPackages: ['prisma', '@prisma/client'],
 
