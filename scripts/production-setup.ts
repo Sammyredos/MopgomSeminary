@@ -2,7 +2,7 @@
 
 /**
  * Production Setup Script
- * Sets up the application for production deployment on Render with PostgreSQL
+ * Sets up the application for production deployment with PostgreSQL
  */
 
 import { PrismaClient } from '@prisma/client'
@@ -70,7 +70,7 @@ async function setupProduction() {
 
     if (!allEnvVarsSet) {
       console.log('\n⚠️  Some required environment variables are missing!')
-      console.log('Please set them in your Render dashboard before deployment.')
+      console.log('Please set them in your deployment environment before production.')
     }
 
     // 4. Production Configuration Check
@@ -137,8 +137,8 @@ async function setupProduction() {
 
     console.log('\n🎉 PRODUCTION SETUP CHECK COMPLETED!')
     console.log('\n📋 NEXT STEPS:')
-    console.log('1. Ensure all environment variables are set in Render dashboard')
-    console.log('2. Add PostgreSQL database service in Render')
+    console.log('1. Ensure all environment variables are set')
+    console.log('2. Provision a PostgreSQL database and whitelist app network access')
     console.log('3. Deploy the application')
     console.log('4. Run database migrations during first deployment')
     console.log('5. Verify super admin account creation')

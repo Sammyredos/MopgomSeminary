@@ -15,34 +15,11 @@ const nextConfig = {
   // Ensure correct workspace root for file tracing in monorepo-like setups
   outputFileTracingRoot: path.join(__dirname),
 
-  // Simplified webpack configuration
-  webpack: (config, { isServer }) => {
-    // Fix module resolution issues
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': require('path').resolve(__dirname, 'src'),
-    }
-
-    // Remove extensionAlias to avoid resolving UMD imports to ESM .mjs
-    // This ensures 'pdfjs-dist/build/pdf.js' uses the UMD build consistently.
-    // If future packages require .mjs resolution, handle them explicitly.
-
-    // Only add fallbacks for client-side builds
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      }
-    }
-
-    return config
-  },
+  // Turbopack configuration (Next.js 16 default bundler)
+  turbopack: {},
 
   // Image optimization
   images: {
-    domains: ['localhost', 'mopgomseminary.onrender.com'],
     formats: ['image/webp', 'image/avif'],
     remotePatterns: [
       {
@@ -53,10 +30,6 @@ const nextConfig = {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
-      },
-      {
-        protocol: 'https',
-        hostname: 'mopgomseminary.onrender.com',
       }
     ],
     unoptimized: false,
@@ -68,10 +41,6 @@ const nextConfig = {
     ignoreBuildErrors: process.env.NODE_ENV === 'development' || process.env.SKIP_TYPE_CHECK === 'true',
   },
 
-  // ESLint configuration
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 
   // Performance optimizations
   poweredByHeader: false,

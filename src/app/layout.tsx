@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/styles/fonts.css";
+import "@/styles/animations.css";
 import { TitleManager } from "@/components/TitleManager";
 import { FaviconManager } from "@/components/FaviconManager";
 import { ProgressBar } from "@/components/ProgressBar";

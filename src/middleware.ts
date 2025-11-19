@@ -1,6 +1,41 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyTokenEdge, getTokenFromRequest } from '@/lib/auth-edge'
+import { jwtVerify } from 'jose'
+
+interface JWTPayload {
+  adminId: string
+  email: string
+  type?: 'admin' | 'user'
+  iat?: number
+  exp?: number
+}
+
+async function verifyTokenEdge(token: string): Promise<JWTPayload | null> {
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret')
+    const { payload } = await jwtVerify(token, secret)
+    return payload as unknown as JWTPayload
+  } catch {
+    return null
+  }
+}
+
+function getTokenFromRequest(request: NextRequest): string | null {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7)
+  }
+  const cookieHeader = request.headers.get('cookie')
+  if (cookieHeader) {
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=')
+      acc[key] = value
+      return acc
+    }, {} as Record<string, string>)
+    return cookies['auth-token'] || null
+  }
+  return null
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

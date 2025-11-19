@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "../styles/fonts.css";
-@import "../styles/animations.css";
 
 /* Tailwind CSS custom variant - suppress CSS linter warning */
 /* stylelint-disable-next-line at-rule-no-unknown */

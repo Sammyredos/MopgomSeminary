@@ -259,10 +259,7 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
               <>
                 <PencilLine className="h-5 w-5 text-emerald-700" />
                 Edit Course Content
-                <Button type="button" variant="ghost" size="sm" className="ml-auto text-gray-600 hover:text-gray-800" onClick={resetForm}>
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Cancel editing</span>
-                </Button>
+                
               </>
             ) : (
               <>
