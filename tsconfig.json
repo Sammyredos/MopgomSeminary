@@ -73,7 +73,8 @@
     "scripts/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/dev/types/**/*.ts"
+    ".next-dev/types/**/*.ts",
+    ".next-dev/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -1,0 +1,117 @@
+services:
+  - type: web
+    name: mopgomseminary
+    env: node
+    plan: starter
+    region: oregon
+    autoDeploy: true
+    previewsEnabled: false
+    # Use a simple health endpoint that is always available
+    healthCheckPath: /
+    # Persist user uploads across deploys
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/public/uploads
+      sizeGB: 5
+    buildCommand: |
+      echo "Starting production build..." &&
+      npm ci &&
+      npx prisma generate &&
+      npx tsx scripts/setup-production-db.ts &&
+      npx tsx scripts/cleanup-placeholder-platoons.ts || echo "Cleanup script skipped" &&
+      npx tsx scripts/create-super-admin.ts || echo "Super Admin already exists" &&
+      npx tsx scripts/seed-settings.ts || echo "Settings seeding skipped" &&
+      npx tsx scripts/seed-notification-security-settings.ts || echo "Notification/security seeding skipped" &&
+      npx tsx scripts/update-branding.ts || echo "Branding update skipped" &&
+      npx tsx scripts/update-permissions.ts || echo "Permissions update skipped" &&
+      npx tsx scripts/create-staff-role.ts || echo "Staff role setup skipped" &&
+      npm run build &&
+      npm prune --production
+    # Ensure database migrations are applied after a successful deploy
+    postDeployCommand: |
+      npx prisma migrate deploy || true &&
+      npx tsx scripts/deploy-database.ts || true
+    startCommand: |
+      npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mopgomseminary-db
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 20.11.1
+      - key: NEXTAUTH_URL
+        value: https://mopgomseminary.onrender.com
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        generateValue: true
+        sync: false
+      - key: RATE_LIMIT_ENABLED
+        value: true
+      - key: LOG_LEVEL
+        value: info
+      # Monitoring
+      - key: SENTRY_DSN
+        sync: false
+      # Email Configuration
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 465
+      - key: SMTP_SECURE
+        value: true
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM_NAME
+        value: Mopgom Seminary
+      - key: EMAIL_REPLY_TO
+        value: s.obadina@mopgomts.com
+      - key: ADMIN_EMAILS
+        value: s.obadina@mopgomts.com
+      # Real-Time Features
+      - key: STAFF_REALTIME_ACCESS
+        value: true
+      - key: SSE_HEARTBEAT_INTERVAL
+        value: 15000
+      - key: SSE_RECONNECT_INTERVAL
+        value: 2000
+      - key: SSE_CONNECTION_TIMEOUT
+        value: 10000
+      # Branch Features
+      - key: BRANCH_SELECTION_REQUIRED
+        value: true
+      - key: BRANCH_VALIDATION_ENABLED
+        value: true
+      - key: LEGACY_BRANCH_FALLBACK
+        value: "Not Specified"
+      # Redis (required by production validation)
+      - key: REDIS_URL
+        sync: false
+      # Cloudinary (required)
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      # Backups (required in production)
+      - key: BACKUP_ENCRYPTION
+        value: true
+      - key: BACKUP_ENCRYPTION_KEY
+        generateValue: true
+        sync: false
+
+databases:
+  - name: mopgomseminary-db
+    databaseName: mopgomseminary
+    user: mopgomseminary_user
+    plan: starter
