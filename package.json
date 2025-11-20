@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 3000",
+    "dev:webpack": "next dev --webpack -H 0.0.0.0 -p 3000",
     "build": "next build",
     "build:production": "NODE_ENV=production SKIP_TYPE_CHECK=true prisma generate && next build",
     "build:render": "npm ci && prisma generate && npm run build:production",
@@ -39,8 +40,8 @@
     "db:migrate:reset": "prisma migrate reset --force",
     "db:studio": "dotenv -e .env.local -- prisma studio",
     "db:studio:prod": "prisma studio",
-    "clean": "rimraf .next tsconfig.tsbuildinfo",
-    "clean:cache": "rimraf .next/cache",
+    "clean": "rimraf .next .next-dev tsconfig.tsbuildinfo",
+    "clean:cache": "rimraf .next/cache .next-dev/cache",
     "fresh": "npm run clean && npm run dev"
   },
   "dependencies": {

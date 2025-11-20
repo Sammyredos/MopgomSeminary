@@ -29,10 +29,9 @@ services:
       npm prune --production
     # Ensure database migrations are applied after a successful deploy
     postDeployCommand: |
-      npx prisma migrate deploy || true &&
-      npx tsx scripts/deploy-database.ts || true
+      npx prisma migrate deploy || npx prisma db push
     startCommand: |
-      npm start
+      npm run start:migrate
     envVars:
       - key: DATABASE_URL
         sync: false
