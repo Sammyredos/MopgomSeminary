@@ -1,3 +1,5 @@
+'use client'
+
 import React, { Suspense } from 'react'
 import { useUser } from '@/contexts/UserContext'
 import { UnpaidAccessModal } from '@/components/student/UnpaidAccessModal'
