@@ -106,14 +106,28 @@ export async function GET(request: NextRequest) {
           .map((r: any) => r.emailAddress)
           .filter((e: string | null) => !!e) as string[]
 
-        const users = await prisma.user.findMany({
-          where: { email: { in: emails } },
-          select: ({ email: true, isActive: true, isPaid: true } as any)
-        }) as any[]
+        let includePaid = true
+        let users: any[] = []
+        try {
+          users = await prisma.user.findMany({
+            where: { email: { in: emails } },
+            select: ({ email: true, isActive: true, isPaid: true } as any)
+          }) as any[]
+        } catch (err: any) {
+          if (err && err.code === 'P2022') {
+            includePaid = false
+            users = await prisma.user.findMany({
+              where: { email: { in: emails } },
+              select: { email: true, isActive: true }
+            }) as any[]
+          } else {
+            throw err
+          }
+        }
 
         const statusMap = new Map<string, { isActive: boolean; isPaid: boolean }>()
         users.forEach((u: any) => {
-          if (u.email) statusMap.set(u.email.toLowerCase(), { isActive: !!u.isActive, isPaid: !!u.isPaid })
+          if (u.email) statusMap.set(u.email.toLowerCase(), { isActive: !!u.isActive, isPaid: includePaid ? !!u.isPaid : false })
         })
 
         registrationsWithMatricNumbers = registrationsWithMatricNumbers.map((r: any) => {
