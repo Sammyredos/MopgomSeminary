@@ -17,3 +17,16 @@ if (dbUrl && sslMode) {
 export const prisma = globalForPrisma.prisma ?? new PrismaClient()
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+async function ensurePaymentStatusColumn() {
+  try {
+    const rows: any[] = await prisma.$queryRaw`SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'isPaid'`
+    if (!rows || rows.length === 0) {
+      await prisma.$executeRawUnsafe('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "isPaid" BOOLEAN NOT NULL DEFAULT false;')
+    }
+  } catch {}
+}
+
+if (process.env.NODE_ENV === 'production') {
+  ensurePaymentStatusColumn()
+}

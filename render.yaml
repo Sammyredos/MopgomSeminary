@@ -17,6 +17,7 @@ services:
       echo "Starting production build..." &&
       npm ci &&
       npx prisma generate &&
+      npx prisma db push || echo "DB push skipped" &&
       npx tsx scripts/setup-production-db.ts &&
       npx tsx scripts/cleanup-placeholder-platoons.ts || echo "Cleanup script skipped" &&
       npx tsx scripts/create-super-admin.ts || echo "Super Admin already exists" &&
