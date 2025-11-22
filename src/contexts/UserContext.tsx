@@ -21,6 +21,7 @@ interface CurrentUser {
   type: 'admin' | 'user'
   role: UserRole
   isActive: boolean
+  isPaid: boolean
 }
 
 interface UserContextType {

@@ -108,20 +108,22 @@ export async function GET(request: NextRequest) {
 
         const users = await prisma.user.findMany({
           where: { email: { in: emails } },
-          select: { email: true, isActive: true }
+          select: ({ email: true, isActive: true, isPaid: true } as any)
+        }) as any[]
+
+        const statusMap = new Map<string, { isActive: boolean; isPaid: boolean }>()
+        users.forEach((u: any) => {
+          if (u.email) statusMap.set(u.email.toLowerCase(), { isActive: !!u.isActive, isPaid: !!u.isPaid })
         })
 
-        const statusMap = new Map<string, boolean>()
-        users.forEach(u => {
-          if (u.email) statusMap.set(u.email.toLowerCase(), !!u.isActive)
+        registrationsWithMatricNumbers = registrationsWithMatricNumbers.map((r: any) => {
+          const s = statusMap.get(r.emailAddress?.toLowerCase() || '')
+          return {
+            ...r,
+            userIsActive: s ? s.isActive : true,
+            userIsPaid: s ? s.isPaid : false // default to unpaid if no user record
+          }
         })
-
-        registrationsWithMatricNumbers = registrationsWithMatricNumbers.map((r: any) => ({
-          ...r,
-          userIsActive: statusMap.has(r.emailAddress?.toLowerCase())
-            ? statusMap.get(r.emailAddress.toLowerCase())
-            : true // default to active if no matching user record
-        }))
       } catch (e) {
         // If status inclusion fails, proceed without it
         console.warn('Failed to include student status in registrations response:', e)

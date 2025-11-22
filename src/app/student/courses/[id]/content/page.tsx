@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { ProtectedRoute } from '@/components/student/ProtectedRoute'
+import { useUser } from '@/contexts/UserContext'
+import { UnpaidAccessModal } from '@/components/student/UnpaidAccessModal'
 import { StudentLayout } from '@/components/student/StudentLayout'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -30,6 +32,7 @@ interface CourseContentItem {
 }
 
 export default function StudentCourseContentPage() {
+  const { currentUser, loading: userLoading } = useUser()
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const courseId = params?.id as string
@@ -88,6 +91,7 @@ export default function StudentCourseContentPage() {
     }
   }
 
+  const showUnpaid = !userLoading && !!currentUser && (currentUser.type === 'user' || currentUser.role?.name === 'Student') && currentUser.isActive && !currentUser.isPaid
   return (
     <ProtectedRoute>
       <StudentLayout title="Course Content" description="Explore materials shared for this course">
@@ -167,6 +171,7 @@ export default function StudentCourseContentPage() {
           </Card>
         </div>
       </StudentLayout>
+      <UnpaidAccessModal open={showUnpaid} />
     </ProtectedRoute>
   )
 }

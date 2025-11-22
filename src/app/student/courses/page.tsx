@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { StudentLayout } from '@/components/student/StudentLayout'
 import { ProtectedRoute } from '@/components/student/ProtectedRoute'
+import { useUser } from '@/contexts/UserContext'
+import { UnpaidAccessModal } from '@/components/student/UnpaidAccessModal'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -26,6 +28,7 @@ interface Course {
 }
 
 export default function StudentCoursesPage() {
+  const { currentUser, loading: userLoading } = useUser()
   const [courses, setCourses] = useState<Course[]>([])
   const [programLabel, setProgramLabel] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -73,6 +76,7 @@ export default function StudentCoursesPage() {
     setCurrentPage(1)
   }
 
+  const showUnpaid = !userLoading && !!currentUser && (currentUser.type === 'user' || currentUser.role?.name === 'Student') && currentUser.isActive && !currentUser.isPaid
   return (
     <ProtectedRoute>
       <StudentLayout title="Course Programs" description="Browse courses available for your registered program">
@@ -191,6 +195,7 @@ export default function StudentCoursesPage() {
           onClose={() => setContentModalOpen(false)}
           course={selectedCourseForContent ? { id: selectedCourseForContent.id, courseCode: selectedCourseForContent.courseCode, courseName: selectedCourseForContent.courseName } : null}
         />
+        <UnpaidAccessModal open={showUnpaid} />
       </div>
       </StudentLayout>
     </ProtectedRoute>

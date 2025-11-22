@@ -1,133 +1,65 @@
-// Simple in-memory cache for database queries
-interface CacheEntry<T> {
-  data: T
-  timestamp: number
-  ttl: number
+import Redis from 'ioredis'
+
+type CacheValue = string
+type InMemoryEntry = { v: CacheValue; e: number }
+
+const m: Map<string, InMemoryEntry> = new Map()
+let r: Redis | null = null
+
+if (process.env.REDIS_URL) {
+  try {
+    r = new Redis(process.env.REDIS_URL)
+  } catch {}
 }
 
-class SimpleCache {
-  private cache = new Map<string, CacheEntry<any>>()
-  private maxSize = 100 // Maximum number of entries
+function now() {
+  return Date.now()
+}
 
-  set<T>(key: string, data: T, ttlMs = 5 * 60 * 1000): void {
-    // Remove oldest entries if cache is full
-    if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value
-      if (oldestKey) {
-        this.cache.delete(oldestKey)
+export async function getCache(key: string): Promise<CacheValue | null> {
+  if (r) {
+    try {
+      const v = await r.get(key)
+      return v ?? null
+    } catch {}
+  }
+  const e = m.get(key)
+  if (!e) return null
+  if (e.e && e.e < now()) {
+    m.delete(key)
+    return null
+  }
+  return e.v
+}
+
+export async function setCache(key: string, value: CacheValue, ttlSeconds?: number): Promise<void> {
+  if (r) {
+    try {
+      if (ttlSeconds && ttlSeconds > 0) {
+        await r.set(key, value, 'EX', ttlSeconds)
+      } else {
+        await r.set(key, value)
       }
-    }
-
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl: ttlMs
-    })
+      return
+    } catch {}
   }
-
-  get<T>(key: string): T | null {
-    const entry = this.cache.get(key)
-    
-    if (!entry) {
-      return null
-    }
-
-    // Check if entry has expired
-    if (Date.now() - entry.timestamp > entry.ttl) {
-      this.cache.delete(key)
-      return null
-    }
-
-    return entry.data as T
-  }
-
-  delete(key: string): void {
-    this.cache.delete(key)
-  }
-
-  clear(): void {
-    this.cache.clear()
-  }
-
-  // Clear entries matching a pattern
-  clearPattern(pattern: string): void {
-    for (const key of this.cache.keys()) {
-      if (key.includes(pattern)) {
-        this.cache.delete(key)
-      }
-    }
-  }
-
-  // Get cache statistics
-  getStats() {
-    return {
-      size: this.cache.size,
-      maxSize: this.maxSize,
-      keys: Array.from(this.cache.keys())
-    }
-  }
+  const e = ttlSeconds && ttlSeconds > 0 ? now() + ttlSeconds * 1000 : Number.POSITIVE_INFINITY
+  m.set(key, { v: value, e })
 }
 
-// Global cache instance
-export const cache = new SimpleCache()
-
-// Cache key generators
-export const cacheKeys = {
-
-  registrations: (limit?: number) => `registrations:${limit || 'all'}`,
-  notifications: (userId: string, page?: number, limit?: number) => 
-    `notifications:${userId}:${page || 1}:${limit || 20}`,
-  messages: (userId: string) => `messages:${userId}`,
-  userProfile: (userId: string) => `user:${userId}`,
-  settings: () => 'settings:global'
+export async function delCache(key: string): Promise<void> {
+  if (r) {
+    try {
+      await r.del(key)
+    } catch {}
+  }
+  m.delete(key)
 }
 
-// Helper function for cached database queries
-export async function withCache<T>(
-  key: string,
-  queryFn: () => Promise<T>,
-  ttlMs = 5 * 60 * 1000
-): Promise<T> {
-  // Try to get from cache first
-  const cached = cache.get<T>(key)
-  if (cached !== null) {
-    return cached
-  }
-
-  // Execute query and cache result
-  const result = await queryFn()
-  cache.set(key, result, ttlMs)
-  
-  return result
-}
-
-// Cache invalidation helpers
-export const invalidateCache = {
-  registrations: () => {
-    cache.clearPattern('registrations')
-    cache.clearPattern('notifications')
-  },
-  notifications: (userId?: string) => {
-    if (userId) {
-      cache.clearPattern(`notifications:${userId}`)
-    } else {
-      cache.clearPattern('notifications')
-    }
-  },
-  messages: (userId?: string) => {
-    if (userId) {
-      cache.delete(cacheKeys.messages(userId))
-    } else {
-      cache.clearPattern('messages')
-    }
-  },
-  user: (userId: string) => {
-    cache.delete(cacheKeys.userProfile(userId))
-  },
-  settings: () => {
-    cache.delete(cacheKeys.settings())
-  },
-  all: () => {
-    cache.clear()
-  }
+export async function withCache(key: string, ttlSeconds: number, fn: () => Promise<CacheValue>): Promise<CacheValue> {
+  const c = await getCache(key)
+  if (c !== null) return c
+  const v = await fn()
+  await setCache(key, v, ttlSeconds)
+  return v
 }

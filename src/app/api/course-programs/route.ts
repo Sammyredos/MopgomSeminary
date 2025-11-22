@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { withCache } from '@/lib/cache'
 
 // Course program interface
 interface CourseProgram {
@@ -26,25 +27,23 @@ const DEFAULT_PROGRAMS: CourseProgram[] = [
 export async function GET(request: NextRequest) {
   try {
     // Get course program settings from database
-    const setting = await prisma.setting.findUnique({
-      where: {
-        category_key: {
-          category: 'coursePrograms',
-          key: 'availability'
+    const key = 'settings:coursePrograms:availability'
+    const raw = await withCache(key, 300, async () => {
+      const s = await prisma.setting.findUnique({
+        where: {
+          category_key: {
+            category: 'coursePrograms',
+            key: 'availability'
+          }
         }
-      }
+      })
+      if (s && s.value) return s.value
+      return JSON.stringify(DEFAULT_PROGRAMS)
     })
-
     let programs: CourseProgram[]
-    
-    if (setting) {
-      try {
-        programs = JSON.parse(setting.value)
-      } catch (error) {
-        console.error('Failed to parse course program settings:', error)
-        programs = DEFAULT_PROGRAMS
-      }
-    } else {
+    try {
+      programs = JSON.parse(raw)
+    } catch {
       programs = DEFAULT_PROGRAMS
     }
 
@@ -54,8 +53,7 @@ export async function GET(request: NextRequest) {
       programs
     })
 
-    // Cache for 5 minutes
-    response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300')
+    response.headers.set('Cache-Control', 'public, max-age=900, s-maxage=900')
     
     return response
 

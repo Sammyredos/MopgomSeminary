@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
         role: user.role,
         permissions: user.role?.permissions?.map(p => p.name) || [],
         isActive: user.isActive,
+        isPaid: (user as any).isPaid ?? false,
         courseDesired
       }
     })

@@ -7,11 +7,13 @@ import { useUser } from '@/contexts/UserContext'
 interface ProtectedRouteProps {
   children: ReactNode
   fallbackPath?: string
+  requirePaid?: boolean
 }
 
 export function ProtectedRoute({
   children,
-  fallbackPath = '/login'
+  fallbackPath = '/login',
+  requirePaid = false
 }: ProtectedRouteProps) {
   const { currentUser, loading } = useUser()
   const router = useRouter()
@@ -29,16 +31,16 @@ export function ProtectedRoute({
       return
     }
 
-    // Treat any non-admin account as student-accessible
     const isStudent = currentUser.type === 'user' || currentUser.role?.name === 'Student'
+    const isAllowed = isStudent && currentUser.isActive && (!requirePaid || currentUser.isPaid)
 
-    if (isStudent) {
+    if (isAllowed) {
       setAuthState('authorized')
     } else {
       setAuthState('unauthorized')
       router.push(fallbackPath)
     }
-  }, [currentUser, loading, router, fallbackPath])
+  }, [currentUser, loading, router, fallbackPath, requirePaid])
 
   // Only show loading spinner during initial auth check
   if (authState === 'loading') {

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -31,6 +31,7 @@ model User {
   phoneVerifiedAt  DateTime?
   roleId           String
   isActive         Boolean   @default(true)
+  isPaid           Boolean   @default(false)
   lastLogin        DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

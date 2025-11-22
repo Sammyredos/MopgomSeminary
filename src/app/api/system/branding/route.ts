@@ -1,44 +1,36 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getSafeLogoUrl } from '@/lib/logo-cleanup'
+import { withCache } from '@/lib/cache'
 
 // Public API - no authentication required for system branding
 export async function GET() {
   try {
     // Get system name and logo from settings
-    const brandingSettings = await prisma.setting.findMany({
-      where: {
-        category: 'branding',
-        key: {
-          in: ['systemName', 'logoUrl']
+    const rawName = await withCache('settings:branding:systemName', 60, async () => {
+      const s = await prisma.setting.findUnique({
+        where: {
+          category_key: {
+            category: 'branding',
+            key: 'systemName'
+          }
         }
-      }
+      })
+      if (!s) return '"Mopgom TS"'
+      return s.value
     })
-
-    // Debug logging removed for production
-
-    const systemNameSetting = brandingSettings.find(s => s.key === 'systemName')
-
-    let systemName = 'Mopgom TS' // Default fallback
-    let logoUrl: string | null = null
-
-    if (systemNameSetting) {
-      try {
-        systemName = JSON.parse(systemNameSetting.value)
-        console.log('✅ System name from JSON:', systemName)
-      } catch {
-        systemName = systemNameSetting.value
-        console.log('✅ System name from raw value:', systemName)
-      }
-    } else {
-      // Reduced logging frequency for production
-      if (Math.random() < 0.1) { // Only log 10% of the time
-        console.log('⚠️ No system name setting found, using default:', systemName)
-      }
+    let systemName = 'Mopgom TS'
+    try {
+      systemName = JSON.parse(rawName)
+    } catch {
+      systemName = rawName
     }
 
-    // Get safe logo URL that's guaranteed to exist or null
-    logoUrl = await getSafeLogoUrl()
+    const logoUrl = await withCache('branding:logoUrl:safe', 30, async () => {
+      const u = await getSafeLogoUrl()
+      return u || ''
+    })
+    const finalLogo = logoUrl || null
 
     // Add cache-busting parameter to logo URL only if it exists
     const logoUrlWithCacheBust = logoUrl ? `${logoUrl}?v=${Date.now()}` : null
@@ -47,7 +39,7 @@ export async function GET() {
       success: true,
       systemName,
       logoUrl: logoUrlWithCacheBust,
-      timestamp: Date.now() // Add timestamp for cache invalidation
+      timestamp: Date.now()
     }, {
       headers: {
         'Cache-Control': 'public, max-age=30', // Reduced cache time for faster updates

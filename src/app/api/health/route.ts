@@ -64,7 +64,6 @@ export async function GET(request: NextRequest) {
     }
 
     const statusCode = 200
-
     return NextResponse.json(healthCheck, { 
       status: statusCode,
       headers: {

@@ -24,6 +24,8 @@ import { ViewToggle } from '@/components/ui/view-toggle'
 import { Pagination } from '@/components/ui/pagination'
 import { BanConfirmModal } from '@/components/modals/BanConfirmModal'
 import { UnbanConfirmModal } from '@/components/modals/UnbanConfirmModal'
+import { PaidConfirmModal } from '@/components/modals/PaidConfirmModal'
+import { UnpaidConfirmModal } from '@/components/modals/UnpaidConfirmModal'
 
 
 import {
@@ -93,6 +95,7 @@ interface Registration {
   attendanceTime?: string
   // Student account status (optional, populated when requested)
   userIsActive?: boolean
+  userIsPaid?: boolean
 }
 
 interface PaginationInfo {
@@ -142,6 +145,13 @@ export default function AdminRegistrations() {
   const [showUnbanConfirm, setShowUnbanConfirm] = useState(false)
   const [unbanTarget, setUnbanTarget] = useState<Registration | null>(null)
   const [isUnbanning, setIsUnbanning] = useState(false)
+  // Payment confirmation modal state
+  const [showPaidConfirm, setShowPaidConfirm] = useState(false)
+  const [paidTarget, setPaidTarget] = useState<Registration | null>(null)
+  const [isMarkingPaid, setIsMarkingPaid] = useState(false)
+  const [showUnpaidConfirm, setShowUnpaidConfirm] = useState(false)
+  const [unpaidTarget, setUnpaidTarget] = useState<Registration | null>(null)
+  const [isMarkingUnpaid, setIsMarkingUnpaid] = useState(false)
   const [errorModal, setErrorModal] = useState<{
     isOpen: boolean
     type: 'error' | 'warning' | 'info' | 'success'
@@ -646,6 +656,75 @@ export default function AdminRegistrations() {
     } catch (e) {
       error(`Network error while ${isActive ? 'deactivating' : 'activating'} student`)
     }
+  }
+
+  const handleToggleStudentPaid = async (email: string, makePaid?: boolean) => {
+    try {
+      const endpoint = makePaid ? '/api/admin/students/paid' : '/api/admin/students/unpaid'
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        error(data.error || `Failed to mark ${makePaid ? 'paid' : 'unpaid'}`)
+        return
+      }
+      success(data.message || (makePaid ? 'Student marked as paid' : 'Student marked as unpaid'))
+
+      const emailLower = (email || '').toLowerCase()
+      setRegistrations(prev => prev.map(r => (
+        r.emailAddress?.toLowerCase() === emailLower
+          ? { ...r, userIsPaid: !!makePaid }
+          : r
+      )))
+
+      await fetchRegistrations(true)
+    } catch (e) {
+      error(`Network error while marking ${makePaid ? 'paid' : 'unpaid'}`)
+    }
+  }
+
+  // Payment confirmation handlers
+  const handlePaidRequest = (registration: Registration) => {
+    setPaidTarget(registration)
+    setShowPaidConfirm(true)
+  }
+  const confirmPaid = async () => {
+    if (!paidTarget) return
+    try {
+      setIsMarkingPaid(true)
+      await handleToggleStudentPaid(paidTarget.emailAddress, true)
+      setShowPaidConfirm(false)
+      setPaidTarget(null)
+    } finally {
+      setIsMarkingPaid(false)
+    }
+  }
+  const cancelPaid = () => {
+    setShowPaidConfirm(false)
+    setPaidTarget(null)
+  }
+
+  const handleUnpaidRequest = (registration: Registration) => {
+    setUnpaidTarget(registration)
+    setShowUnpaidConfirm(true)
+  }
+  const confirmUnpaid = async () => {
+    if (!unpaidTarget) return
+    try {
+      setIsMarkingUnpaid(true)
+      await handleToggleStudentPaid(unpaidTarget.emailAddress, false)
+      setShowUnpaidConfirm(false)
+      setUnpaidTarget(null)
+    } finally {
+      setIsMarkingUnpaid(false)
+    }
+  }
+  const cancelUnpaid = () => {
+    setShowUnpaidConfirm(false)
+    setUnpaidTarget(null)
   }
   const handleEditRegistration = async () => {
     if (!selectedRegistration) return
@@ -1647,7 +1726,7 @@ export default function AdminRegistrations() {
                   showDeleteButton={!isStudentsRoute}
                   extraActions={
                     isStudentsRoute ? (
-                      <div className="flex gap-2 w-full">
+                      <div className="flex flex-col gap-2 w-full">
                         {registration.userIsActive === true ? (
                           <Button
                             variant="destructive"
@@ -1676,6 +1755,30 @@ export default function AdminRegistrations() {
                             disabled
                             aria-label="Loading status"
                           >
+                            <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
+                            Loading
+                          </Button>
+                        )}
+                        {registration.userIsPaid === true ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                            onClick={() => handleUnpaidRequest(registration)}
+                          >
+                            Unpaid
+                          </Button>
+                        ) : registration.userIsPaid === false ? (
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => handlePaidRequest(registration)}
+                            aria-label="Mark paid"
+                          >
+                            Paid
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" disabled>
                             <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                             Loading
                           </Button>
@@ -1750,7 +1853,7 @@ export default function AdminRegistrations() {
                         {isStudentsRoute ? (
                           <td className="px-4 py-4 text-sm font-apercu-medium">
                             <div className="flex flex-wrap gap-2">
-                              {/* Ban or Activate icon button with distinctive color */}
+                              {/* Ban or Activate */}
                               {registration.userIsActive === true ? (
                                 <Button
                                   variant="destructive"
@@ -1779,6 +1882,32 @@ export default function AdminRegistrations() {
                                   disabled
                                   aria-label="Loading status"
                                 >
+                                  <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
+                                  Loading
+                                </Button>
+                              )}
+                              {/* Paid/Unpaid */}
+                              {registration.userIsPaid === true ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleUnpaidRequest(registration)}
+                                  className="text-amber-700 border-amber-300 hover:bg-amber-50"
+                                  aria-label="Mark unpaid"
+                                >
+                                  Unpaid
+                                </Button>
+                              ) : registration.userIsPaid === false ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handlePaidRequest(registration)}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                  aria-label="Mark paid"
+                                >
+                                  Paid
+                                </Button>
+                              ) : (
+                                <Button variant="outline" size="sm" disabled aria-label="Loading payment status">
                                   <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />
                                   Loading
                                 </Button>
@@ -2671,6 +2800,38 @@ export default function AdminRegistrations() {
             createdAt: unbanTarget.createdAt
           }}
           loading={isUnbanning}
+        />
+      )}
+
+      {/* Paid Confirmation Modal */}
+      {showPaidConfirm && paidTarget && (
+        <PaidConfirmModal
+          isOpen={showPaidConfirm}
+          onClose={cancelPaid}
+          onConfirm={confirmPaid}
+          registration={{
+            id: paidTarget.id,
+            fullName: paidTarget.fullName,
+            emailAddress: paidTarget.emailAddress,
+            createdAt: paidTarget.createdAt
+          }}
+          loading={isMarkingPaid}
+        />
+      )}
+
+      {/* Unpaid Confirmation Modal */}
+      {showUnpaidConfirm && unpaidTarget && (
+        <UnpaidConfirmModal
+          isOpen={showUnpaidConfirm}
+          onClose={cancelUnpaid}
+          onConfirm={confirmUnpaid}
+          registration={{
+            id: unpaidTarget.id,
+            fullName: unpaidTarget.fullName,
+            emailAddress: unpaidTarget.emailAddress,
+            createdAt: unpaidTarget.createdAt
+          }}
+          loading={isMarkingUnpaid}
         />
       )}
 
