@@ -20,10 +20,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    const student: any = await prisma.user.findUnique({
-      where: { email },
-      include: { role: true }
-    })
+    let student: any = null
+    try {
+      student = await prisma.user.findUnique({
+        where: { email },
+        include: { role: true }
+      })
+    } catch (err: any) {
+      if (err && err.code === 'P2022') {
+        student = await prisma.user.findUnique({
+          where: { email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            isActive: true,
+            role: { select: { id: true, name: true, description: true, isSystem: true } }
+          }
+        })
+      } else {
+        throw err
+      }
+    }
 
     if (!student) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -36,10 +54,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Student is already marked as unpaid' }, { status: 400 })
     }
 
-    await prisma.user.update({
-      where: { id: student.id },
-      data: ({ isPaid: false } as any)
-    })
+    try {
+      await prisma.user.update({
+        where: { id: student.id },
+        data: ({ isPaid: false } as any)
+      })
+    } catch (err: any) {
+      if (err && err.code === 'P2022') {
+        return NextResponse.json({ error: 'Payment status column missing in database. Please run migrations.' }, { status: 500 })
+      }
+      throw err
+    }
 
     return NextResponse.json({ success: true, message: 'Student marked as unpaid successfully' })
   } catch (error) {
