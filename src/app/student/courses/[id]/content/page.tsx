@@ -12,6 +12,7 @@ import CourseContentCard from '@/components/ui/course-content-card'
 import { useParams, useRouter } from 'next/navigation'
 import { ChevronLeft, PlayCircle, Music, FileText, Link as LinkIcon, File, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import StudentPdfViewerModal from '@/components/modals/StudentPdfViewerModal'
 
 type ContentType = 'youtube' | 'audio' | 'pdf' | 'link' | 'text'
 
@@ -43,6 +44,8 @@ export default function StudentCourseContentPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState<Record<string, boolean>>({})
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false)
+  const [pdfViewerData, setPdfViewerData] = useState<{ url: string; title: string; subject: string | null } | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -121,10 +124,16 @@ export default function StudentCourseContentPage() {
                           contentType={item.contentType}
                           actions={
                             item.contentType === 'pdf' && item.url ? (
-                              <Button asChild size="sm" variant="outline" className="group bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
-                                <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}&subject=${encodeURIComponent(item.subjectLabel || 'General')}`} prefetch={false}>
-                                  <ExternalLink className="h-4 w-4 mr-1" />Open Secure Viewer
-                                </Link>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="group bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm"
+                                onClick={() => {
+                                  setPdfViewerData({ url: item.url!, title: item.title, subject: item.subjectLabel || 'General' })
+                                  setPdfViewerOpen(true)
+                                }}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-1" />Open Secure Viewer
                               </Button>
                             ) : item.url ? (
                               <Button asChild size="sm" variant="outline" className="hover:bg-emerald-50">
@@ -172,6 +181,13 @@ export default function StudentCourseContentPage() {
         </div>
       </StudentLayout>
       <UnpaidAccessModal open={showUnpaid} />
+      <StudentPdfViewerModal
+        isOpen={pdfViewerOpen}
+        onClose={() => setPdfViewerOpen(false)}
+        fileUrl={pdfViewerData?.url || null}
+        title={pdfViewerData?.title}
+        subjectLabel={pdfViewerData?.subject || null}
+      />
     </ProtectedRoute>
   )
 }

@@ -18,6 +18,7 @@ export interface CourseContentListItemProps {
   url?: string | null
   className?: string
   showDescription?: boolean
+  onOpenPdf?: (data: { url: string; title: string; subject: string | null }) => void
 }
 
 const typeLabel = (t: ContentType) => t.charAt(0).toUpperCase() + t.slice(1)
@@ -30,7 +31,8 @@ export function CourseContentListItem({
   description,
   url,
   className,
-  showDescription = true
+  showDescription = true,
+  onOpenPdf
 }: CourseContentListItemProps) {
   const isPdf = contentType === 'pdf'
   const Icon = (
@@ -80,13 +82,12 @@ export function CourseContentListItem({
       <div className="mt-2">
         {url ? (
           isPdf ? (
-            <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm w-full">
-              <Link
-                href={`/student/content/viewer?url=${encodeURIComponent(url!)}&title=${encodeURIComponent(title)}&subject=${encodeURIComponent(subjectLabel || 'General')}`}
-                prefetch={false}
-              >
-                Open
-              </Link>
+            <Button
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm w-full"
+              onClick={() => onOpenPdf?.({ url: url!, title, subject: subjectLabel || 'General' })}
+            >
+              Open
             </Button>
           ) : (
             <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm w-full">

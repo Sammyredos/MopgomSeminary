@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, Loader2, FileText } from 'lucide-react'
 import Link from 'next/link'
+import StudentPdfViewerModal from '@/components/modals/StudentPdfViewerModal'
 import { CourseContentListItem } from '@/components/ui/course-content-list-item'
 
 type ContentType = 'youtube' | 'audio' | 'pdf' | 'link' | 'text'
@@ -45,6 +46,8 @@ export default function StudentCourseContentModal({ isOpen, onClose, course }: S
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const itemsPerPage = 5
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false)
+  const [pdfViewerData, setPdfViewerData] = useState<{ url: string; title: string; subject: string | null } | null>(null)
 
   useEffect(() => {
     if (!isOpen || !course) return
@@ -126,6 +129,10 @@ export default function StudentCourseContentModal({ isOpen, onClose, course }: S
                       description={item.description}
                       url={item.url}
                       showDescription={false}
+                      onOpenPdf={({ url, title, subject }) => {
+                        setPdfViewerData({ url, title, subject })
+                        setPdfViewerOpen(true)
+                      }}
                     />
                   ))}
                 </div>
@@ -155,12 +162,17 @@ export default function StudentCourseContentModal({ isOpen, onClose, course }: S
                               <Badge variant="outline" className="text-[11px] bg-emerald-50 text-emerald-700 border-emerald-200">{typeLabel(item.contentType)}</Badge>
                             </td>
                             <td className="px-3 py-3 whitespace-nowrap">
-                              {item.url ? (
+                          {item.url ? (
                                 item.contentType === 'pdf' ? (
-                                  <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
-                                    <Link href={`/student/content/viewer?url=${encodeURIComponent(item.url!)}&title=${encodeURIComponent(item.title)}&subject=${encodeURIComponent(item.subjectLabel || 'General')}`} prefetch={false}>
-                                      Open
-                                    </Link>
+                                  <Button
+                                    size="sm"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm"
+                                    onClick={() => {
+                                      setPdfViewerData({ url: item.url!, title: item.title, subject: item.subjectLabel || 'General' })
+                                      setPdfViewerOpen(true)
+                                    }}
+                                  >
+                                    Open
                                   </Button>
                                 ) : (
                                   <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
@@ -206,6 +218,13 @@ export default function StudentCourseContentModal({ isOpen, onClose, course }: S
           )}
         </div>
       </DialogContent>
+      <StudentPdfViewerModal
+        isOpen={pdfViewerOpen}
+        onClose={() => setPdfViewerOpen(false)}
+        fileUrl={pdfViewerData?.url || null}
+        title={pdfViewerData?.title}
+        subjectLabel={pdfViewerData?.subject || null}
+      />
     </Dialog>
   )
 }

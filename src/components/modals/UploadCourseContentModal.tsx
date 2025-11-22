@@ -252,7 +252,7 @@ export default function UploadCourseContentModal({ isOpen, onClose, course, onUp
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
             {editingItem ? (

@@ -2,9 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Lock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { FileDigit } from 'lucide-react'
 
 interface SecurePdfViewerProps {
   fileUrl: string
@@ -224,23 +223,23 @@ export default function SecurePdfViewer({ fileUrl, title, watermarkText, subject
   return (
     <div className="relative w-full mx-auto">
       {/* Info Header with Green Border */}
-      <div className="p-4 sm:p-5 mb-3 border border-emerald-200 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50">
+      <div className="p-4 sm:p-5 mb-3 border border-emerald-200 rounded-xl bg-emerald-50">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-emerald-600 to-green-600 flex items-center justify-center text-white flex-shrink-0">
-              <FileDigit className="h-5 w-5" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-emerald-600 flex items-center justify-center text-white flex-shrink-0">
+              <Lock className="h-5 w-5" />
             </div>
             <div className="min-w-0">
               {title && (
                 <h2 className="font-apercu-bold text-base text-gray-900 truncate" title={title}>{title}</h2>
               )}
               <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200 text-[11px] px-2 py-1">PDF</Badge>
+                <Badge className="bg-purple-100 text-purple-800 border-purple-200 text-[11px] px-2 py-1">PDF</Badge>
                 {subjectLabel && (
-                  <Badge variant="outline" className="text-[11px] capitalize">{subjectLabel}</Badge>
+                  <Badge variant="outline" className="text-[11px] bg-white text-gray-800 border-gray-300 capitalize">{subjectLabel}</Badge>
                 )}
                 {totalPages > 0 && (
-                  <Badge variant="outline" className="text-[11px]">Pages: {totalPages}</Badge>
+                  <Badge variant="outline" className="text-[11px] bg-white text-gray-800 border-gray-300">Pages: {totalPages}</Badge>
                 )}
               </div>
             </div>

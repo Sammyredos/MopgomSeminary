@@ -72,9 +72,7 @@
     "prisma/**/*.ts",
     "scripts/**/*.ts",
     "src/**/*.ts",
-    "src/**/*.tsx",
-    ".next-dev/types/**/*.ts",
-    ".next-dev/dev/types/**/*.ts"
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
