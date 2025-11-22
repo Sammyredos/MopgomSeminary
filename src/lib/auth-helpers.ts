@@ -67,33 +67,59 @@ export async function authenticateRequest(request: NextRequest): Promise<{
 
       // Fallback to regular user if not found (for legacy tokens mislabelled as admin)
       if (!user) {
-        const candidate = await prisma.user.findUnique({
-          where: { id: principalId },
-          include: {
-            role: {
-              include: {
-                permissions: true
-              }
-            }
+        try {
+          const candidate = await prisma.user.findUnique({
+            where: { id: principalId },
+            include: { role: { include: { permissions: true } } }
+          })
+          if (candidate) {
+            user = candidate
+            userType = 'user'
           }
-        })
-        if (candidate) {
-          user = candidate
-          userType = 'user'
+        } catch (err: any) {
+          if (err && err.code === 'P2022') {
+            const candidate = await prisma.user.findUnique({
+              where: { id: principalId },
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                isActive: true,
+                role: { select: { id: true, name: true, description: true, isSystem: true, permissions: true } }
+              }
+            })
+            if (candidate) {
+              user = candidate
+              userType = 'user'
+            }
+          } else {
+            throw err
+          }
         }
       }
     } else {
       // Try regular user first
-      user = await prisma.user.findUnique({
-        where: { id: principalId },
-        include: {
-          role: {
-            include: {
-              permissions: true
+      try {
+        user = await prisma.user.findUnique({
+          where: { id: principalId },
+          include: { role: { include: { permissions: true } } }
+        })
+      } catch (err: any) {
+        if (err && err.code === 'P2022') {
+          user = await prisma.user.findUnique({
+            where: { id: principalId },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              isActive: true,
+              role: { select: { id: true, name: true, description: true, isSystem: true, permissions: true } }
             }
-          }
+          })
+        } else {
+          throw err
         }
-      })
+      }
 
       // Fallback to admin if not found (handles rare mislabelled tokens)
       if (!user) {

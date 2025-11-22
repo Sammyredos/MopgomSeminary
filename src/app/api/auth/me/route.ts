@@ -33,17 +33,28 @@ export async function GET(request: NextRequest) {
         }
       })
     } else {
-      // Fetch regular user - tokens use adminId field for compatibility
-      user = await prisma.user.findUnique({
-        where: { id: payload.adminId },
-        include: {
-          role: {
-            include: {
-              permissions: true
+      try {
+        user = await prisma.user.findUnique({
+          where: { id: payload.adminId },
+          include: { role: { include: { permissions: true } } }
+        })
+      } catch (err: any) {
+        if (err && err.code === 'P2022') {
+          user = await prisma.user.findUnique({
+            where: { id: payload.adminId },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              phoneNumber: true,
+              isActive: true,
+              role: { select: { id: true, name: true, description: true, isSystem: true, permissions: true } }
             }
-          }
+          })
+        } else {
+          throw err
         }
-      })
+      }
     }
 
     if (!user || !user.isActive) {
